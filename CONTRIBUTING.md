@@ -139,6 +139,13 @@ Safety rules, all tested:
   mistaken for a removal next time; a retryable failure keeps the old snapshot
   so the next run tries again.
 - **Removals above a limit per run** (25 by default) need explicit consent.
+- **A version whose verse mapping changed is re-added, not diffed.** The
+  snapshot is keyed by canonical verse, so after a mapping change (new
+  numbering support, better counts) a version's old colours sit on the wrong
+  verses and would read as removals and recolours. `maps` fingerprints each
+  version's mapping per book; when it differs, that version is planned as a
+  newcomer in that book and its old snapshot there is dropped. A snapshot
+  saved before fingerprints existed counts as changed wherever it has data.
 
 ## The YouVersion API: things that will bite you
 

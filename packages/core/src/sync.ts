@@ -22,6 +22,14 @@
  *
  * Safety: if reading any chapter of a book fails, the whole book is skipped,
  * so a failed read can never look like "highlight removed".
+ *
+ * The snapshot is only meaningful under the verse mapping that wrote it. When
+ * a version's mapping of a book changes (better numbering data, a new
+ * numbering system), its old snapshot sits on the wrong canonical verses and
+ * would read as removals and recolours. So each version's mapping is
+ * fingerprinted per book, and a version whose fingerprint changed is treated
+ * in that book like a version just added: its highlights fill blanks, and
+ * nothing is removed or recoloured because of the remap.
  */
 
 import { ApiError, type HighlightsApi } from "./api";
@@ -44,9 +52,16 @@ export interface SyncState {
   members: Record<string, string[]>;
   /** abbr -> canonical refs the API refused to write for that version */
   unwritable: Record<string, Ref[]>;
+  /**
+   * abbr -> book -> fingerprint of the verse mapping the snapshot was made
+   * with. Missing in snapshots from before it existed, and then treated as
+   * changed wherever the version has snapshot data: which mapping wrote it
+   * can't be known, and a needless reset only costs one run of fills.
+   */
+  maps?: Record<string, Record<string, string>>;
 }
 
-export const emptyState = (): SyncState => ({ verses: {}, members: {}, unwritable: {} });
+export const emptyState = (): SyncState => ({ verses: {}, members: {}, unwritable: {}, maps: {} });
 
 const chapterKey = (canon: Ref) => canon.slice(0, canon.lastIndexOf("."));
 
@@ -55,6 +70,65 @@ export function forgetVersion(state: SyncState, abbr: string): void {
   for (const colors of Object.values(state.verses)) delete colors[abbr];
   for (const [k, list] of Object.entries(state.members)) state.members[k] = list.filter((a) => a !== abbr);
   delete state.unwritable[abbr];
+  delete state.maps?.[abbr];
+}
+
+const fingerprints = new WeakMap<VersionMap, Map<string, string>>();
+
+/** A short hash of how a version maps the verses of one book (cached per map). */
+export function mapFingerprint(map: VersionMap, book: string): string {
+  let cache = fingerprints.get(map);
+  if (!cache) fingerprints.set(map, (cache = new Map()));
+  const hit = cache.get(book);
+  if (hit) return hit;
+  // cyrb53: 53 bits, so an unnoticed remap is practically impossible.
+  let h1 = 0xdeadbeef;
+  let h2 = 0x41c6ce57;
+  const add = (s: string) => {
+    for (let i = 0; i < s.length; i++) {
+      const ch = s.charCodeAt(i);
+      h1 = Math.imul(h1 ^ ch, 2654435761);
+      h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+  };
+  for (const c of map.chapters(book)) {
+    for (let v = 1; v <= map.counts[book][c]; v++) {
+      const local = ref(book, c, v);
+      add(`${local}=${map.toCanon.get(local) ?? ""};`);
+    }
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  const out = (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+  cache.set(book, out);
+  return out;
+}
+
+/** Whether the version has anything in the snapshot for canonical refs in `book`. */
+function hasSnapshot(state: SyncState, abbr: string, book: string): boolean {
+  const prefix = `${book}.`;
+  return (
+    Object.entries(state.members).some(([k, list]) => k.startsWith(prefix) && list.includes(abbr)) ||
+    Object.entries(state.verses).some(([k, colors]) => k.startsWith(prefix) && abbr in colors) ||
+    (state.unwritable[abbr] ?? []).some((r) => r.startsWith(prefix))
+  );
+}
+
+/** Forget a version's snapshot for one book (and `extra` canonical refs, which may lie outside it). */
+function forgetInBook(state: SyncState, abbr: string, book: string, extra: Iterable<Ref>): void {
+  const prefix = `${book}.`;
+  const refs = new Set(extra);
+  for (const [k, colors] of Object.entries(state.verses)) {
+    if (!(abbr in colors) || !(k.startsWith(prefix) || refs.has(k))) continue;
+    delete colors[abbr];
+    if (Object.keys(colors).length === 0) delete state.verses[k];
+  }
+  for (const [k, list] of Object.entries(state.members)) {
+    if (k.startsWith(prefix)) state.members[k] = list.filter((a) => a !== abbr);
+  }
+  if (state.unwritable[abbr]) {
+    state.unwritable[abbr] = state.unwritable[abbr].filter((r) => !r.startsWith(prefix) && !refs.has(r));
+  }
 }
 
 export interface Action {
@@ -88,6 +162,13 @@ export interface BookPlan {
   members: Record<string, string[]>;
   /** Highlights currently present, per version (for display). */
   counts: Record<string, number>;
+  /** abbr -> fingerprint of its mapping of this book, recorded when applied. */
+  maps: Record<string, string>;
+  /**
+   * Versions whose mapping of this book changed since the snapshot; planned
+   * as newcomers, and their old snapshot for the book is dropped when applied.
+   */
+  remapped: string[];
 }
 
 /** abbr -> local ref -> color */
@@ -176,8 +257,21 @@ export function planBook(
   state: SyncState,
   only?: Set<Ref>,
 ): BookPlan {
-  const plan: BookPlan = { book, actions: [], differences: [], newState: {}, members: {}, counts: {} };
+  const plan: BookPlan = {
+    book, actions: [], differences: [], newState: {}, members: {}, counts: {}, maps: {}, remapped: [],
+  };
   const priority = versions.map((v) => v.abbr);
+  for (const v of versions) {
+    const fp = mapFingerprint(v.map, book);
+    plan.maps[v.abbr] = fp;
+    const stored = state.maps?.[v.abbr]?.[book];
+    if (stored ? stored !== fp : hasSnapshot(state, v.abbr, book)) plan.remapped.push(v.abbr);
+  }
+  // The snapshot as it stands for versions whose mapping is unchanged.
+  const remapped = new Set(plan.remapped);
+  const without = <T>(o: Record<string, T>) =>
+    remapped.size ? Object.fromEntries(Object.entries(o).filter(([a]) => !remapped.has(a))) : o;
+  const unwritable = (abbr: string) => (remapped.has(abbr) ? [] : (state.unwritable[abbr] ?? []));
 
   // Canonical view per version. A canonical verse can cover several local
   // verses (e.g. 2 Cor 13:12-13 in English = 13:12 in French); any
@@ -205,13 +299,13 @@ export function planBook(
     });
 
   for (const canon of sorted) {
-    const prev = state.verses[canon] ?? {};
+    const prev = without(state.verses[canon] ?? {});
     const participants = versions.filter(
-      (v) => (v.map.fromCanon.get(canon)?.length ?? 0) > 0 && !(state.unwritable[v.abbr] ?? []).includes(canon),
+      (v) => (v.map.fromCanon.get(canon)?.length ?? 0) > 0 && !unwritable(v.abbr).includes(canon),
     );
     if (participants.length === 0) continue;
     const key = chapterKey(canon);
-    const members = state.members[key];
+    const members = state.members[key]?.filter((a) => !remapped.has(a));
     plan.members[key] = [...new Set([...(plan.members[key] ?? members ?? []), ...participants.map((v) => v.abbr)])];
     // Versions that weren't part of this chapter's last sync (e.g. just added).
     const newcomers = new Set(members ? participants.map((v) => v.abbr).filter((a) => !members.includes(a)) : []);
@@ -309,6 +403,11 @@ export async function applyPlan(
     }
     onAction?.();
   }
+  // Drop remapped versions' old snapshot for the whole book (not just a
+  // chapter scope), so none of it is read under the new mapping later.
+  for (const abbr of plan.remapped) forgetInBook(state, abbr, plan.book, Object.keys(plan.newState));
+  state.maps ??= {};
+  for (const [abbr, fp] of Object.entries(plan.maps)) (state.maps[abbr] ??= {})[plan.book] = fp;
   for (const [key, list] of Object.entries(plan.members)) state.members[key] = list;
   for (const [canon, colors] of Object.entries(plan.newState)) {
     if (retry.has(canon)) continue; // keep the old snapshot so the next run tries again
