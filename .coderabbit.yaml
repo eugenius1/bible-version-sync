@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# Review PRs whatever their base, so PRs stacked on another PR's branch get
+# reviewed too (by default only PRs into the default branch are).
+reviews:
+  auto_review:
+    enabled: true
+    base_branches:
+      - ".*"
