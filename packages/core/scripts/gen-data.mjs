@@ -41,6 +41,7 @@ const TABLE_NAME = /^[0-9a-z]+(?:-[0-9a-z]+)*$/;
 function parseTable(path, text, allowUse) {
   const maps = [];
   const uses = [];
+  const mapped = new Set(); // local verses, so a second row can't silently replace the first
   for (const raw of text.split(/\r?\n/)) {
     const line = raw.split("#", 1)[0].trim();
     if (!line) continue;
@@ -56,6 +57,11 @@ function parseTable(path, text, allowUse) {
     const n2 = (v2e ? Number(v2e) : Number(v2)) - Number(v2);
     if (n1 !== n2 || n1 < 0) throw new Error(`${path}: uneven range: ${line}`);
     if (Number(v1) < 1 || Number(v2) < 1) throw new Error(`${path}: verse 0 can't be highlighted: ${line}`);
+    for (let v = Number(v1); v <= Number(v1) + n1; v++) {
+      const local = `${b1}.${c1}.${v}`;
+      if (mapped.has(local)) throw new Error(`${path}: ${local} is mapped twice: ${line}`);
+      mapped.add(local);
+    }
     maps.push({ book: b1, ch: Number(c1), last: Number(v1) + n1, line });
   }
   return { maps, uses, body: maps.map((m) => m.line).join("\n") };
