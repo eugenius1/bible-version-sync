@@ -1,0 +1,24 @@
+{
+  "app_key": "PASTE_YOUR_APP_KEY_HERE",
+  "redirect_uri": "http://localhost:8001/callback",
+  "versions": [
+    {
+      "abbr": "AMP",
+      "bible_id": 1588
+    },
+    {
+      "abbr": "NIV",
+      "bible_id": 111
+    },
+    {
+      "abbr": "LSG",
+      "bible_id": 93
+    },
+    {
+      "abbr": "S21",
+      "bible_id": 152
+    }
+  ],
+  "workers": 4,
+  "max_removals": 25
+}
