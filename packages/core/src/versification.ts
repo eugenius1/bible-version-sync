@@ -278,27 +278,34 @@ export class VersionMap {
         std.counts.org[book]?.length ?? 0,
         ...actualChapters,
       );
+      // A label system may not number this book at all: lxx has Nehemiah as
+      // Ezra 11-23 and no Esther or Daniel of its own. Leaving it in would
+      // give every chapter of an unknown book a count of 0 and drop the book
+      // from the sync. Such a book is Hebrew-numbered instead, as UBIO's
+      // Nehemiah, Esther and Daniel are.
+      const bookCandidates = candidates.filter((s) => (std.counts[s][book]?.length ?? 0) > 0);
+      const bookFallback: StdScheme = bookCandidates.includes(fallback) ? fallback : "org";
       // fits[c]: candidates whose count matches; undefined when unknown.
       const fits: Record<number, StdScheme[] | undefined> = {};
-      const score = new Map<StdScheme, number>(candidates.map((s) => [s, 0]));
+      const score = new Map<StdScheme, number>(bookCandidates.map((s) => [s, 0]));
       for (let c = 1; c <= nCh; c++) {
         const a = actual[c];
         if (a === undefined) continue;
-        const expected = candidates.map((s) => std.count(s, book, c));
-        fits[c] = candidates.filter((_, i) => expected[i] === a);
+        const expected = bookCandidates.map((s) => std.count(s, book, c));
+        fits[c] = bookCandidates.filter((_, i) => expected[i] === a);
         // Only chapters where the candidates disagree say anything about
         // which system the book follows.
         if (new Set(expected).size > 1) for (const s of fits[c]!) score.set(s, score.get(s)! + 1);
       }
       const pick = (options: StdScheme[]): StdScheme => {
         const best = Math.max(...options.map((s) => score.get(s)!));
-        if (best === 0) return options.includes(fallback) ? fallback : options[0];
+        if (best === 0) return options.includes(bookFallback) ? bookFallback : options[0];
         const top = options.filter((s) => score.get(s) === best);
         if (top.length === 1) return top[0];
         if (top.includes("eng")) return "eng";
         return label && top.includes(label) ? label : top[0];
       };
-      const majority = pick(candidates);
+      const majority = pick(bookCandidates);
 
       const schemes: Record<number, Scheme | null> = {};
       const counts: Record<number, number> = {};

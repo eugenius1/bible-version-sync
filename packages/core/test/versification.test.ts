@@ -165,6 +165,21 @@ describe("choosing a system per chapter", () => {
     expect(m.toCanon.get("PSA.57.1")).toBe("PSA.58.1");
   });
 
+  it("keeps books a label system doesn't number separately", () => {
+    // lxx has no Nehemiah (it's Ezra 11-23), Esther or Daniel of its own.
+    const m = VersionMap.build("X", std, { label: "lxx" });
+    expect(m.chapters("NEH")).toHaveLength(13);
+    expect(m.chapters("EST")).toHaveLength(10);
+    expect(m.chapters("DAN")).toHaveLength(12);
+    expect(m.schemes.DAN[6]).toBe("org");
+    expect(m.chapters("EZR")).toHaveLength(10);
+    expect(m.schemes.PSA[91]).toBe("lxx");
+    const ubio = buildVersionMap("UBIO", 186);
+    expect(ubio.source).toBe("assumed");
+    expect(ubio.map.chapters("NEH")).toHaveLength(13);
+    expect(ubio.map.toCanon.get("NEH.3.38")).toBe("NEH.3.38"); // Hebrew-numbered, as UBIO is
+  });
+
   it("assumes the label when nothing is known, without inventing chapters", () => {
     const m = VersionMap.build("X", std, { label: "rso" });
     expect(m.schemes.PSA[91]).toBe("rso");
