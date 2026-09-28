@@ -113,27 +113,46 @@ The `rso`, `rsc`, `lxx` and `vul` tables are read from
 text (`SUPPLEMENTAL` in `versification.ts`), and a mapping into another of the
 66 books is dropped: the sync plans one book at a time, so such a verse would
 look unread, and so removed, when the other book syncs.
-`packages/core/test/survey.test.ts` runs the engine over all 54 surveyed
+`packages/core/test/survey.test.ts` runs the engine over all 274 scanned
 versions and pins what each one skips.
 
+**A version no system explains is refused.** Without a label, only `eng`
+and `org` are candidates, and counts can't say which of the other four a
+version follows (UBIO fits `lxx` in 131 chapters and `rsc` in 130), so an
+unlabelled Synodal or Septuagint version would have its Psalms land one
+psalm off. `buildVersionMap` counts the chapters whose known count fits
+neither `eng` nor `org` (leaving out chapters it lacks and those a
+correction table describes) and, above `MAX_UNFIT_CHAPTERS` (80), returns an
+empty map flagged `unsupported`, unless the version is labelled `rso`, `rsc`,
+`lxx` or `vul`. English and Hebrew numbered versions reach 35 (UKRK), Synodal
+and Septuagint ones 131 to 187. The sync leaves such a version out of
+reading, planning and writing and keeps its snapshot as it was (a version
+with nothing read would otherwise look like every highlight removed); the
+add form refuses one, and a saved one shows "Numbering not supported". A
+version with no counts at all can't be checked, and is assumed English as
+before.
+
 Verse counts come from, in order: `packages/core/data/known_counts.json`
-(the four verified versions and the other 50 surveyed, by bible id), then the
+(the four verified versions, the other 50 surveyed and 220 smaller
+unlabelled ones scanned for coverage, by bible id), then the
 YouVersion API's `/v1/bibles/{id}/index` (only for versions the app key may
 read), then an assumption of the version's label or English numbering. The
 app shows which as a badge: "Verified numbering", "Verse counts known",
-"Numbering from YouVersion" or "Numbering assumed". `known_counts.json` holds
+"Numbering from YouVersion", "Numbering assumed" or "Numbering not
+supported". `known_counts.json` holds
 only the chapters the engine can't infer: those where a version differs from
 English, and those where its candidate systems disagree (the engine needs
 those to pick each book's system). A chapter the version lacks is stored as
-0 so it isn't read. Everything else would get the same count and system
-anyway, which keeps the 54 versions to about 8,100 chapters.
+0 so it isn't read, and a whole book it lacks as one `"BOOK": 0` (many
+versions are a Gospel or two). Everything else would get the same count and
+system anyway, which keeps the 274 versions to about 25,000 entries.
 
 [docs/versification-survey.md](docs/versification-survey.md) records how 54
 widely used versions in 20 languages fared against the two-system engine,
 which is what led to the other four. The scanner and data behind it are in [tools/versification-survey](tools/versification-survey/README.md).
 
 **Adding a version's counts.** Scan it (`tools/versification-survey/scan.py`),
-add it to the survey's `data/counts.json`, and run
+add it to the survey's `data/counts.json` (`scan.py --add`), and run
 `npm run import-survey -w @bvs/core`, which rewrites that version's
 exceptions in `known_counts.json`, every label in `labels.json` and every
 name in `names.json`. Review the diff: the app never reads `tools/` itself, so
@@ -142,15 +161,21 @@ the bundle stops reproducing the scan. The version then shows "Verse counts
 known".
 
 **Version names.** The official API doesn't name most versions (their text
-isn't licensed to the app key), so `names.json` bundles the abbreviation,
-title and language bible.com shows for all 305 surveyed versions, scanned or
-not: about 8 KB of the gzipped app, against under 2 KB for the 54 scanned
-alone. YouVersion has two abbreviations per version, and bible.com shows
+isn't licensed to the app key), so `names.json` has the abbreviation, title
+and language bible.com shows for all 3,864 versions YouVersion lists. That's
+100 KB gzipped, more than half the rest of the app, so it isn't in the main
+bundle: `gen-data.mjs` writes it to `src/names.generated.ts`, which
+`loadVersionNames()` imports on demand, and Vite makes a chunk of its own.
+The versions card starts the load when it mounts, and `versionName()`
+returns nothing until it's done. YouVersion's language tags become BCP 47
+(`eng` → `en`, `zho_tw` → `zh-TW`, `hin_ro` → `hi-Latn`; a suffix with no
+BCP 47 equivalent, like `gax_ars` for Arsi Oromo, is dropped). YouVersion has
+two abbreviations per version, and bible.com shows
 `local_abbreviation` (NIV, НРП), not `abbreviation` (NIV11, NRT); the survey's
 `names.py` records it. The verified versions are named the same way, and
 `gen-data.mjs` checks that `verified.mjs` agrees. The app shows the title
-beside the name the person chose, falls back to "Version {id}" for anything
-else, and offers the abbreviation as the name when the person gives only a
+beside the name the person chose, falls back to "Version {id}" once the
+names are loaded and don't have it, and offers the abbreviation as the name when the person gives only a
 number. Titles are in the version's own script, so they're rendered with `lang` (Japanese glyphs rather than
 Chinese) and `dir="auto"` (Arabic).
 
@@ -199,6 +224,10 @@ Safety rules, all tested:
   version's mapping per book; when it differs, that version is planned as a
   newcomer in that book and its old snapshot there is dropped. A snapshot
   saved before fingerprints existed counts as changed wherever it has data.
+- **A version with unsupported numbering is left out, snapshot and all.**
+  `runSync` and `planBook` skip a version whose map is flagged `unsupported`:
+  nothing is read or written for it, its snapshot is carried over untouched,
+  and `RunSummary.refused` names it.
 
 ## The YouVersion API: things that will bite you
 
@@ -242,8 +271,10 @@ write fine. That's why verse counts are bundled rather than fetched.
 each version (`vrs`: `eng`, `org`, `rso`, `rsc`, `lxx`, `vul`), but only its
 unofficial bible.com API exposes the label; see
 [tools/versification-survey](tools/versification-survey/README.md). The app
-uses a bundled copy for the 282 versions surveyed; any other version is
-treated as `eng`/`org`.
+bundles the label of every version YouVersion listed in Sept 2026 (3,082 of
+3,864; the rest have none), packed as gaps between ids to keep it to 1.6 KB
+gzipped. A version without one is treated as `eng`/`org`, or refused when its
+counts say otherwise.
 
 **`/v1/bibles` lists only the platform's subset.** Spanish has 9 versions there
 (no Reina-Valera 1960) against 30 in the app, and `page_size` must be at most

@@ -542,13 +542,17 @@ export function assumedScheme(bibleId: number, defaultScheme: "eng" | "org" = "e
  *
  * Measured over the survey's 54 scanned versions: English and Hebrew
  * numbered versions have at most 38 such chapters (UKRK, 35 once its
- * correction tables are counted; the next is 15), the Synodal and Septuagint
+ * correction tables are counted; the next is 11), the Synodal and Septuagint
  * ones 131 (UBIO), 143 (NRT) and 153 (SYNO), and the four label-only tables
  * themselves 145 (rsc) to 187 (lxx). 80 is over twice the English/Hebrew
- * maximum and 50 chapters below the lowest Synodal or Septuagint version. Without a label the engine can only use eng and org, and counts
- * alone can't say which other system applies (UBIO fits lxx in 131 of its
- * chapters and rsc in 130), so such a version would have its Psalms land
- * one psalm off: refusing it is the only safe answer.
+ * maximum and 50 chapters below the lowest Synodal or Septuagint version.
+ * Of the 220 unlabelled versions scanned since, the four refused reach 132
+ * to 187 and the rest at most 23 (see docs/versification-survey.md).
+ *
+ * Without a label the engine can only use eng and org, and counts alone
+ * can't say which other system applies (UBIO fits lxx in 131 of its chapters
+ * and rsc in 130), so such a version would have its Psalms land one psalm
+ * off: refusing it is the only safe answer.
  */
 export const MAX_UNFIT_CHAPTERS = 80;
 
