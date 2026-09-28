@@ -1,7 +1,9 @@
-import { BOOK_NAMES, BOOKS, type Scope } from "@bvs/core";
+import { BOOKS, type Scope } from "@bvs/core";
 import { useState } from "react";
 import type { RunState } from "../App";
+import { useI18n } from "../i18n";
 import type { ResolvedVersion } from "../lib/versions";
+import { Select } from "./Select";
 
 type Kind = "bible" | "book" | "chapter";
 
@@ -13,6 +15,8 @@ interface Props {
 }
 
 export function SyncCard({ versions, run, onRun, onCancel }: Props) {
+  const { t, book: bookName } = useI18n();
+  const ts = t.sync;
   const [kind, setKind] = useState<Kind>("chapter");
   const [book, setBook] = useState("JHN");
   const [chapter, setChapter] = useState(3);
@@ -28,31 +32,31 @@ export function SyncCard({ versions, run, onRun, onCancel }: Props) {
 
   return (
     <section className="card space-y-4" aria-labelledby="sync-title">
-      <h2 id="sync-title" className="font-semibold">Sync</h2>
+      <h2 id="sync-title" className="font-semibold">{ts.title}</h2>
 
       <fieldset className="space-y-3" disabled={running}>
-        <legend className="sr-only">What to sync</legend>
+        <legend className="sr-only">{ts.scopeLegend}</legend>
         <div className="grid grid-cols-3 gap-1 rounded-xl bg-stone-100 p-1 dark:bg-stone-800">
           {(["chapter", "book", "bible"] as const).map((k) => (
             <label
               key={k}
-              className={`cursor-pointer rounded-lg py-2 text-center text-sm font-medium transition has-focus-visible:outline-2 has-focus-visible:outline-amber-500 ${
+              className={`cursor-pointer rounded-lg px-1 py-2 text-center text-sm font-medium transition has-focus-visible:outline-2 has-focus-visible:outline-amber-500 ${
                 kind === k ? "bg-white shadow-sm dark:bg-stone-950" : "text-stone-600 dark:text-stone-400"
               }`}
             >
               <input type="radio" name="scope" value={k} className="sr-only" checked={kind === k} onChange={() => setKind(k)} />
-              {k === "chapter" ? "Chapter" : k === "book" ? "Book" : "Whole Bible"}
+              {ts[k]}
             </label>
           ))}
         </div>
 
         {kind !== "bible" && (
           <div className="flex gap-2">
-            <select className="input flex-1" aria-label="Book" value={book} onChange={(e) => setBook(e.target.value)}>
+            <Select className="flex-1" aria-label={ts.book} value={book} onChange={(e) => setBook(e.target.value)}>
               {BOOKS.map((b) => (
-                <option key={b} value={b}>{BOOK_NAMES[b]}</option>
+                <option key={b} value={b}>{bookName(b)}</option>
               ))}
-            </select>
+            </Select>
             {kind === "chapter" && (
               <input
                 className="input w-24"
@@ -60,7 +64,7 @@ export function SyncCard({ versions, run, onRun, onCancel }: Props) {
                 inputMode="numeric"
                 min={1}
                 max={chapters.at(-1)}
-                aria-label="Chapter"
+                aria-label={ts.chapter}
                 value={chapter}
                 onChange={(e) => setChapter(Number(e.target.value))}
               />
@@ -69,14 +73,11 @@ export function SyncCard({ versions, run, onRun, onCancel }: Props) {
         )}
         {kind === "chapter" && !validChapter && versions && (
           <p className="text-sm text-red-700 dark:text-red-300">
-            {BOOK_NAMES[book]} has {chapters.length} chapters in {versions[0].abbr}.
+            {ts.chapterCount(bookName(book), chapters.length, versions[0].abbr)}
           </p>
         )}
         {kind === "bible" && (
-          <p className="text-sm text-stone-600 dark:text-stone-400">
-            Reads about {(1189 * (versions?.length ?? 4)).toLocaleString()} chapters. This can take a while; keep this
-            page open.
-          </p>
+          <p className="text-sm text-stone-600 dark:text-stone-400">{ts.bibleNote(1189 * (versions?.length ?? 4))}</p>
         )}
       </fieldset>
 
@@ -85,17 +86,17 @@ export function SyncCard({ versions, run, onRun, onCancel }: Props) {
       ) : (
         <div className="flex flex-col gap-2 sm:flex-row">
           <button className="btn-primary" disabled={!ready} onClick={() => onRun(scope, false)}>
-            Preview changes
+            {ts.preview}
           </button>
           <button
             className="btn-secondary"
             disabled={!ready}
             onClick={() => {
-              if (kind === "bible" && !confirm("Sync the whole Bible now, without a preview?")) return;
+              if (kind === "bible" && !confirm(ts.confirmBible)) return;
               onRun(scope, true);
             }}
           >
-            Sync now
+            {ts.syncNow}
           </button>
         </div>
       )}
@@ -104,24 +105,26 @@ export function SyncCard({ versions, run, onRun, onCancel }: Props) {
 }
 
 function ProgressView({ run, onCancel }: { run: Extract<RunState, { status: "running" }>; onCancel: () => void }) {
+  const { t, book } = useI18n();
+  const ts = t.sync;
   const p = run.progress;
   const pct = p && p.readTotal ? Math.round((p.readDone / p.readTotal) * 100) : 0;
   const text = !p
-    ? "Starting…"
+    ? ts.starting
     : p.phase === "reading"
-      ? `Reading ${BOOK_NAMES[p.book]} · ${p.readDone.toLocaleString()} of ${p.readTotal.toLocaleString()} chapters`
-      : `Writing ${BOOK_NAMES[p.book]} · ${p.done} of ${p.total} changes`;
+      ? ts.reading(book(p.book), p.readDone, p.readTotal)
+      : ts.writing(book(p.book), p.done, p.total);
   return (
     <div className="space-y-2" role="status" aria-live="polite">
       <div className="flex items-center justify-between gap-3 text-sm">
-        <span>{run.apply ? "Syncing" : "Previewing"} — {text}</span>
-        <button className="btn-ghost shrink-0" onClick={onCancel}>Stop</button>
+        <span>{run.apply ? ts.syncing : ts.previewing} — {text}</span>
+        <button className="btn-ghost shrink-0" onClick={onCancel}>{ts.stop}</button>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-stone-200 dark:bg-stone-800">
         <progress className="sr-only" max={100} value={pct} />
         <div className="h-full rounded-full bg-amber-400 transition-[width]" style={{ width: `${pct}%` }} />
       </div>
-      <p className="text-xs text-stone-500">Stopping finishes the current book first, so nothing is left half-done.</p>
+      <p className="text-xs text-stone-500">{ts.stopNote}</p>
     </div>
   );
 }

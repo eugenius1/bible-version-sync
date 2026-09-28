@@ -66,11 +66,22 @@ export interface Action {
   reason: "fill" | "recolor" | "remove";
 }
 
+export interface Difference {
+  canon: Ref;
+  /** The verse as numbered in the first listed version (for display). */
+  ref: Ref;
+  /** abbr -> its new color (null = removed) */
+  colors: Record<string, string | null>;
+  /** The version whose color blank versions get. */
+  winner: string;
+  color: string | null;
+}
+
 export interface BookPlan {
   book: string;
   actions: Action[];
-  /** Human-readable notes about verses whose colors differ between versions. */
-  differences: string[];
+  /** Verses changed to different colors in different versions (each keeps its own). */
+  differences: Difference[];
   /** canonical ref -> {abbr: color} expected after the actions run */
   newState: Record<Ref, Record<string, string>>;
   /** canonical chapter -> versions taking part in this sync */
@@ -230,11 +241,13 @@ export function planBook(
       const target = changed[winner];
       const old = prev[winner] ?? null; // the color the sync last left in the winner
       if (new Set(Object.values(changed)).size > 1) {
-        plan.differences.push(
-          `${canon}: ` +
-            Object.entries(changed).map(([a, c]) => `${a}=${c ?? "none"}`).join(", ") +
-            ` -> each keeps its own; blanks get ${winner}'s (${target ?? "none"})`,
-        );
+        plan.differences.push({
+          canon,
+          ref: versions[0].map.fromCanon.get(canon)?.[0] ?? canon,
+          colors: { ...changed },
+          winner,
+          color: target,
+        });
       }
       for (const v of participants) {
         const a = v.abbr;

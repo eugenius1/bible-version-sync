@@ -12,6 +12,16 @@ const PENDING_TTL_MS = 15 * 60 * 1000;
 
 export const client = new YouVersionClient({ appKey: APP_KEY, tokens: tokenStore });
 
+export class SignInError extends Error {
+  constructor(
+    readonly code: "state-mismatch" | "no-permission" | "provider",
+    readonly detail = "",
+  ) {
+    super(detail || code);
+    this.name = "SignInError";
+  }
+}
+
 export async function startSignIn(): Promise<void> {
   const { verifier, challenge } = await createPkce();
   const state = randomToken();
@@ -37,11 +47,11 @@ export async function completeSignIn(): Promise<"redirecting" | "done"> {
   const step = interpretCallback(location.search, pending?.state ?? null);
   if (step.kind === "error") {
     localStorage.removeItem(PENDING);
-    throw new Error(step.message);
+    throw new SignInError(step.code, step.code === "provider" ? step.message : "");
   }
   if (step.grantedPermissions && !step.grantedPermissions.includes("highlights")) {
     localStorage.removeItem(PENDING);
-    throw new Error("You signed in but didn't allow access to highlights, which this app needs. Please sign in again and allow it.");
+    throw new SignInError("no-permission");
   }
   if (step.kind === "replay") {
     location.replace(step.url);

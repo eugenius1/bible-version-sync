@@ -81,7 +81,7 @@ export async function exchangeCode(p: {
 export type CallbackStep =
   | { kind: "replay"; url: string; grantedPermissions: string[] | null }
   | { kind: "code"; code: string; grantedPermissions: string[] | null }
-  | { kind: "error"; message: string };
+  | { kind: "error"; code: "state-mismatch" | "provider"; message: string };
 
 /**
  * Decide what to do with a callback URL's query string.
@@ -91,13 +91,13 @@ export function interpretCallback(search: string, expectedState: string | null, 
   const q = new URLSearchParams(search);
   const state = q.get("state");
   if (!state || !expectedState || state !== expectedState) {
-    return { kind: "error", message: "Sign-in state didn't match. Please start sign-in again." };
+    return { kind: "error", code: "state-mismatch", message: "Sign-in state didn't match. Please start sign-in again." };
   }
   const granted = q.has("granted_permissions")
     ? (q.get("granted_permissions") ?? "").split(",").filter(Boolean)
     : null;
   const error = q.get("error");
-  if (error) return { kind: "error", message: [error, q.get("error_description")].filter(Boolean).join(": ") };
+  if (error) return { kind: "error", code: "provider", message: [error, q.get("error_description")].filter(Boolean).join(": ") };
   const code = q.get("code");
   if (!code) return { kind: "replay", url: callbackReplayUrl(state, base), grantedPermissions: granted };
   return { kind: "code", code, grantedPermissions: granted };

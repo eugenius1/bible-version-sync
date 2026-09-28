@@ -98,9 +98,16 @@ describe("sync", () => {
     api.hl("NIV", "ROM.8.28", "ffe066");
     api.hl("AMP", "ROM.8.28", "ff9999");
     const plan = await sync("ROM");
-    expect(plan.differences).toHaveLength(1);
+    expect(plan.differences).toMatchObject([{ canon: "ROM.8.28", ref: "ROM.8.28", winner: "AMP", color: "ff9999" }]);
     expect(every("ROM.8.28")).toEqual({ AMP: "ff9999", NIV: "ffe066", LSG: "ff9999", S21: "ff9999" });
     expect((await sync("ROM")).actions).toEqual([]);
+  });
+
+  it("reports differences using the first version's verse numbers", async () => {
+    api.hl("AMP", "PSA.51.1", "ff9999");
+    api.hl("S21", "PSA.51.3", "ffe066");
+    const plan = await sync("PSA", false);
+    expect(plan.differences).toMatchObject([{ canon: "PSA.51.3", ref: "PSA.51.1", colors: { AMP: "ff9999", S21: "ffe066" } }]);
   });
 
   it("never recolors an existing highlight on the first sync", async () => {

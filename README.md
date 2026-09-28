@@ -12,7 +12,7 @@ with the user's permission.
 | Path | What |
 |---|---|
 | `packages/core` | Sync engine: verse-number mapping, merge rules, API client, sign-in helpers. Framework-free TypeScript, used by the PWA (and later a server). |
-| `apps/pwa` | The web app (Vite, React, Tailwind, installable PWA). Runs entirely in the browser. |
+| `apps/pwa` | The web app (Vite, React, Tailwind, installable PWA), in English and French. Runs entirely in the browser. |
 | `tools/python-cli` | The original Python prototype, kept for reference. |
 
 ## Getting started

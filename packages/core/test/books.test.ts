@@ -17,5 +17,7 @@ describe("displayRef", () => {
   it("formats references", () => {
     expect(displayRef("PSA.51.3")).toBe("Psalms 51:3");
     expect(displayRef("1CO.13")).toBe("1 Corinthians 13");
+    expect(displayRef("ISA.53.5", "fr")).toBe("Ésaïe 53:5");
+    expect(displayRef("REV.22.21", "fr")).toBe("Apocalypse 22:21");
   });
 });

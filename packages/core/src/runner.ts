@@ -49,7 +49,7 @@ export interface BookResult {
   /** Set when the book was skipped because highlights couldn't be read. */
   readError?: string;
   /** Set when applying was refused because of the removal limit. */
-  blocked?: string;
+  blocked?: { removals: number; limit: number };
   writeErrors: string[];
 }
 
@@ -123,7 +123,7 @@ export async function runSync(o: RunOptions): Promise<RunSummary> {
 
     if (o.apply && !o.signal?.aborted) {
       if (rems && removalsSoFar + rems > maxRemovals && !o.allowRemovals) {
-        result.blocked = `would remove ${rems} highlights (limit ${maxRemovals} per run)`;
+        result.blocked = { removals: rems, limit: maxRemovals };
         summary.blockedBooks++;
       } else {
         removalsSoFar += rems;
