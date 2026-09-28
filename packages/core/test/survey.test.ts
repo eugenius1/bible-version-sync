@@ -265,14 +265,17 @@ describe("unsupported numbering", () => {
     expect(buildVersionMap(SCAN[id].abbr, id, indexOf(SCAN[id])).source).not.toBe("unsupported");
   });
 
-  it("leaves every English or Hebrew numbered version well below the threshold, even unlabelled", () => {
-    const engOrg = ids.filter((id) => !LABEL_ONLY.has(SCAN[id].vrs!) && !(id in REFUSED));
+  const engOrg = ids.filter((id) => !LABEL_ONLY.has(SCAN[id].vrs!) && !(id in REFUSED));
+
+  it("leaves every English or Hebrew numbered version well below the threshold", () => {
     const worst = Math.max(...engOrg.map(unfit));
     expect(worst).toBe(35); // UKRK: 38 chapters, 3 of them described by shared correction tables
     expect(worst * 2).toBeLessThan(MAX_UNFIT_CHAPTERS + 1);
-    for (const id of engOrg) {
-      expect(buildVersionMap(SCAN[id].abbr, UNKNOWN, indexOf(SCAN[id])).source, SCAN[id].abbr).toBe("api-index");
-    }
+  });
+
+  // One test per version: together they take several seconds on CI.
+  it.each(engOrg)("bible %i: English or Hebrew numbered, not refused even unlabelled", (id) => {
+    expect(buildVersionMap(SCAN[id].abbr, UNKNOWN, indexOf(SCAN[id])).source, SCAN[id].abbr).toBe("api-index");
   });
 
   it.each(Object.keys(REFUSED).map(Number))("bible %i: is refused, well above the threshold", (id) => {
