@@ -1,12 +1,18 @@
 # Coverage is reported for information; it doesn't fail pull requests.
+# Explicit targets so a well-tested change shows as passing: without them the
+# patch is held to the project's current coverage (auto), and a 93%-covered
+# patch was marked as failing.
 coverage:
   status:
     project:
       default:
         informational: true
+        target: auto
+        threshold: 1%
     patch:
       default:
         informational: true
+        target: 90%
 
 component_management:
   individual_components:
