@@ -53,8 +53,11 @@ highlight on a merged span (one verse, or each) hasn't been tested.
 
 ## Recommendations
 
-Details for picking these up, and the scanner and data behind this survey
-(`tools/versification-survey/`), are in [handover-versification.md](handover-versification.md).
+Tracked in [#3](https://github.com/eugenius1/bible-version-sync/issues/3).
+
+The scanner and data behind this survey are in
+[tools/versification-survey](../tools/versification-survey/README.md);
+`python3 analyse.py` there reproduces it.
 
 
 1. **Guard now:** refuse or clearly block versions whose numbering is Synodal,
