@@ -6,6 +6,7 @@ import type { VersionSetting } from "../lib/db";
 import {
   canReadHighlights,
   parseVersionInput,
+  problemText,
   resolveVersion,
   versionName,
   type ResolvedVersion,
@@ -63,9 +64,16 @@ export function VersionsCard({ settings, resolved, disabled, onChange }: Props) 
     if (settings.some((s) => s.bibleId === parsed.bibleId)) return setError(tv.errors.duplicateVersion);
     if (settings.some((s) => s.abbr === name)) return setError(f(tv.errors.duplicateName, { name }));
     setAdding(true);
-    const problem = await canReadHighlights(parsed.bibleId);
+    let problem = await canReadHighlights(parsed.bibleId);
     // A version whose numbering can't be mapped would only ever be left out.
-    const resolved = problem ? null : await resolveVersion({ bibleId: parsed.bibleId, abbr: name });
+    let resolved = null;
+    if (!problem) {
+      try {
+        resolved = await resolveVersion({ bibleId: parsed.bibleId, abbr: name });
+      } catch (e) {
+        problem = problemText(e); // e.g. rate limited: nothing cached, so adding it again retries
+      }
+    }
     setAdding(false);
     if (problem) return setError(f(tv.errors.cantRead, { id: parsed.bibleId, problem }));
     if (resolved?.source === "unsupported") {

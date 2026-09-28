@@ -49,7 +49,11 @@ export async function resolveVersion(v: VersionSetting): Promise<ResolvedVersion
       try {
         index = await client.getIndex(v.bibleId);
       } catch (e) {
-        if (!(e instanceof ApiError)) throw e;
+        // A failure worth retrying (network, 429, 5xx) must not be cached as
+        // "no index": the version would be assumed English for good and skip
+        // the unsupported-numbering check. Nor should this run carry on with
+        // an assumed map, so the error goes to the caller.
+        if (!(e instanceof ApiError) || e.retryable) throw e;
         index = null; // not licensed to this app key; don't ask again
       }
       await store.setIndex(v.bibleId, index);
@@ -59,12 +63,15 @@ export async function resolveVersion(v: VersionSetting): Promise<ResolvedVersion
   return { abbr: v.abbr, bibleId: v.bibleId, map, source, unfit };
 }
 
+/** A short description of a failed request, for an error message. */
+export const problemText = (e: unknown) => (e instanceof ApiError ? e.detail || `HTTP ${e.status}` : String(e));
+
 /** Quick check that highlights can be read for a version. */
 export async function canReadHighlights(bibleId: number): Promise<string | null> {
   try {
     await client.getHighlights(bibleId, "JHN.3");
     return null;
   } catch (e) {
-    return e instanceof ApiError ? e.detail || `HTTP ${e.status}` : String(e);
+    return problemText(e);
   }
 }
