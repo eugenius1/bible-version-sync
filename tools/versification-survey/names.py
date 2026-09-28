@@ -4,7 +4,8 @@ YouVersion gives each version two abbreviations: `abbreviation`, an internal
 one (NIV11), and `local_abbreviation`, the one bible.com shows (NIV). The
 app names versions after what people see there, so this adds
 `local_abbreviation` to data/candidates.json and `local_abbr` to
-data/counts.json. One request per language (versions.json), cached in out/,
+data/counts.json. Titles are refreshed from bible.com too, and each change is
+printed so it shows up for review in the data diff. One request per language (versions.json), cached in out/,
 plus version.json for any version the language lists miss.
 
     python3 names.py
@@ -47,6 +48,7 @@ def main():
             if m["local_title"] != v["local_title"]: print(f"{v['id']}: title now {m['local_title']!r}, was {v['local_title']!r}")
             if m["local_abbreviation"] != m["abbreviation"]: changed += 1
             v["local_abbreviation"] = m["local_abbreviation"]
+            v["local_title"] = m["local_title"]
     for vid, v in counts.items():
         m = meta(int(vid))
         if m["local_title"] != v["title"]: print(f"{vid}: title now {m['local_title']!r}, was {v['title']!r}")
@@ -55,6 +57,7 @@ def main():
         items = [(k, x) for k, x in items if k != "local_abbr"]
         i = [k for k, _ in items].index("abbr") + 1
         counts[vid] = dict(items[:i] + [("local_abbr", m["local_abbreviation"])] + items[i:])
+        counts[vid]["title"] = m["local_title"]
 
     open(CANDIDATES, "w").write(json.dumps(candidates, indent=0, ensure_ascii=False))
     open(COUNTS, "w").write(json.dumps(counts, separators=(",", ":"), ensure_ascii=False))
