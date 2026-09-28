@@ -1,0 +1,17 @@
+{
+  "name": "@bvs/core",
+  "version": "0.1.0",
+  "license": "GPL-3.0-or-later",
+  "private": true,
+  "type": "module",
+  "description": "Verse mapping and highlight sync logic for Bible Version Sync",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "gen": "node scripts/gen-data.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "coverage": "vitest run --coverage --coverage.include='src/**' --coverage.exclude='**/__tests__/**' --coverage.exclude='src/data.generated.ts' --coverage.reporter=lcov --coverage.reporter=text-summary"
+  }
+}
