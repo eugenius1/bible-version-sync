@@ -1,0 +1,15 @@
+{
+  "name": "@bvs/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Verse mapping and highlight sync logic for Bible Version Sync",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "gen": "node scripts/gen-data.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  }
+}
