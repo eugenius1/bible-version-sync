@@ -14,6 +14,9 @@ cp apps/pwa/.env.example apps/pwa/.env.local   # put your app key in it
 npm run dev                                     # http://localhost:8001
 ```
 
+`npm run coverage` runs the tests with coverage (lcov in each package's
+`coverage/`); CI uploads it to Codecov.
+
 `npm run check` is the gate: it regenerates the bundled data, typechecks every
 package, runs all tests and builds the app. Run it before every commit.
 

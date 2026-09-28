@@ -1,5 +1,8 @@
 # Bible Version Sync
 
+[![CI](https://github.com/eugenius1/bible-version-sync/actions/workflows/ci.yml/badge.svg)](https://github.com/eugenius1/bible-version-sync/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/eugenius1/bible-version-sync/graph/badge.svg)](https://codecov.io/gh/eugenius1/bible-version-sync)
+
 Keep your YouVersion highlights in sync across Bible versions. Highlight a verse
 in one version and it shows up in the others you read, on the right verse even
 where versions number their verses differently.

@@ -12,11 +12,13 @@
     "build": "npm run build -w @bvs/pwa",
     "test": "npm test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "check": "npm run gen -w @bvs/core && npm run typecheck && npm test && npm run build"
+    "check": "npm run gen -w @bvs/core && npm run typecheck && npm test && npm run build",
+    "coverage": "npm run coverage --workspaces --if-present"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^5.0.2",
     "typescript": "^5.6.0",
-    "vitest": "^3.0.0"
+    "vitest": "^5.0.2"
   },
   "engines": {
     "node": ">=20"

@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "icons": "pwa-assets-generator"
+    "icons": "pwa-assets-generator",
+    "coverage": "vitest run --coverage --coverage.include='src/**' --coverage.exclude='**/__tests__/**' --coverage.exclude='src/data.generated.ts' --coverage.reporter=lcov --coverage.reporter=text-summary"
   },
   "dependencies": {
     "@bvs/core": "*",
