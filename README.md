@@ -57,6 +57,10 @@ You can add any other YouVersion version by pasting its bible.com link. The app
 tells you how sure it is of that version's numbering:
 
 - **Verified numbering**: checked chapter by chapter.
+- **Verse counts known**: the app comes with the verse count of every chapter
+  for 50 more widely used versions (KJV, ESV, NLT, Reina-Valera 1960, Synodal
+  and others), scanned in Sept 2026 but not checked by hand. Chapters that
+  follow no standard pattern are skipped rather than guessed.
 - **Numbering from YouVersion**: worked out from YouVersion's own verse counts.
   Chapters that follow no standard pattern are skipped rather than guessed.
 - **Numbering assumed**: YouVersion wouldn't share the verse counts, so English

@@ -7,13 +7,15 @@ sys.path.insert(0, os.path.join(HERE, "..", "python-cli"))
 from yvsync.versification import BOOKS, Standard, VersionMap, load_overrides  # current engine (eng/org)
 
 SCHEMES = ["eng", "org", "rso", "rsc", "lxx", "vul"]
+# The app's copies: one set of .vrs files, the ones that ship.
+VRS_DIR = os.path.join(HERE, "..", "..", "packages", "core", "data")
 MAP_LINE = re.compile(r"^([0-9A-Z]{3}) (\d+):(\d+)(?:-(\d+))? = ([0-9A-Z]{3}) (\d+):(\d+)(?:-(\d+))?$")
 BOOK_LINE = re.compile(r"^([0-9A-Z]{3})((?: \d+:\d+)+)$")
 
 
 def read_vrs(name):
     counts, to_org = {}, {}
-    for raw in open(os.path.join(HERE, "vrs", f"{name}.vrs"), encoding="utf-8"):
+    for raw in open(os.path.join(VRS_DIR, f"{name}.vrs"), encoding="utf-8"):
         line = raw.split("#", 1)[0].strip()
         if not line:
             continue

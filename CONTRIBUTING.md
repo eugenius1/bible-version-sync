@@ -83,31 +83,42 @@ real verse count with each candidate system's count
 - If two chapters on different systems would claim the same canonical verse,
   both are skipped rather than guessed.
 - Chapters that follow no system are described by hand in a **correction
-  table**, `packages/core/data/overrides/<ABBR>.map`, in `.vrs` mapping syntax:
+  table**, `packages/core/data/overrides/<bible id>.map`, in `.vrs` mapping syntax:
   `LOCAL = CANONICAL`. Every chapter such a table touches uses only the table.
 
 The `rso`, `rsc`, `lxx` and `vul` tables are read from
-`tools/versification-survey/vrs/`, with a few corrections checked against the
+`packages/core/data/`, with a few corrections checked against the
 text (`SUPPLEMENTAL` in `versification.ts`), and a mapping into another of the
 66 books is dropped: the sync plans one book at a time, so such a verse would
 look unread, and so removed, when the other book syncs.
 `packages/core/test/survey.test.ts` runs the engine over all 54 surveyed
 versions and pins what each one skips.
 
-Verse counts come from, in order: the YouVersion API's
-`/v1/bibles/{id}/index` (only for versions the app key may read), then
-`packages/core/data/known_counts.json`, then an assumption of English
-numbering. `known_counts.json` holds only the chapters where a version differs
-from English or where English and original differ; everywhere else the counts
-agree, so nothing more is needed.
+Verse counts come from, in order: `packages/core/data/known_counts.json`
+(the four verified versions and the other 50 surveyed, by bible id), then the
+YouVersion API's `/v1/bibles/{id}/index` (only for versions the app key may
+read), then an assumption of the version's label or English numbering. The
+app shows which as a badge: "Verified numbering", "Verse counts known",
+"Numbering from YouVersion" or "Numbering assumed". `known_counts.json` holds
+only the chapters the engine can't infer: those where a version differs from
+English, and those where its candidate systems disagree (the engine needs
+those to pick each book's system). A chapter the version lacks is stored as
+0 so it isn't read. Everything else would get the same count and system
+anyway, which keeps the 54 versions to about 8,100 chapters.
 
 [docs/versification-survey.md](docs/versification-survey.md) records how 54
 widely used versions in 20 languages fared against the two-system engine,
 which is what led to the other four. The scanner and data behind it are in [tools/versification-survey](tools/versification-survey/README.md).
 
-**Adding a verified version.** Collect its verse count for every chapter
-(`tools/versification-survey/scan.py`), add the
-exceptions to `known_counts.json` and an entry to `BUILTIN` in
+**Adding a version's counts.** Scan it (`tools/versification-survey/scan.py`),
+add it to the survey's `data/counts.json`, and run
+`npm run import-survey -w @bvs/core`, which rewrites that version's
+exceptions in `known_counts.json` and every label in `labels.json`. Review the
+diff: the app never reads `tools/` itself, so what ships is exactly what's in
+`packages/core/data`. `survey.test.ts` fails if the bundle stops reproducing
+the scan. The version then shows "Verse counts known".
+
+**Verifying a version.** Also add an entry to `VERIFIED` in
 `packages/core/scripts/gen-data.mjs`, and for each chapter that matches neither
 system, write the correction table. The LSG tables were built by aligning the
 text verse by verse with a closely related version whose numbering is known

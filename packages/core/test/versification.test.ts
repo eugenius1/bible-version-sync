@@ -1,5 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { BOOKS, Standard, assumedScheme, VersionMap, buildVersionMap, parseRef, versificationLabel } from "../src";
+import {
+  BOOKS,
+  Standard,
+  assumedScheme,
+  VersionMap,
+  buildVersionMap,
+  hasKnownCounts,
+  isVerifiedVersion,
+  parseRef,
+  versificationLabel,
+} from "../src";
+import { KNOWN_COUNTS, OVERRIDES } from "../src/data.generated";
 
 const MAPS: Record<string, VersionMap> = {
   NIV: buildVersionMap("NIV", 111).map,
@@ -73,9 +84,36 @@ describe("verse mapping", () => {
     expect(MAPS.LSG.chapters("MAL")).toEqual([1, 2, 3, 4]);
   });
 
-  it("uses built-in data for the four verified versions", () => {
-    expect(buildVersionMap("AMP", 1588).source).toBe("builtin");
-    expect(buildVersionMap("KJV", 1).source).toBe("assumed");
+});
+
+describe("bundled counts", () => {
+  it("rank verified, then scanned, then the API index, then an assumption", () => {
+    for (const id of [1588, 111, 93, 152]) expect(buildVersionMap("X", id).source).toBe("verified");
+    expect(buildVersionMap("KJV", 1).source).toBe("scanned");
+    expect(buildVersionMap("SYNO", 400).source).toBe("scanned");
+    expect(buildVersionMap("KJV", 1, { books: [] }).source).toBe("api-index");
+    expect(buildVersionMap("X", 999999).source).toBe("assumed");
+    expect(isVerifiedVersion(111)).toBe(true);
+    expect(isVerifiedVersion(1)).toBe(false);
+    expect(hasKnownCounts(1)).toBe(true);
+    expect(hasKnownCounts(999999)).toBe(false);
+  });
+
+  it("are keyed by bible id, never by abbreviation", () => {
+    // ARC is both 212 (scanned) and 3407 (not); NVI-S both 128 and 2664.
+    expect(hasKnownCounts(212)).toBe(true);
+    expect(hasKnownCounts(3407)).toBe(false);
+    expect(hasKnownCounts(128)).toBe(true);
+    expect(hasKnownCounts(2664)).toBe(false);
+    for (const key of [...Object.keys(KNOWN_COUNTS), ...Object.keys(OVERRIDES)]) expect(key).toMatch(/^[1-9]\d*$/);
+  });
+
+  it("don't depend on the name a version is saved under", () => {
+    // Settings keep the name the person chose; lookups go by id only.
+    const named = (abbr: string, id: number) => [...buildVersionMap(abbr, id).map.toCanon];
+    expect(named("MY-NIV", 111)).toEqual(named("NIV", 111));
+    expect(named("LSG", 111)).toEqual(named("NIV", 111));
+    expect(buildVersionMap("NIV", 93).map.chapters("MAL")).toEqual([1, 2, 3, 4]); // LSG's, not NIV's
   });
 });
 
@@ -174,10 +212,15 @@ describe("choosing a system per chapter", () => {
     expect(m.schemes.DAN[6]).toBe("org");
     expect(m.chapters("EZR")).toHaveLength(10);
     expect(m.schemes.PSA[91]).toBe("lxx");
+    // 480 is labelled lxx and has no bundled counts. Hebrew numbering, as
+    // UBIO (186), the lxx version whose counts are bundled, has.
+    const assumed = buildVersionMap("X", 480);
+    expect(assumed.source).toBe("assumed");
+    expect(assumed.map.chapters("NEH")).toHaveLength(13);
+    expect(assumed.map.toCanon.get("NEH.3.38")).toBe("NEH.3.38");
     const ubio = buildVersionMap("UBIO", 186);
-    expect(ubio.source).toBe("assumed");
-    expect(ubio.map.chapters("NEH")).toHaveLength(13);
-    expect(ubio.map.toCanon.get("NEH.3.38")).toBe("NEH.3.38"); // Hebrew-numbered, as UBIO is
+    expect(ubio.source).toBe("scanned");
+    expect(ubio.map.toCanon.get("NEH.3.38")).toBe("NEH.3.38");
   });
 
   it("assumes the label when nothing is known, without inventing chapters", () => {

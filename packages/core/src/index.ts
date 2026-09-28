@@ -4,4 +4,4 @@ export * from "./books";
 export * from "./runner";
 export * from "./sync";
 export * from "./versification";
-export { BUILTIN_VERSIONS, type BuiltinVersion } from "./data.generated";
+export { VERIFIED_VERSIONS, type VerifiedVersion } from "./data.generated";

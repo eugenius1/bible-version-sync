@@ -1,0 +1,48 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const getIndex = vi.fn();
+const cached = new Map<number, unknown>();
+vi.mock("../auth", () => ({ client: { getIndex: (id: number) => getIndex(id) } }));
+vi.mock("../db", () => ({
+  store: {
+    getIndex: async (id: number) => cached.get(id),
+    setIndex: async (id: number, index: unknown) => void cached.set(id, index),
+  },
+}));
+
+const { resolveVersions } = await import("../versions");
+
+describe("resolveVersions", () => {
+  beforeEach(() => {
+    getIndex.mockReset();
+    cached.clear();
+  });
+
+  it("uses bundled counts without asking the API", async () => {
+    const out = await resolveVersions([
+      { abbr: "NIV", bibleId: 111 },
+      { abbr: "KJV", bibleId: 1 },
+      { abbr: "SYNO", bibleId: 400 },
+    ]);
+    expect(out.map((v) => v.source)).toEqual(["verified", "scanned", "scanned"]);
+    expect(getIndex).not.toHaveBeenCalled();
+  });
+
+  it("keeps settings saved under any name", async () => {
+    // Settings from before counts were keyed by id carry the person's own names.
+    const [mine] = await resolveVersions([{ abbr: "MY BIBLE", bibleId: 93 }]);
+    const [lsg] = await resolveVersions([{ abbr: "LSG", bibleId: 93 }]);
+    expect(mine.abbr).toBe("MY BIBLE");
+    expect(mine.source).toBe("verified");
+    expect([...mine.map.toCanon]).toEqual([...lsg.map.toCanon]);
+  });
+
+  it("reads the API index for other versions, once", async () => {
+    getIndex.mockResolvedValue({ books: [{ id: "JHN", chapters: [{ id: "3", verses: [1, 2, 3] }] }] });
+    const [first] = await resolveVersions([{ abbr: "X", bibleId: 999999 }]);
+    const [again] = await resolveVersions([{ abbr: "X", bibleId: 999999 }]);
+    expect(first.source).toBe("api-index");
+    expect(again.source).toBe("api-index");
+    expect(getIndex).toHaveBeenCalledTimes(1);
+  });
+});

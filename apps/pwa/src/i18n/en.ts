@@ -54,9 +54,13 @@ export const en = {
     title: "Your versions",
     help: "When a verse has different colors, each version keeps its own. Versions without a highlight get the color from the one listed first.",
     source: {
-      builtin: {
+      verified: {
         text: "Verified numbering",
         hint: "Verse numbering checked chapter by chapter for this version.",
+      },
+      scanned: {
+        text: "Verse counts known",
+        hint: "This version's verse counts come with the app (scanned from bible.com, Sept 2026), but its numbering hasn't been checked by hand. Chapters that follow no standard system are skipped.",
       },
       "api-index": {
         text: "Numbering from YouVersion",
