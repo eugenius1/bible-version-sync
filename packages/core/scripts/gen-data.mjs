@@ -145,6 +145,18 @@ for (const scheme of SCHEMES) {
 
 // Each surveyed version's name as YouVersion gives it (see
 // scripts/import-survey.mjs), so a version added by number isn't nameless.
+// A language tag must be well formed and conventionally cased. Which alias is
+// preferred is left to the importer: Node's CLDR data changes it between
+// releases (Node 23 maps mnk to man, Node 24 man to mnk), so demanding the
+// canonical form here would make the build depend on the Node version.
+const TAG = /^[a-z]{2,3}(-[A-Z][a-z]{3})?(-([A-Z]{2}|\d{3}))?$/;
+const wellFormed = (tag) => {
+  try {
+    return TAG.test(tag) && Intl.getCanonicalLocales(tag).length === 1;
+  } catch {
+    return false;
+  }
+};
 const names = JSON.parse(read("names.json"));
 for (const [id, name] of Object.entries(names)) {
   const keys = Object.keys(name).sort().join();
@@ -152,7 +164,7 @@ for (const [id, name] of Object.entries(names)) {
     BIBLE_ID.test(id) &&
     keys === "abbr,language,title" &&
     Object.values(name).every((s) => typeof s === "string" && s && s === s.trim()) &&
-    Intl.getCanonicalLocales(name.language)[0] === name.language;
+    wellFormed(name.language);
   if (!ok) throw new Error(`names.json: ${id}: ${JSON.stringify(name)}`);
 }
 for (const id of Object.keys(knownCounts)) {
