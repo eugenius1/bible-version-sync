@@ -18,9 +18,10 @@ import {
 
 // The real engine over every chapter of the versions scanned for
 // docs/versification-survey.md, so what the survey measured stays true: the
-// 54 widely used versions of the original survey, all labelled, and 209 that
-// YouVersion leaves unlabelled, scanned for label coverage (mostly a single
-// Gospel, or Ruth and Jonah).
+// 54 widely used versions of the original survey, all labelled, and 220 that
+// YouVersion leaves unlabelled, scanned for label coverage: mostly a single
+// Gospel, or Ruth and Jonah, plus 11 in languages where Synodal or Septuagint
+// numbering is common.
 interface Scanned {
   abbr: string;
   vrs: StdScheme | null;
@@ -33,6 +34,18 @@ const SCAN: Record<string, Scanned> = JSON.parse(
 /** The original survey's versions, all labelled. */
 const SURVEYED = Object.keys(SCAN).map(Number).filter((id) => SCAN[id].vrs);
 const UNLABELLED = Object.keys(SCAN).map(Number).filter((id) => !SCAN[id].vrs);
+/**
+ * Unlabelled versions whose counts no English or Hebrew numbering explains,
+ * all Synodal or Septuagint numbered by their counts. In each, Psalm 22 is
+ * "The Lord is my shepherd", Psalm 23 in English and Hebrew (bible.com, Sept
+ * 2026). Mapped as English, their Psalms would land one psalm off.
+ */
+const REFUSED: Record<number, number> = {
+  2419: 136, // BOTp, Bashkir Old Testament portions: rsc fits all 642 chapters
+  2503: 187, // grcbrent, Brenton's Septuagint in Greek: lxx fits 901 of 907
+  3918: 133, // AdyBBL, Adyghe: rsc fits 488 of 494
+  4079: 132, // MAK2024PS, a Macedonian psalter: lxx fits all 151 psalms
+};
 
 const knownCounts = (v: Scanned): ChapterCounts =>
   Object.fromEntries(Object.entries(v.counts).map(([b, cs]) => [b, Object.fromEntries(cs.map((n, i) => [i + 1, n]))]));
@@ -125,7 +138,7 @@ describe("surveyed versions", () => {
   it.each(Object.keys(SCAN).map(Number))("bible %i: bundled counts map as the full scan does", (id) => {
     const v = SCAN[id];
     const bundled = buildVersionMap(v.abbr, id);
-    expect(bundled.source, v.abbr).toBe(isVerifiedVersion(id) ? "verified" : "scanned");
+    expect(bundled.source, v.abbr).toBe(isVerifiedVersion(id) ? "verified" : id in REFUSED ? "unsupported" : "scanned");
     const full = buildVersionMap(v.abbr, id, indexOf(v)).map;
     // A book the version lacks (NABRE's Esther is the Greek ESG) is bundled
     // as chapters of 0 verses, so it isn't read. The scan leaves it out,
@@ -177,15 +190,20 @@ describe("unlabelled versions", () => {
   const SKIPPED_UNLABELLED: Record<number, number> = {
     1374: 22, 1604: 88, 1611: 52, 1927: 66, 2056: 27, 2320: 72, 2404: 22, 2532: 213, 2598: 13, 2750: 26,
     3081: 36, 3479: 30, 3800: 116, 3807: 21, 3836: 26, 4175: 4, 4182: 22, 4221: 4, 4446: 22, 4490: 22,
-    4720: 36, 4867: 26,
+    4720: 36, 4867: 26, 1706: 109, 2301: 150, 3275: 500, 3719: 85,
   };
 
-  it("are all English or Hebrew numbered as far as their counts show, so none is refused", () => {
-    expect(UNLABELLED.length).toBe(209);
+  it("are refused only when Synodal or Septuagint numbered", () => {
+    expect(UNLABELLED.length).toBe(220);
     for (const id of UNLABELLED) {
       const { source, unfit } = buildVersionMap(SCAN[id].abbr, id);
-      expect(source, SCAN[id].abbr).toBe("scanned");
-      expect(unfit!, SCAN[id].abbr).toBeLessThanOrEqual(13); // ONE (2532), Oneida selections from 12 books
+      if (id in REFUSED) {
+        expect(source, SCAN[id].abbr).toBe("unsupported");
+        expect(unfit, SCAN[id].abbr).toBe(REFUSED[id]);
+      } else {
+        expect(source, SCAN[id].abbr).toBe("scanned");
+        expect(unfit!, SCAN[id].abbr).toBeLessThanOrEqual(23); // TMA-C (3275), Arabic selections from 23 books
+      }
     }
   });
 
@@ -202,6 +220,12 @@ describe("unlabelled versions", () => {
   // English's 10 (JON 2:1-10 = JON 2:2-11). Jonah 2:1 is the fish swallowing
   // Jonah in all four versions with Jonah (CAROS, DROT, ROT and Lontomba;
   // bible.com, Sept 2026): Hebrew numbering, which Synodal shares, as mapped.
+  // (Also BurOTp and KabBBL, not read.) And Nehemiah 7 in KabBBL, which fits
+  // rsc throughout: 7:68 is mapped as English on purpose, as in SYNO and NRT.
+  // KabBBL (Kabardian) and AltBBL (Altai) are Synodal numbered as far as their
+  // counts show, but in the books they have, Synodal numbers every chapter
+  // either as English or Hebrew does or in a count neither has (those are
+  // skipped), so neither is refused and neither has a verse misplaced.
   it("map every verse as any system their counts fit as well would", () => {
     const std = Standard.load();
     const ambiguous: string[] = [];
@@ -222,7 +246,10 @@ describe("unlabelled versions", () => {
         }
       }
     }
-    expect(ambiguous.sort()).toEqual(["CAROS vul JON.2", "DROT vul JON.2", "ROT vul JON.2", "nto vul JON.2"]);
+    expect(ambiguous.sort()).toEqual([
+      "BurOTp vul JON.2", "CAROS vul JON.2", "DROT vul JON.2", "KabBBL rsc NEH.7", "KabBBL rso NEH.7",
+      "KabBBL vul JON.2", "ROT vul JON.2", "nto vul JON.2",
+    ]);
   });
 });
 
@@ -233,18 +260,24 @@ describe("unsupported numbering", () => {
   // A bible id with no label, correction table or bundled counts.
   const UNKNOWN = 999_999;
 
-  it.each(ids)("bible %i: is never refused", (id) => {
+  it.each(ids.filter((id) => !(id in REFUSED)))("bible %i: is never refused", (id) => {
     expect(buildVersionMap(SCAN[id].abbr, id).source).not.toBe("unsupported");
     expect(buildVersionMap(SCAN[id].abbr, id, indexOf(SCAN[id])).source).not.toBe("unsupported");
   });
 
   it("leaves every English or Hebrew numbered version well below the threshold, even unlabelled", () => {
-    const worst = Math.max(...ids.filter((id) => !LABEL_ONLY.has(SCAN[id].vrs!)).map(unfit));
+    const engOrg = ids.filter((id) => !LABEL_ONLY.has(SCAN[id].vrs!) && !(id in REFUSED));
+    const worst = Math.max(...engOrg.map(unfit));
     expect(worst).toBe(35); // UKRK: 38 chapters, 3 of them described by shared correction tables
     expect(worst * 2).toBeLessThan(MAX_UNFIT_CHAPTERS + 1);
-    for (const id of ids.filter((i) => !LABEL_ONLY.has(SCAN[i].vrs!))) {
+    for (const id of engOrg) {
       expect(buildVersionMap(SCAN[id].abbr, UNKNOWN, indexOf(SCAN[id])).source, SCAN[id].abbr).toBe("api-index");
     }
+  });
+
+  it.each(Object.keys(REFUSED).map(Number))("bible %i: is refused, well above the threshold", (id) => {
+    expect(unfit(id)).toBeGreaterThan(MAX_UNFIT_CHAPTERS + 50);
+    expect(buildVersionMap(SCAN[id].abbr, id, indexOf(SCAN[id])).source).toBe("unsupported");
   });
 
   it.each([143, 186, 400])("bible %i: would be refused without its label", (id) => {
