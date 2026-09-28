@@ -17,9 +17,9 @@ are keyed by bible id throughout; abbreviations aren't unique.
 - `labels.json`: YouVersion's numbering label (`vrs`) by bible id, which the
   official API doesn't expose.
 - `names.json`: every surveyed version's abbreviation, title (in its own
-  script) and BCP 47 language by bible id, as YouVersion gives them, so the
-  app can name a version added by number. The verified versions' names in
-  `scripts/verified.mjs` take precedence.
+  script) and BCP 47 language by bible id, as bible.com shows them (NIV, not
+  YouVersion's internal NIV11), so the app can name a version added by
+  number.
 - `overrides/<bible id>.map`: hand-checked corrections for chapters that follow
   no system. Format: `LOCAL = CANONICAL` (canonical = org numbering), plus
   `use <name>` lines naming shared tables.

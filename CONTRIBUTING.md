@@ -142,14 +142,16 @@ the bundle stops reproducing the scan. The version then shows "Verse counts
 known".
 
 **Version names.** The official API doesn't name most versions (their text
-isn't licensed to the app key), so `names.json` bundles YouVersion's
-abbreviation, title and language for all 305 surveyed versions, scanned or
+isn't licensed to the app key), so `names.json` bundles the abbreviation,
+title and language bible.com shows for all 305 surveyed versions, scanned or
 not: about 8 KB of the gzipped app, against under 2 KB for the 54 scanned
-alone. `versionName()` prefers a verified version's own name in
-`verified.mjs`. The app shows the title beside the name the person chose,
-falls back to "Version {id}" for anything else, and offers the abbreviation as
-the name when the person gives only a number. Titles are in the version's own
-script, so they're rendered with `lang` (Japanese glyphs rather than
+alone. YouVersion has two abbreviations per version, and bible.com shows
+`local_abbreviation` (NIV, НРП), not `abbreviation` (NIV11, NRT); the survey's
+`names.py` records it. The verified versions are named the same way, and
+`gen-data.mjs` checks that `verified.mjs` agrees. The app shows the title
+beside the name the person chose, falls back to "Version {id}" for anything
+else, and offers the abbreviation as the name when the person gives only a
+number. Titles are in the version's own script, so they're rendered with `lang` (Japanese glyphs rather than
 Chinese) and `dir="auto"` (Arabic).
 
 **Verifying a version.** Also add an entry to `VERIFIED` in

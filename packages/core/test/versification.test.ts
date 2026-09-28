@@ -12,7 +12,7 @@ import {
   versificationLabel,
   versionName,
 } from "../src";
-import { KNOWN_COUNTS, OVERRIDES, VERSION_NAMES } from "../src/data.generated";
+import { KNOWN_COUNTS, OVERRIDES, VERIFIED_VERSIONS } from "../src/data.generated";
 
 const MAPS: Record<string, VersionMap> = {
   NIV: buildVersionMap("NIV", 111).map,
@@ -280,11 +280,17 @@ describe("six numbering systems", () => {
 });
 
 describe("versionName", () => {
-  it("prefers a verified version's own name to YouVersion's", () => {
-    // YouVersion calls these NIV11 and "La Sainte Bible par Louis Segond 1910".
-    expect(VERSION_NAMES[111].abbr).toBe("NIV11");
+  it("uses the abbreviation bible.com shows, not YouVersion's internal one", () => {
+    // Internally NIV11, NRT, NAV, CUNP-Shen.
     expect(versionName(111)).toEqual({ abbr: "NIV", language: "en", title: "New International Version" });
-    expect(versionName(93)?.title).toBe("Louis Segond 1910");
+    expect(versionName(143)?.abbr).toBe("НРП");
+    expect(versionName(101)?.abbr).toBe("KEH");
+    expect(versionName(46)?.abbr).toBe("CUNP-神");
+    expect(versionName(93)?.title).toBe("La Sainte Bible par Louis Segond 1910");
+  });
+
+  it("names each verified version as the verified list does", () => {
+    for (const v of VERIFIED_VERSIONS) expect(versionName(v.bibleId)?.abbr).toBe(v.abbr);
   });
 
   it("names scanned versions in their own script, with a BCP 47 language", () => {

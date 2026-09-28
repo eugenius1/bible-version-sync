@@ -416,13 +416,10 @@ export function isVerifiedVersion(bibleId: number): boolean {
 }
 
 /**
- * A version's bundled name: the hand-written one for a verified version, else
- * YouVersion's own for a surveyed one. The official API doesn't give names
- * for most versions (their text isn't licensed to the app key).
+ * A surveyed version's name as bible.com shows it. The official API doesn't
+ * give names for most versions (their text isn't licensed to the app key).
  */
 export function versionName(bibleId: number): VersionName | undefined {
-  const verified = VERIFIED_VERSIONS.find((v) => v.bibleId === bibleId);
-  if (verified) return { abbr: verified.abbr, language: verified.language, title: verified.title };
   return Object.hasOwn(VERSION_NAMES, bibleId) ? VERSION_NAMES[bibleId] : undefined;
 }
 

@@ -35,7 +35,7 @@ describe("VersionsCard", () => {
       { abbr: "X", bibleId: 999999 },
     ]);
     expect(screen.getByText("MINE")).toBeInTheDocument();
-    expect(screen.getByText("Louis Segond 1910")).toHaveAttribute("lang", "fr");
+    expect(screen.getByText("La Sainte Bible par Louis Segond 1910")).toHaveAttribute("lang", "fr");
     // Scanned versions, titled in their own script.
     expect(screen.getByText("Синодальный перевод")).toHaveAttribute("lang", "ru");
     const arabic = screen.getByText("الكتاب المقدس");
