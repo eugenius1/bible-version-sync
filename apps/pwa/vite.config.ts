@@ -1,6 +1,9 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import { defineConfig, type Plugin } from "vite";
+import { type Plugin } from "vite";
+import { defineConfig } from "vitest/config";
 import { VitePWA } from "vite-plugin-pwa";
 
 // Strict Content-Security-Policy for production builds. Sign-in tokens live in
@@ -26,14 +29,37 @@ const csp = (): Plugin => ({
     html.replace("<head>", `<head>\n    <meta http-equiv="Content-Security-Policy" content="${CSP}" />`),
 });
 
+// The repository's LICENSE, served as /LICENSE.txt so the footer can link to it
+// without depending on where (or whether) the source is hosted.
+const LICENCE_FILE = fileURLToPath(new URL("../../LICENSE", import.meta.url));
+const licence = (): Plugin => ({
+  name: "bvs-licence",
+  configureServer(server) {
+    server.middlewares.use("/LICENSE.txt", (_req, res) => {
+      res.setHeader("Content-Type", "text/plain; charset=utf-8");
+      res.end(readFileSync(LICENCE_FILE));
+    });
+  },
+  generateBundle() {
+    this.emitFile({ type: "asset", fileName: "LICENSE.txt", source: readFileSync(LICENCE_FILE, "utf8") });
+  },
+});
+
 export default defineConfig({
   // Port 8001 + /callback matches the redirect URI registered for the app key.
   server: { port: 8001, strictPort: true },
   preview: { port: 8001, strictPort: true },
+  test: {
+    // Node by default; component tests opt in with a `@vitest-environment jsdom` docblock.
+    environment: "node",
+    include: ["src/**/*.test.{ts,tsx}"],
+    setupFiles: ["src/__tests__/setup.ts"],
+  },
   plugins: [
     react(),
     tailwindcss(),
     csp(),
+    licence(),
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.svg", "apple-touch-icon-180x180.png"],
@@ -53,7 +79,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
+        globPatterns: ["**/*.{js,css,html,svg,png,woff2,txt}"],
         navigateFallback: "/index.html",
       },
     }),

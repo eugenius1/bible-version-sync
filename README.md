@@ -51,8 +51,9 @@ Cloudflare Pages, …).
   - If any chapter of a book can't be read, the whole book is skipped.
   - Large batches of removals need an extra confirmation.
 
-The rules and the verse mapping are covered by `packages/core/test`
-(`npm test`).
+The rules and the verse mapping are covered by `packages/core/test`, and the
+app's translations, theme handling and colour contrast (WCAG AA, both themes)
+by `apps/pwa/src/**/__tests__` (`npm test`).
 
 ## Verse-numbering data
 
@@ -70,3 +71,22 @@ app says so).
   retries; if that fails the run stops and asks you to sign in again.
 - iOS home-screen apps keep storage separate from Safari. If sign-in finishes
   in Safari instead of the installed app, open the app and sign in again.
+
+## Licence
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details. You
+should have received a copy of the licence along with this program — see
+[LICENSE](LICENSE), or <https://www.gnu.org/licenses/>. The app also serves it
+at `/LICENSE.txt`, linked from its footer.
+
+The verse-numbering files `packages/core/data/eng.vrs` and `org.vrs` (and their
+copies in `tools/python-cli`) come from SIL's
+[libpalaso](https://github.com/sillsdev/libpalaso) under the MIT licence, which
+is GPL-compatible.

@@ -1,12 +1,31 @@
-import type { Messages } from "./en";
+import type { Dictionary } from "./en";
 
-const num = (n: number) => n.toLocaleString("fr");
-// In French, 0 and 1 take the singular.
-const s = (n: number, one: string, many: string) => (n <= 1 ? one : many);
+/**
+ * French strings. Typography: a no-break space ( ) before ":" and a
+ * narrow no-break space ( ) before ";", "?" and "!", so they never start
+ * a line on their own.
+ */
+export const fr: Dictionary = {
+  meta: {
+    localeTag: "fr",
+    name: "Français",
+  },
 
-export const fr: Messages = {
-  langName: "Français",
-  back: "Retour",
+  app: {
+    back: "Retour",
+    languageLabel: "Langue",
+    themeLabel: "Apparence",
+    copyright: "© {years} Eusebius Ngemera",
+    licence: "GPLv3",
+    licenceTitle: "Licence publique générale GNU, version 3 ou ultérieure",
+    notAffiliated: "Sans lien avec YouVersion.",
+  },
+
+  themes: {
+    system: "Système",
+    light: "Clair",
+    dark: "Sombre",
+  },
 
   signIn: {
     intro:
@@ -18,7 +37,7 @@ export const fr: Messages = {
     ],
     button: "Se connecter avec YouVersion",
     opening: "Ouverture de YouVersion…",
-    disclaimer: "Non affilié à YouVersion. Utilise l'API YouVersion Platform avec votre autorisation.",
+    disclaimer: "Utilise l'API YouVersion Platform avec votre autorisation.",
     missingKey: "Clé d'application manquante. Définissez VITE_YV_APP_KEY dans apps/pwa/.env.local puis redémarrez.",
   },
 
@@ -29,7 +48,7 @@ export const fr: Messages = {
       "Cette connexion ne correspond pas à celle lancée par l'application, ou elle a pris trop de temps. Veuillez vous reconnecter.",
     noPermission:
       "Vous êtes connecté, mais vous n'avez pas autorisé l'accès aux surlignages, dont l'application a besoin. Reconnectez-vous et autorisez-le.",
-    provider: (detail) => `YouVersion a signalé un problème : ${detail}`,
+    provider: "YouVersion a signalé un problème : {detail}",
   },
 
   versions: {
@@ -46,28 +65,28 @@ export const fr: Messages = {
       },
       assumed: {
         text: "Numérotation supposée",
-        hint: "Impossible de lire le nombre de versets de cette version : la numérotation anglaise est supposée. Dans les Psaumes et certains chapitres de l'Ancien Testament, des surlignages pourraient tomber sur le mauvais verset.",
+        hint: "Impossible de lire le nombre de versets de cette version : la numérotation anglaise est supposée. Dans les Psaumes et certains chapitres de l'Ancien Testament, des surlignages pourraient tomber sur le mauvais verset.",
       },
     },
     checking: "Vérification de la numérotation…",
-    fallbackTitle: (id) => `Version ${id}`,
-    moveUp: (abbr) => `Monter ${abbr}`,
-    moveDown: (abbr) => `Descendre ${abbr}`,
-    remove: (abbr) => `Retirer ${abbr}`,
-    confirmRemove: (abbr) => `Retirer ${abbr} de la synchronisation ? Ses surlignages restent dans YouVersion.`,
+    unnamed: "Version n° {id}",
+    moveUp: "Monter {abbr}",
+    moveDown: "Descendre {abbr}",
+    remove: "Retirer {abbr}",
+    confirmRemove: "Retirer {abbr} de la synchronisation ? Ses surlignages restent dans YouVersion.",
     addLabel: "Ajouter une version",
     addPlaceholder: "Lien bible.com ou numéro de version",
     nameLabel: "Nom court",
     namePlaceholder: "Nom",
     add: "Ajouter",
     adding: "Vérification…",
-    addHelp: "Ouvrez la version sur bible.com et copiez l'adresse, par exemple :",
+    addHelp: "Ouvrez la version sur bible.com et copiez l'adresse, par exemple :",
     errors: {
       unparseable: "Collez un lien bible.com comme bible.com/bible/93/JHN.3.LSG, ou tapez le numéro (93).",
       needName: "Donnez un nom court à cette version, par ex. BDS.",
       duplicateVersion: "Cette version est déjà dans la liste.",
-      duplicateName: (name) => `Le nom ${name} est déjà utilisé.`,
-      cantRead: (id, problem) => `Impossible de lire les surlignages de la version ${id} : ${problem}`,
+      duplicateName: "Le nom {name} est déjà utilisé.",
+      cantRead: "Impossible de lire les surlignages de la version {id} : {problem}",
     },
   },
 
@@ -77,17 +96,16 @@ export const fr: Messages = {
     chapter: "Chapitre",
     book: "Livre",
     bible: "Toute la Bible",
-    chapterCount: (book, n, abbr) => `${book} a ${n} ${s(n, "chapitre", "chapitres")} dans ${abbr}.`,
-    bibleNote: (chapters) =>
-      `Lecture d'environ ${num(chapters)} chapitres. Cela peut prendre un moment ; gardez cette page ouverte.`,
+    chapterCount: ["{book} a {n} chapitre dans {abbr}.", "{book} a {n} chapitres dans {abbr}."],
+    bibleNote: "Lecture d'environ {n} chapitres. Cela peut prendre un moment ; gardez cette page ouverte.",
     preview: "Aperçu des modifications",
     syncNow: "Synchroniser maintenant",
-    confirmBible: "Synchroniser toute la Bible maintenant, sans aperçu ?",
+    confirmBible: "Synchroniser toute la Bible maintenant, sans aperçu ?",
     previewing: "Aperçu",
     syncing: "Synchronisation",
     starting: "Démarrage…",
-    reading: (book, done, total) => `Lecture de ${book} · ${num(done)} sur ${num(total)} chapitres`,
-    writing: (book, done, total) => `Écriture de ${book} · ${num(done)} sur ${num(total)} modifications`,
+    reading: "Lecture de {book} · {done} sur {total} chapitres",
+    writing: "Écriture de {book} · {done} sur {total} modifications",
     stop: "Arrêter",
     stopNote: "L'arrêt termine d'abord le livre en cours, pour que rien ne reste à moitié fait.",
   },
@@ -97,44 +115,47 @@ export const fr: Messages = {
     doneTitle: "Synchronisation terminée",
     stopped: "(arrêtée)",
     inSyncDone: "Tout était déjà synchronisé.",
-    inSyncPreview: "Rien à modifier : tout est synchronisé.",
-    counts: (applied, sets, removals) =>
-      applied
-        ? `${num(sets)} ${s(sets, "surlignage ajouté", "surlignages ajoutés")}, ${num(removals)} ${s(removals, "supprimé", "supprimés")}.`
-        : `${num(sets)} ${s(sets, "surlignage à ajouter", "surlignages à ajouter")}, ${num(removals)} à supprimer.`,
-    differences: (n) =>
-      `${num(n)} ${s(n, "verset a", "versets ont")} des couleurs différentes ; chaque version garde la sienne.`,
-    booksSkipped: (n) =>
-      `${num(n)} ${s(n, "livre ignoré", "livres ignorés")} car les surlignages n'ont pas pu être lus. Rien n'y a été modifié.`,
-    writeErrors: (n) =>
-      `${num(n)} ${s(n, "modification a échoué", "modifications ont échoué")} ; la prochaine synchronisation réessaiera.`,
-    authExpired: "Arrêtée : votre connexion YouVersion a expiré. Rien d'autre n'a été modifié.",
+    inSyncPreview: "Rien à modifier : tout est synchronisé.",
+    added: ["{n} surlignage ajouté", "{n} surlignages ajoutés"],
+    removedCount: ["{n} supprimé", "{n} supprimés"],
+    toAdd: ["{n} surlignage à ajouter", "{n} surlignages à ajouter"],
+    toRemove: ["{n} à supprimer", "{n} à supprimer"],
+    differences: [
+      "{n} verset a des couleurs différentes ; chaque version garde la sienne.",
+      "{n} versets ont des couleurs différentes ; chaque version garde la sienne.",
+    ],
+    booksSkipped: [
+      "{n} livre ignoré, car les surlignages n'ont pas pu être lus. Rien n'y a été modifié.",
+      "{n} livres ignorés, car les surlignages n'ont pas pu être lus. Rien n'y a été modifié.",
+    ],
+    writeErrors: [
+      "{n} modification a échoué ; la prochaine synchronisation réessaiera.",
+      "{n} modifications ont échoué ; la prochaine synchronisation réessaiera.",
+    ],
+    authExpired: "Arrêtée : votre connexion YouVersion a expiré. Rien d'autre n'a été modifié.",
     network:
-      "Arrêtée : impossible de joindre YouVersion. Vérifiez votre connexion et réessayez. Si le problème persiste, reconnectez-vous.",
+      "Arrêtée : impossible de joindre YouVersion. Vérifiez votre connexion et réessayez. Si le problème persiste, reconnectez-vous.",
     signInAgain: "Se reconnecter",
-    apply: (n) => `Appliquer ${num(n)} ${s(n, "modification", "modifications")}`,
-    blocked: (n) =>
-      `${num(n)} ${s(n, "livre n'a pas été modifié", "livres n'ont pas été modifiés")}, car la synchronisation supprimerait beaucoup de surlignages d'un coup. Si c'est voulu, continuez :`,
+    apply: ["Appliquer {n} modification", "Appliquer {n} modifications"],
+    blocked: [
+      "{n} livre n'a pas été modifié, car la synchronisation supprimerait beaucoup de surlignages d'un coup. Si c'est voulu, continuez :",
+      "{n} livres n'ont pas été modifiés, car la synchronisation supprimerait beaucoup de surlignages d'un coup. Si c'est voulu, continuez :",
+    ],
     applyWithRemovals: "Appliquer, suppressions comprises",
-    skippedRead: "ignoré : lecture impossible",
-    notApplied: (removals, limit) =>
-      `non appliqué : supprimerait ${num(removals)} surlignages (limite de ${num(limit)} par synchronisation)`,
+    skippedRead: "ignoré : lecture impossible",
+    notApplied: "non appliqué : supprimerait {removals} surlignages (limite de {limit} par synchronisation)",
     differentColors: "Couleurs différentes",
-    differenceNote: (winner) =>
-      `Chaque version garde la sienne ; les versions sans surlignage reçoivent la couleur de ${winner}.`,
+    differenceNote: "Chaque version garde la sienne ; les versions sans surlignage reçoivent la couleur de {winner}.",
     removed: "supprimé",
     action: { fill: "ajouter", recolor: "changer la couleur", remove: "supprimer" },
-    more: (n) => `…et ${num(n)} de plus`,
+    more: "…et {n} de plus",
   },
 
   footer: {
-    memory: (n) => `Mémoire de synchronisation : ${num(n)} ${s(n, "verset", "versets")}`,
+    memory: ["Mémoire de synchronisation : {n} verset", "Mémoire de synchronisation : {n} versets"],
     reset: "Réinitialiser",
     confirmReset:
-      "Oublier ce qu'ont fait les synchronisations précédentes ? La prochaine se contentera de compléter les versets sans surlignage, sans rien supprimer ni recolorer.",
+      "Oublier ce qu'ont fait les synchronisations précédentes ? La prochaine se contentera de compléter les versets sans surlignage, sans rien supprimer ni recolorer.",
     signOut: "Se déconnecter",
-    language: "Langue",
-    theme: "Thème",
-    themes: { auto: "Auto", light: "Clair", dark: "Sombre" },
   },
 };

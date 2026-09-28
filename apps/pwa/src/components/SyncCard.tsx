@@ -1,4 +1,5 @@
 import { BOOKS, type Scope } from "@bvs/core";
+import { Eye, RefreshCw, Square } from "lucide-react";
 import { useState } from "react";
 import type { RunState } from "../App";
 import { useI18n } from "../i18n";
@@ -15,7 +16,7 @@ interface Props {
 }
 
 export function SyncCard({ versions, run, onRun, onCancel }: Props) {
-  const { t, book: bookName } = useI18n();
+  const { t, f, plural, num, book: bookName } = useI18n();
   const ts = t.sync;
   const [kind, setKind] = useState<Kind>("chapter");
   const [book, setBook] = useState("JHN");
@@ -40,7 +41,7 @@ export function SyncCard({ versions, run, onRun, onCancel }: Props) {
           {(["chapter", "book", "bible"] as const).map((k) => (
             <label
               key={k}
-              className={`cursor-pointer rounded-lg px-1 py-2 text-center text-sm font-medium transition has-focus-visible:outline-2 has-focus-visible:outline-amber-500 ${
+              className={`cursor-pointer rounded-lg px-1 py-2 text-center text-sm font-medium transition has-focus-visible:outline-2 has-focus-visible:outline-amber-600 dark:has-focus-visible:outline-amber-500 ${
                 kind === k ? "bg-white shadow-sm dark:bg-stone-950" : "text-stone-600 dark:text-stone-400"
               }`}
             >
@@ -73,11 +74,13 @@ export function SyncCard({ versions, run, onRun, onCancel }: Props) {
         )}
         {kind === "chapter" && !validChapter && versions && (
           <p className="text-sm text-red-700 dark:text-red-300">
-            {ts.chapterCount(bookName(book), chapters.length, versions[0].abbr)}
+            {plural(ts.chapterCount, chapters.length, { book: bookName(book), abbr: versions[0].abbr })}
           </p>
         )}
         {kind === "bible" && (
-          <p className="text-sm text-stone-600 dark:text-stone-400">{ts.bibleNote(1189 * (versions?.length ?? 4))}</p>
+          <p className="text-sm text-stone-600 dark:text-stone-400">
+            {f(ts.bibleNote, { n: num(1189 * (versions?.length ?? 4)) })}
+          </p>
         )}
       </fieldset>
 
@@ -86,6 +89,7 @@ export function SyncCard({ versions, run, onRun, onCancel }: Props) {
       ) : (
         <div className="flex flex-col gap-2 sm:flex-row">
           <button className="btn-primary" disabled={!ready} onClick={() => onRun(scope, false)}>
+            <Eye size={16} aria-hidden />
             {ts.preview}
           </button>
           <button
@@ -96,6 +100,7 @@ export function SyncCard({ versions, run, onRun, onCancel }: Props) {
               onRun(scope, true);
             }}
           >
+            <RefreshCw size={16} aria-hidden />
             {ts.syncNow}
           </button>
         </div>
@@ -105,26 +110,32 @@ export function SyncCard({ versions, run, onRun, onCancel }: Props) {
 }
 
 function ProgressView({ run, onCancel }: { run: Extract<RunState, { status: "running" }>; onCancel: () => void }) {
-  const { t, book } = useI18n();
+  const { t, f, num, book } = useI18n();
   const ts = t.sync;
   const p = run.progress;
   const pct = p && p.readTotal ? Math.round((p.readDone / p.readTotal) * 100) : 0;
   const text = !p
     ? ts.starting
     : p.phase === "reading"
-      ? ts.reading(book(p.book), p.readDone, p.readTotal)
-      : ts.writing(book(p.book), p.done, p.total);
+      ? f(ts.reading, { book: book(p.book), done: num(p.readDone), total: num(p.readTotal) })
+      : f(ts.writing, { book: book(p.book), done: num(p.done), total: num(p.total) });
   return (
     <div className="space-y-2" role="status" aria-live="polite">
       <div className="flex items-center justify-between gap-3 text-sm">
-        <span>{run.apply ? ts.syncing : ts.previewing} — {text}</span>
-        <button className="btn-ghost shrink-0" onClick={onCancel}>{ts.stop}</button>
+        <span className="inline-flex items-center gap-2">
+          <RefreshCw size={14} className="shrink-0 animate-spin motion-reduce:animate-none" aria-hidden />
+          {run.apply ? ts.syncing : ts.previewing} — {text}
+        </span>
+        <button className="btn-ghost shrink-0" onClick={onCancel}>
+          <Square size={14} aria-hidden />
+          {ts.stop}
+        </button>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-stone-200 dark:bg-stone-800">
         <progress className="sr-only" max={100} value={pct} />
-        <div className="h-full rounded-full bg-amber-400 transition-[width]" style={{ width: `${pct}%` }} />
+        <div className="h-full rounded-full bg-amber-700 transition-[width] dark:bg-amber-500" style={{ width: `${pct}%` }} />
       </div>
-      <p className="text-xs text-stone-500">{ts.stopNote}</p>
+      <p className="text-xs text-stone-600 dark:text-stone-400">{ts.stopNote}</p>
     </div>
   );
 }

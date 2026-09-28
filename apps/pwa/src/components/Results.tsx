@@ -1,4 +1,5 @@
 import type { Action, BookResult, Difference } from "@bvs/core";
+import { Check, ChevronRight, CircleAlert, LogIn, TriangleAlert } from "lucide-react";
 import type { RunState } from "../App";
 import { useI18n } from "../i18n";
 
@@ -11,10 +12,10 @@ interface Props {
   onSignInAgain: () => void;
 }
 
-function tally(actions: Action[], op: Action["op"]): string {
+function tally(actions: Action[], op: Action["op"], num: (n: number) => string): string {
   const by = new Map<string, number>();
   for (const a of actions) if (a.op === op) by.set(a.version, (by.get(a.version) ?? 0) + 1);
-  return [...by].map(([v, n]) => `${v} ${op === "set" ? "+" : "−"}${n}`).join(", ");
+  return [...by].map(([v, n]) => `${v} ${op === "set" ? "+" : "−"}${num(n)}`).join(", ");
 }
 
 function Swatch({ color }: { color: string | null }) {
@@ -25,8 +26,22 @@ function Swatch({ color }: { color: string | null }) {
   );
 }
 
+function Notice({ tone, children }: { tone: "warn" | "error"; children: React.ReactNode }) {
+  const Icon = tone === "warn" ? TriangleAlert : CircleAlert;
+  return (
+    <div
+      className={`flex gap-2 rounded-xl p-3 text-sm ${
+        tone === "warn" ? "bg-amber-50 text-amber-950 dark:bg-amber-950 dark:text-amber-100" : "bg-red-50 text-red-900 dark:bg-red-950 dark:text-red-100"
+      }`}
+    >
+      <Icon size={16} className="mt-0.5 shrink-0" aria-hidden />
+      <div className="space-y-2">{children}</div>
+    </div>
+  );
+}
+
 export function Results({ run, onApply, onApplyAllowingRemovals, onSignInAgain }: Props) {
-  const { t } = useI18n();
+  const { t, plural } = useI18n();
   const tr = t.results;
   const s = run.summary;
   const changed = s.books.filter(
@@ -34,6 +49,7 @@ export function Results({ run, onApply, onApplyAllowingRemovals, onSignInAgain }
   );
   const authExpired = s.fatal?.reason === "auth" || s.books.some((b) => b.writeErrors.some((e) => /HTTP 401/.test(e)));
   const total = s.sets + s.removals;
+  const inSync = total === 0 && !s.failedBooks;
 
   return (
     <section className="card space-y-4" aria-labelledby="results-title">
@@ -42,29 +58,43 @@ export function Results({ run, onApply, onApplyAllowingRemovals, onSignInAgain }
           {run.apply ? tr.doneTitle : tr.previewTitle}
           {s.aborted && ` ${tr.stopped}`}
         </h2>
-        <p className="text-sm text-stone-600 dark:text-stone-400">
-          {total === 0 && !s.failedBooks ? (run.apply ? tr.inSyncDone : tr.inSyncPreview) : tr.counts(run.apply, s.sets, s.removals)}
-          {s.differences > 0 && ` ${tr.differences(s.differences)}`}
+        <p className="flex items-start gap-1.5 text-sm text-stone-600 dark:text-stone-400">
+          {inSync && <Check size={16} className="mt-0.5 shrink-0 text-emerald-700 dark:text-emerald-400" aria-hidden />}
+          <span>
+            {inSync
+              ? run.apply ? tr.inSyncDone : tr.inSyncPreview
+              : run.apply
+                ? `${plural(tr.added, s.sets)}, ${plural(tr.removedCount, s.removals)}.`
+                : `${plural(tr.toAdd, s.sets)}, ${plural(tr.toRemove, s.removals)}.`}
+            {s.differences > 0 && ` ${plural(tr.differences, s.differences)}`}
+          </span>
         </p>
-        {s.failedBooks > 0 && <p className="text-sm text-red-700 dark:text-red-300">{tr.booksSkipped(s.failedBooks)}</p>}
-        {s.writeErrors > 0 && <p className="text-sm text-red-700 dark:text-red-300">{tr.writeErrors(s.writeErrors)}</p>}
       </div>
 
+      {s.failedBooks > 0 && <Notice tone="error">{plural(tr.booksSkipped, s.failedBooks)}</Notice>}
+      {s.writeErrors > 0 && <Notice tone="error">{plural(tr.writeErrors, s.writeErrors)}</Notice>}
+
       {(authExpired || s.fatal?.reason === "network") && (
-        <div className="space-y-2 rounded-xl bg-amber-50 p-3 text-sm dark:bg-amber-950">
+        <Notice tone="warn">
           <p>{authExpired ? tr.authExpired : tr.network}</p>
-          <button className="btn-secondary" onClick={onSignInAgain}>{tr.signInAgain}</button>
-        </div>
+          <button className="btn-secondary" onClick={onSignInAgain}>
+            <LogIn size={16} aria-hidden />
+            {tr.signInAgain}
+          </button>
+        </Notice>
       )}
 
       {!run.apply && total > 0 && (
-        <button className="btn-primary w-full sm:w-auto" onClick={onApply}>{tr.apply(total)}</button>
+        <button className="btn-primary w-full sm:w-auto" onClick={onApply}>
+          <Check size={16} aria-hidden />
+          {plural(tr.apply, total)}
+        </button>
       )}
       {run.apply && s.blockedBooks > 0 && (
-        <div className="space-y-2 rounded-xl bg-amber-50 p-3 text-sm dark:bg-amber-950">
-          <p>{tr.blocked(s.blockedBooks)}</p>
+        <Notice tone="warn">
+          <p>{plural(tr.blocked, s.blockedBooks)}</p>
           <button className="btn-secondary" onClick={onApplyAllowingRemovals}>{tr.applyWithRemovals}</button>
-        </div>
+        </Notice>
       )}
 
       {changed.length > 0 && (
@@ -77,7 +107,7 @@ export function Results({ run, onApply, onApplyAllowingRemovals, onSignInAgain }
 }
 
 function DifferenceRow({ d }: { d: Difference }) {
-  const { t, ref } = useI18n();
+  const { t, f, ref } = useI18n();
   return (
     <div className="space-y-1">
       <p>
@@ -88,31 +118,34 @@ function DifferenceRow({ d }: { d: Difference }) {
           <span key={abbr} className="inline-flex items-center gap-1.5">
             <Swatch color={color} />
             {abbr}
-            {!color && <span className="text-stone-500">({t.results.removed})</span>}
+            {!color && <span className="text-stone-600 dark:text-stone-400">({t.results.removed})</span>}
           </span>
         ))}
       </p>
-      <p className="text-stone-600 dark:text-stone-400">{t.results.differenceNote(d.winner)}</p>
+      <p className="text-stone-600 dark:text-stone-400">{f(t.results.differenceNote, { winner: d.winner })}</p>
     </div>
   );
 }
 
 function BookRow({ result: b }: { result: BookResult }) {
-  const { t, book, ref } = useI18n();
+  const { t, f, num, book, ref } = useI18n();
   const tr = t.results;
   const actions = b.plan?.actions ?? [];
-  const adds = tally(actions, "set");
-  const rems = tally(actions, "remove");
+  const adds = tally(actions, "set", num);
+  const rems = tally(actions, "remove", num);
   return (
     <li className="rounded-xl border border-stone-200 dark:border-stone-800">
-      <details>
-        <summary className="flex cursor-pointer list-none flex-wrap items-baseline gap-x-3 gap-y-1 p-3">
+      <details className="group">
+        <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-1 p-3">
+          <ChevronRight size={16} className="shrink-0 transition group-open:rotate-90" aria-hidden />
           <span className="font-medium">{book(b.book)}</span>
           {adds && <span className="text-sm text-stone-600 dark:text-stone-400">{adds}</span>}
           {rems && <span className="text-sm text-stone-600 dark:text-stone-400">{rems}</span>}
           {b.readError && <span className="text-sm text-red-700 dark:text-red-300">{tr.skippedRead}</span>}
           {b.blocked && (
-            <span className="text-sm text-amber-800 dark:text-amber-300">{tr.notApplied(b.blocked.removals, b.blocked.limit)}</span>
+            <span className="text-sm text-amber-900 dark:text-amber-200">
+              {f(tr.notApplied, { removals: num(b.blocked.removals), limit: num(b.blocked.limit) })}
+            </span>
           )}
         </summary>
         <div className="space-y-3 border-t border-stone-200 p-3 text-sm dark:border-stone-800">
@@ -128,10 +161,12 @@ function BookRow({ result: b }: { result: BookResult }) {
                   <span className="w-10 font-medium">{a.version}</span>
                   <Swatch color={a.color} />
                   <span>{ref(a.local)}</span>
-                  <span className="text-stone-500">{tr.action[a.reason]}</span>
+                  <span className="text-stone-600 dark:text-stone-400">{tr.action[a.reason]}</span>
                 </li>
               ))}
-              {actions.length > MAX_ROWS && <li className="text-stone-500">{tr.more(actions.length - MAX_ROWS)}</li>}
+              {actions.length > MAX_ROWS && (
+                <li className="text-stone-600 dark:text-stone-400">{f(tr.more, { n: num(actions.length - MAX_ROWS) })}</li>
+              )}
             </ul>
           )}
         </div>

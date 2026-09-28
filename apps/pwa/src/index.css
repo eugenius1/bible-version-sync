@@ -1,12 +1,20 @@
 @import "tailwindcss";
 
+/* Dark mode follows the .dark class on <html> (set by public/theme.js), so the
+   user can override the system setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 @layer base {
   html {
+    color-scheme: light;
     @apply bg-stone-50 text-stone-900 antialiased dark:bg-stone-950 dark:text-stone-100;
+  }
+  html.dark {
+    color-scheme: dark;
   }
   body {
     padding-top: env(safe-area-inset-top);
@@ -20,7 +28,7 @@
 
 @utility btn {
   @apply inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 text-sm font-medium transition
-    focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500
+    focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 dark:focus-visible:outline-amber-500
     disabled:cursor-not-allowed disabled:opacity-50;
 }
 
@@ -38,9 +46,29 @@
 
 @utility input {
   @apply min-h-10 w-full rounded-xl border border-stone-300 bg-white px-3 text-sm dark:border-stone-700 dark:bg-stone-950
-    focus-visible:outline-2 focus-visible:outline-amber-500;
+    focus-visible:outline-2 focus-visible:outline-amber-600 dark:focus-visible:outline-amber-500;
 }
 
 @utility label {
   @apply text-xs font-medium tracking-wide text-stone-500 uppercase dark:text-stone-400;
+}
+
+/* Language and appearance pickers: a native <select> with icons either side. */
+@utility picker {
+  @apply relative inline-flex min-h-8 items-center gap-1.5 rounded-full border border-stone-300 bg-white pr-2 pl-2.5
+    text-xs text-stone-600 transition hover:border-stone-400 hover:text-stone-900
+    focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-amber-600 dark:focus-within:outline-amber-500
+    dark:border-stone-700 dark:bg-stone-900 dark:text-stone-400 dark:hover:border-stone-600 dark:hover:text-stone-100;
+}
+
+@utility picker-select {
+  /* The select carries the click target; the icons are decoration. */
+  @apply cursor-pointer appearance-none bg-transparent py-1 text-xs leading-none text-inherit focus:outline-none;
+}
+
+@layer base {
+  /* Native option lists are drawn by the OS and ignore inherited colours. */
+  select option {
+    @apply bg-white text-stone-900 dark:bg-stone-900 dark:text-stone-100;
+  }
 }
