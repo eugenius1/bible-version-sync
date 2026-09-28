@@ -87,8 +87,8 @@ const PAIRS: Array<[Pair, Pair]> = [
     { label: "verified-numbering badge", fg: "emerald-200", bg: "emerald-950", need: 4.5 },
   ],
   [
-    { label: "API-numbering badge", fg: "sky-900", bg: "sky-100", need: 4.5 },
-    { label: "API-numbering badge", fg: "sky-200", bg: "sky-950", need: 4.5 },
+    { label: "API-numbering and counts-known badges", fg: "sky-900", bg: "sky-100", need: 4.5 },
+    { label: "API-numbering and counts-known badges", fg: "sky-200", bg: "sky-950", need: 4.5 },
   ],
   [
     { label: "assumed-numbering badge", fg: "amber-900", bg: "amber-100", need: 4.5 },

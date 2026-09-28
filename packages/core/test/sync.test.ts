@@ -369,3 +369,37 @@ describe("a version whose mapping changed", () => {
   });
 });
 
+describe("a version moving from assumed numbering to bundled counts", () => {
+  // Hfa (73) was assumed English before its counts were bundled; its Psalms
+  // follow Hebrew numbering (titles are verse 1), so every titled psalm maps
+  // differently once the counts are known.
+  const std = Standard.load();
+  const NIV: SyncVersion = { abbr: "NIV", bibleId: 111, map: buildVersionMap("NIV", 111).map };
+  const assumed: SyncVersion = { abbr: "HFA", bibleId: 73, map: VersionMap.build("HFA", std) };
+  const bundled = buildVersionMap("HFA", 73);
+  const counted: SyncVersion = { ...assumed, map: bundled.map };
+
+  const run = async (versions: SyncVersion[]) => {
+    const plan = planBook("PSA", versions, await readBook(api, versions, "PSA"), state);
+    await applyPlan(api, versions, plan, state);
+    return plan;
+  };
+
+  it("only has blanks filled on the next sync", async () => {
+    expect(bundled.source).toBe("scanned");
+    expect(assumed.map.toCanon.get("PSA.51.3")).not.toBe(counted.map.toCanon.get("PSA.51.3"));
+    api.store[73] = { "PSA.23.1": "a3d9ff" };
+    api.hl("NIV", "PSA.51.1", "ffe066");
+    api.hl("NIV", "PSA.51.2", "ffe066");
+    await run([NIV, assumed]);
+    expect(api.store[73]["PSA.51.1"]).toBe("ffe066"); // assumed English: a title, the wrong verse
+
+    const plan = await run([NIV, counted]);
+    expect(plan.remapped).toEqual(["HFA"]);
+    expect(plan.actions.filter((a) => a.op === "remove" || a.reason !== "fill")).toEqual([]);
+    expect(api.color("NIV", "PSA.51.1")).toBe("ffe066");
+    expect(api.color("NIV", "PSA.51.2")).toBe("ffe066");
+    expect(api.color("NIV", "PSA.23.1")).toBe("a3d9ff");
+    expect(api.store[73]["PSA.51.3"]).toBe("ffe066"); // NIV 51:1, now in its place
+  });
+});

@@ -1,12 +1,14 @@
 import { assumedScheme } from "@bvs/core";
-import { ArrowDown, ArrowUp, BadgeCheck, CircleAlert, Info, Plus, X } from "lucide-react";
+import { ArrowDown, ArrowUp, BadgeCheck, CircleAlert, Hash, Info, Plus, X } from "lucide-react";
 import { useState } from "react";
 import { useI18n } from "../i18n";
 import type { VersionSetting } from "../lib/db";
 import { canReadHighlights, parseVersionInput, titleOf, type ResolvedVersion } from "../lib/versions";
 
 const SOURCE_STYLE: Record<ResolvedVersion["source"], { tone: string; Icon: typeof BadgeCheck }> = {
-  builtin: { tone: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200", Icon: BadgeCheck },
+  verified: { tone: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200", Icon: BadgeCheck },
+  // Scanned counts and the API index are equally trustworthy: real counts, no hand check.
+  scanned: { tone: "bg-sky-100 text-sky-900 dark:bg-sky-950 dark:text-sky-200", Icon: Hash },
   "api-index": { tone: "bg-sky-100 text-sky-900 dark:bg-sky-950 dark:text-sky-200", Icon: Info },
   assumed: { tone: "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200", Icon: CircleAlert },
 };

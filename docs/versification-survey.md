@@ -70,8 +70,9 @@ The scanner and data behind this survey are in
 2. **Support `rso`, `rsc`, `lxx` and `vul`:** done; see
    [below](#synodal-and-septuagint-support).
 3. **Bundle the scanned counts** for all 54 versions so they get
-   count-based numbering without the API, and promote the English-numbered
-   ones to "verified" once REV 12 / 3 John are handled generically.
+   count-based numbering without the API: done, shown as "Verse counts
+   known". Promoting the English-numbered ones to "verified" waits for
+   REV 12 / 3 John to be handled generically.
 4. **Write shared correction tables** for the Dutch/Indonesian tradition
    (Job 38–41, Hosea 1–2, Nehemiah 8 …).
 5. **Test merged-verse highlighting** against a paraphrase (MSG) before

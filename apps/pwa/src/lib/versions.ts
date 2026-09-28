@@ -1,29 +1,41 @@
-import { ApiError, BUILTIN_VERSIONS, buildVersionMap, isBuiltinVersion, type SyncVersion } from "@bvs/core";
+import {
+  ApiError,
+  VERIFIED_VERSIONS,
+  buildVersionMap,
+  hasKnownCounts,
+  type NumberingSource,
+  type SyncVersion,
+} from "@bvs/core";
 import { client } from "./auth";
 import { store, type VersionSetting } from "./db";
 
 export { parseVersionInput } from "@bvs/core";
 
-export type NumberingSource = "builtin" | "api-index" | "assumed";
+export type { NumberingSource };
 
 export interface ResolvedVersion extends SyncVersion {
   title?: string;
   source: NumberingSource;
 }
 
-export const titleOf = (bibleId: number) => BUILTIN_VERSIONS.find((v) => v.bibleId === bibleId)?.title;
+export const titleOf = (bibleId: number) => VERIFIED_VERSIONS.find((v) => v.bibleId === bibleId)?.title;
 
 /**
- * Build verse maps for the configured versions. The four verified versions use
- * built-in data; others use the API index when the app key may read it
- * (cached), else the version's bundled numbering label (Synodal, Septuagint,
- * Vulgate) or English numbering is assumed.
+ * Build verse maps for the configured versions. Versions with bundled counts
+ * (the four verified ones and the others scanned for the survey) use them
+ * without asking the API; others use the API index when the app key may read
+ * it (cached), else the version's bundled numbering label (Synodal,
+ * Septuagint, Vulgate) or English numbering is assumed.
+ *
+ * Everything is looked up by bible id. A setting's `abbr` is the name the
+ * person chose, which is also what the sync snapshot is keyed by, so saved
+ * settings carry over unchanged whatever they're called.
  */
 export async function resolveVersions(settings: VersionSetting[]): Promise<ResolvedVersion[]> {
   const out: ResolvedVersion[] = [];
   for (const v of settings) {
     let index: unknown | null | undefined;
-    if (!isBuiltinVersion(v.bibleId)) {
+    if (!hasKnownCounts(v.bibleId)) {
       index = await store.getIndex(v.bibleId);
       if (index === undefined) {
         try {

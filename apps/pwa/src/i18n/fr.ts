@@ -55,9 +55,13 @@ export const fr: Dictionary = {
     title: "Vos versions",
     help: "Quand un verset a des couleurs différentes, chaque version garde la sienne. Les versions sans surlignage reçoivent la couleur de la première de la liste.",
     source: {
-      builtin: {
+      verified: {
         text: "Numérotation vérifiée",
         hint: "Numérotation des versets vérifiée chapitre par chapitre pour cette version.",
+      },
+      scanned: {
+        text: "Nombre de versets connu",
+        hint: "Le nombre de versets de cette version est fourni avec l'application (relevé sur bible.com en septembre 2026), mais sa numérotation n'a pas été vérifiée à la main. Les chapitres qui ne suivent aucun système standard sont ignorés.",
       },
       "api-index": {
         text: "Numérotation de YouVersion",

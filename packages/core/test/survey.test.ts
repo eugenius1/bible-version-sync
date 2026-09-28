@@ -6,6 +6,7 @@ import {
   VersionMap,
   buildVersionMap,
   builtinOverrides,
+  isVerifiedVersion,
   parseRef,
   versificationLabel,
   type ChapterCounts,
@@ -94,6 +95,30 @@ describe("surveyed versions", () => {
     const v = SCAN[id];
     const { map } = buildVersionMap(v.abbr, id, indexOf(v));
     const { skipped, offLabel } = measure(id, map);
+    expect(skipped, v.abbr).toBe(SKIPPED[id]);
+    expect(offLabel, v.abbr).toEqual(OFF_LABEL[id] ?? {});
+  });
+
+  // What the app uses: the bundled exceptions, with no index to read.
+  it.each(Object.keys(SCAN).map(Number))("bible %i: bundled counts map as the full scan does", (id) => {
+    const v = SCAN[id];
+    const bundled = buildVersionMap(v.abbr, id);
+    expect(bundled.source, v.abbr).toBe(isVerifiedVersion(id) ? "verified" : "scanned");
+    const full = buildVersionMap(v.abbr, id, indexOf(v)).map;
+    // A book the version lacks (NABRE's Esther is the Greek ESG) is bundled
+    // as chapters of 0 verses, so it isn't read. The scan leaves it out,
+    // which the engine takes as unknown and fills in with assumed counts.
+    const inScan = ([r]: [string, string]) => parseRef(r)[0] in v.counts;
+    expect([...bundled.map.toCanon].filter(inScan), v.abbr).toEqual([...full.toCanon].filter(inScan));
+    for (const b of BOOKS) {
+      if (!(b in v.counts)) {
+        expect(bundled.map.chapters(b), `${v.abbr} ${b}`).toEqual([]);
+        continue;
+      }
+      expect(bundled.map.chapters(b), `${v.abbr} ${b}`).toEqual(full.chapters(b));
+      expect(bundled.map.skippedChapters(b), `${v.abbr} ${b}`).toEqual(full.skippedChapters(b));
+    }
+    const { skipped, offLabel } = measure(id, bundled.map);
     expect(skipped, v.abbr).toBe(SKIPPED[id]);
     expect(offLabel, v.abbr).toEqual(OFF_LABEL[id] ?? {});
   });

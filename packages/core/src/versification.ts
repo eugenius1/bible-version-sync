@@ -20,7 +20,6 @@
  */
 
 import {
-  BUILTIN_VERSIONS,
   ENG_VRS,
   KNOWN_COUNTS,
   LXX_VRS,
@@ -28,6 +27,7 @@ import {
   OVERRIDES,
   RSC_VRS,
   RSO_VRS,
+  VERIFIED_VERSIONS,
   VRS_LABELS,
   VUL_VRS,
 } from "./data.generated";
@@ -373,7 +373,11 @@ export class VersionMap {
   }
 }
 
-/** Built-in verified verse counts for a bible id, as {book: {chapter: count}}. */
+/**
+ * Bundled verse counts for a bible id (verified or scanned), as
+ * {book: {chapter: count}}. Only the chapters the engine can't infer are
+ * stored; see KNOWN_COUNTS.
+ */
 export function builtinCounts(bibleId: number): ChapterCounts | undefined {
   const flat = KNOWN_COUNTS[bibleId];
   if (!flat) return undefined;
@@ -391,9 +395,24 @@ export function builtinOverrides(bibleId: number): Map<Ref, Ref> {
   return new Map(text ? parseVrs(text).mappings : []);
 }
 
-export function isBuiltinVersion(bibleId: number): boolean {
-  return BUILTIN_VERSIONS.some((v) => v.bibleId === bibleId);
+/** Whether a version's numbering was checked by hand, chapter by chapter. */
+export function isVerifiedVersion(bibleId: number): boolean {
+  return VERIFIED_VERSIONS.some((v) => v.bibleId === bibleId);
 }
+
+/** Whether a version's verse counts are bundled, so the API index isn't needed. */
+export function hasKnownCounts(bibleId: number): boolean {
+  return Object.hasOwn(KNOWN_COUNTS, bibleId);
+}
+
+/**
+ * Where a version's verse numbering comes from, most trusted first:
+ * - verified: bundled counts, checked by hand chapter by chapter
+ * - scanned: bundled counts from the versification survey, not checked by hand
+ * - api-index: counts from the YouVersion API index
+ * - assumed: no counts; the version's label, else English numbering
+ */
+export type NumberingSource = "verified" | "scanned" | "api-index" | "assumed";
 
 /** Convert a /v1/bibles/{id}/index response into {book: {chapter: count}}. */
 export function countsFromIndex(index: unknown): ChapterCounts {
@@ -433,8 +452,9 @@ export function assumedScheme(bibleId: number, defaultScheme: "eng" | "org" = "e
 }
 
 /**
- * Build the map for a version from the best data available: the API index
- * (if the app key may read it), else the built-in table, else an assumption.
+ * Build the map for a version from the data given or bundled: the API index
+ * when passed, else the bundled counts, else an assumption. Every lookup is by
+ * bible id; `abbr` only names the map.
  * The version's bundled numbering label, if any, is used throughout.
  */
 export function buildVersionMap(
@@ -442,13 +462,16 @@ export function buildVersionMap(
   bibleId: number,
   apiIndex?: unknown,
   defaultScheme: "eng" | "org" = "eng",
-): { map: VersionMap; source: "api-index" | "builtin" | "assumed" } {
+): { map: VersionMap; source: NumberingSource } {
   const std = Standard.load();
   const base = { overrides: builtinOverrides(bibleId), defaultScheme, label: versificationLabel(bibleId) };
   if (apiIndex) {
     return { map: VersionMap.build(abbr, std, { ...base, knownCounts: countsFromIndex(apiIndex) }), source: "api-index" };
   }
   const known = builtinCounts(bibleId);
-  if (known) return { map: VersionMap.build(abbr, std, { ...base, knownCounts: known }), source: "builtin" };
+  if (known) {
+    const map = VersionMap.build(abbr, std, { ...base, knownCounts: known });
+    return { map, source: isVerifiedVersion(bibleId) ? "verified" : "scanned" };
+  }
   return { map: VersionMap.build(abbr, std, base), source: "assumed" };
 }
