@@ -5,17 +5,32 @@
  *   eng - traditional English numbering (NIV, AMP, KJV, ...)
  *   org - Hebrew/Greek "original" numbering (BHS / Nestle-Aland): Psalm titles
  *         are verse 1, Joel has 4 chapters, Malachi has 3, etc.
+ * Four more are considered only for versions YouVersion labels with them:
+ *   rso, rsc - Russian Synodal (Orthodox and Protestant editions)
+ *   lxx      - Septuagint (Psalms 10-147 one behind Hebrew, ...)
+ *   vul      - Vulgate
  *
- * Many translations (notably French ones like LSG) mix the two chapter by
+ * Many translations (notably French ones like LSG) mix systems chapter by
  * chapter, so the system is detected per chapter by comparing each chapter's
- * real verse count with the eng and org counts. Chapters that follow neither
- * come from hand-checked correction tables ("custom").
+ * real verse count with each candidate system's count. Chapters that follow
+ * none come from hand-checked correction tables ("custom").
  *
  * Every verse is converted to a canonical reference in the org system; two
  * versions agree on a verse when their verses map to the same canonical ref.
  */
 
-import { BUILTIN_VERSIONS, ENG_VRS, KNOWN_COUNTS, ORG_VRS, OVERRIDES } from "./data.generated";
+import {
+  BUILTIN_VERSIONS,
+  ENG_VRS,
+  KNOWN_COUNTS,
+  LXX_VRS,
+  ORG_VRS,
+  OVERRIDES,
+  RSC_VRS,
+  RSO_VRS,
+  VRS_LABELS,
+  VUL_VRS,
+} from "./data.generated";
 
 export const BOOKS = (
   "GEN EXO LEV NUM DEU JOS JDG RUT 1SA 2SA 1KI 2KI 1CH 2CH EZR NEH EST JOB PSA PRO " +
@@ -26,7 +41,7 @@ export const BOOKS = (
 
 /** "JHN.3.16" */
 export type Ref = string;
-export type Scheme = "eng" | "org" | "custom";
+export type Scheme = StdScheme | "custom";
 /** book -> chapter -> verse count */
 export type ChapterCounts = Record<string, Record<number, number>>;
 
@@ -45,6 +60,19 @@ const SUPPLEMENTAL_ENG_TO_ORG: Record<Ref, Ref> = {
   "ACT.19.41": "ACT.19.40",
   "2CO.13.13": "2CO.13.12",
   "2CO.13.14": "2CO.13.13",
+};
+
+// Corrections to SIL's tables, applied over them, each checked against the
+// text on bible.com (Sept 2026).
+const SUPPLEMENTAL: Partial<Record<StdScheme, string>> = {
+  // rso.vrs doesn't shift Daniel 5:31-6:28, though rsc.vrs and eng.vrs both
+  // do: Synodal Daniel 5:31 is Darius receiving the kingdom and 6:1 the 120
+  // satraps, as in English (Hebrew 6:1-2).
+  rso: "DAN 5:31 = DAN 6:1\nDAN 6:1-28 = DAN 6:2-29",
+  // lxx.vrs swaps verses into the Greek order of the commandments; UBIO, the
+  // only lxx-labelled version surveyed, keeps the Hebrew order (Exodus 20:13
+  // and Deuteronomy 5:17 are "do not murder").
+  lxx: "EXO 20:13-15 = EXO 20:13-15\nEXO 21:16-17 = EXO 21:16-17\nDEU 5:17-18 = DEU 5:17-18",
 };
 
 const BOOK_LINE = /^([0-9A-Z]{3})((?: \d+:\d+)+)$/;
@@ -78,44 +106,102 @@ export function parseVrs(text: string): { counts: Record<string, number[]>; mapp
   return { counts, mappings };
 }
 
+/** A standard numbering system, as YouVersion labels versions (`vrs`). */
+export type StdScheme = "eng" | "org" | "rso" | "rsc" | "lxx" | "vul";
+export const STD_SCHEMES: readonly StdScheme[] = ["eng", "org", "rso", "rsc", "lxx", "vul"];
+/**
+ * Systems only considered for a version YouVersion labels with them. Their
+ * chapter counts coincide with English or Hebrew chapters holding different
+ * text (Synodal Psalm 91 has English Psalm 91's count but is Psalm 92), so
+ * offering them to every version would misplace verses.
+ */
+export const LABEL_ONLY_SCHEMES: readonly StdScheme[] = ["rso", "rsc", "lxx", "vul"];
+
+const VRS_TEXT: Record<StdScheme, string> = {
+  eng: ENG_VRS,
+  org: ORG_VRS,
+  rso: RSO_VRS,
+  rsc: RSC_VRS,
+  lxx: LXX_VRS,
+  vul: VUL_VRS,
+};
+
 export class Standard {
   constructor(
-    readonly engCounts: Record<string, number[]>,
-    readonly orgCounts: Record<string, number[]>,
-    readonly engToOrg: Map<Ref, Ref>,
+    readonly counts: Record<StdScheme, Record<string, number[]>>,
+    readonly toOrg: Record<StdScheme, Map<Ref, Ref>>,
   ) {}
 
   private static cached?: Standard;
 
   static load(): Standard {
     if (Standard.cached) return Standard.cached;
-    const eng = parseVrs(ENG_VRS);
-    const org = parseVrs(ORG_VRS);
-    const engToOrg = new Map<Ref, Ref>();
-    for (const [src, dst] of eng.mappings) {
-      if (parseRef(src)[2] === 0) continue; // English Psalm titles are unnumbered
-      if (!engToOrg.has(src)) engToOrg.set(src, dst);
+    const counts = {} as Record<StdScheme, Record<string, number[]>>;
+    const toOrg = {} as Record<StdScheme, Map<Ref, Ref>>;
+    for (const s of STD_SCHEMES) {
+      const parsed = parseVrs(VRS_TEXT[s]);
+      counts[s] = parsed.counts;
+      const map = new Map<Ref, Ref>();
+      toOrg[s] = map;
+      if (s === "org") continue; // canonical numbering itself
+      const targets = new Map<Ref, Ref[]>();
+      for (const [src, dst] of parsed.mappings) {
+        const [sb, , sv] = parseRef(src);
+        const [db, , dv] = parseRef(dst);
+        // Psalm titles are verse 0 and can't be highlighted. Drop them on
+        // either side too: rso's "PSA 9:22 = PSA 10:0" would otherwise shadow
+        // the real "PSA 9:22 = PSA 10:1".
+        if (sv === 0 || dv === 0) continue;
+        // The sync reads and plans one book at a time, so a verse whose
+        // canonical ref lies in another synced book (lxx numbers Nehemiah as
+        // Ezra 11-23) would look unread, i.e. removed, when that book syncs.
+        // Books outside BOOKS (Prayer of Manasseh, Psalm 151...) are only
+        // ever reached from their own book, so those mappings are kept.
+        if (db !== sb && BOOKS.includes(db)) continue;
+        const list = targets.get(src);
+        if (list) list.push(dst);
+        else targets.set(src, [dst]);
+      }
+      // A verse spanning two canonical verses (rso's "NUM 26:1 = NUM 25:19"
+      // and "= NUM 26:1") can only map to one. Take the one eng picks for the
+      // same verse when it's among them, so English and Synodal Numbers 26:1,
+      // the same text, stay in step; else the first listed.
+      for (const [src, list] of targets) {
+        const engPick = s === "eng" ? undefined : (toOrg.eng.get(src) ?? src);
+        map.set(src, engPick !== undefined && list.includes(engPick) ? engPick : list[0]);
+      }
+      if (s === "eng") {
+        for (const [src, dst] of Object.entries(SUPPLEMENTAL_ENG_TO_ORG)) map.set(src, dst);
+      }
+      for (const [src, dst] of parseVrs(SUPPLEMENTAL[s] ?? "").mappings) map.set(src, dst);
     }
-    for (const [src, dst] of Object.entries(SUPPLEMENTAL_ENG_TO_ORG)) engToOrg.set(src, dst);
-    Standard.cached = new Standard(eng.counts, org.counts, engToOrg);
+    Standard.cached = new Standard(counts, toOrg);
     return Standard.cached;
   }
 
-  count(scheme: "eng" | "org", book: string, ch: number): number {
-    const counts = (scheme === "eng" ? this.engCounts : this.orgCounts)[book] ?? [];
+  count(scheme: StdScheme, book: string, ch: number): number {
+    const counts = this.counts[scheme][book] ?? [];
     return ch > 0 && ch <= counts.length ? counts[ch - 1] : 0;
   }
 
-  toCanon(scheme: "eng" | "org", r: Ref): Ref {
-    return scheme === "eng" ? (this.engToOrg.get(r) ?? r) : r;
+  toCanon(scheme: StdScheme, r: Ref): Ref {
+    return this.toOrg[scheme].get(r) ?? r;
   }
 }
 
 export interface BuildOptions {
   /** Real verse counts per chapter (may be partial or empty). */
   knownCounts?: ChapterCounts;
-  /** Used for books where nothing is known. */
+  /** Used for books where nothing is known, unless `label` is Synodal, Septuagint or Vulgate. */
   defaultScheme?: "eng" | "org";
+  /**
+   * YouVersion's numbering label for the version. Only the label-only systems
+   * (`rso`, `rsc`, `lxx`, `vul`) change anything: they become a candidate
+   * alongside eng and org. An eng or org label is ignored, because chapter
+   * counts already decide between those two (LSG is labelled org but follows
+   * English numbering in Malachi).
+   */
+  label?: StdScheme;
   /** Explicit local ref -> canonical ref for chapters following neither system. */
   overrides?: Map<Ref, Ref>;
 }
@@ -147,14 +233,31 @@ export class VersionMap {
   }
 
   /**
-   * Chapters without known counts inherit their book's majority scheme, or
-   * `defaultScheme` when nothing in the book is known. Every chapter touched by
-   * an override uses only the override table (unlisted verses keep their number).
+   * Each chapter with a known count uses the candidate system whose count it
+   * matches (eng, org, plus the version's label when that's rso, rsc, lxx or
+   * vul). When several match, the one that fits most of the book's
+   * discriminating chapters wins; on a tie eng, then the label. Chapters
+   * without known counts take that same book-wide pick, which is the label
+   * (else `defaultScheme`) when nothing in the book is known. Every chapter
+   * touched by an override uses only the override table (unlisted verses keep
+   * their number).
+   *
+   * The book's evidence outranks the label because a label describes a whole
+   * version loosely: UBIO is labelled lxx but follows Hebrew order in
+   * Jeremiah, where lxx Jeremiah 34 and 36 have the same verse counts as the
+   * Hebrew chapters by coincidence (lxx 36 is Hebrew 29). eng wins a tie
+   * because where a Synodal or Septuagint table disagrees with eng inside a
+   * book that fits both equally well, it's about a verse the text divides as
+   * English does (Synodal Numbers 26:1 and Revelation 13:1, UBIO's
+   * Deuteronomy 5:17-18), so eng keeps those verses in step with English
+   * versions.
    */
   static build(abbr: string, std: Standard, opts: BuildOptions = {}): VersionMap {
     const known = opts.knownCounts ?? {};
     const overrides = opts.overrides ?? new Map<Ref, Ref>();
-    const defaultScheme = opts.defaultScheme ?? "eng";
+    const label = opts.label && LABEL_ONLY_SCHEMES.includes(opts.label) ? opts.label : undefined;
+    const candidates: StdScheme[] = label ? [label, "eng", "org"] : ["eng", "org"];
+    const fallback: StdScheme = label ?? opts.defaultScheme ?? "eng";
     const custom: Record<string, Record<number, number>> = {};
     for (const local of overrides.keys()) {
       const [b, c, v] = parseRef(local);
@@ -167,33 +270,41 @@ export class VersionMap {
     for (const book of BOOKS) {
       const actual = known[book] ?? {};
       const actualChapters = Object.keys(actual).map(Number);
+      // Chapters only the label-only systems have (Psalm 151, Daniel 13-14)
+      // count only when the version is known to have them: reading a
+      // chapter that doesn't exist would fail the whole book.
       const nCh = Math.max(
-        std.engCounts[book]?.length ?? 0,
-        std.orgCounts[book]?.length ?? 0,
+        std.counts.eng[book]?.length ?? 0,
+        std.counts.org[book]?.length ?? 0,
         ...actualChapters,
       );
-      const label: Record<number, "unknown" | "both" | "eng" | "org" | "none"> = {};
+      // fits[c]: candidates whose count matches; undefined when unknown.
+      const fits: Record<number, StdScheme[] | undefined> = {};
+      const score = new Map<StdScheme, number>(candidates.map((s) => [s, 0]));
       for (let c = 1; c <= nCh; c++) {
         const a = actual[c];
-        const e = std.count("eng", book, c);
-        const o = std.count("org", book, c);
-        if (a === undefined) label[c] = "unknown";
-        else if (a === e && a === o) label[c] = "both";
-        else if (a === e) label[c] = "eng";
-        else if (a === o) label[c] = "org";
-        else label[c] = "none";
+        if (a === undefined) continue;
+        const expected = candidates.map((s) => std.count(s, book, c));
+        fits[c] = candidates.filter((_, i) => expected[i] === a);
+        // Only chapters where the candidates disagree say anything about
+        // which system the book follows.
+        if (new Set(expected).size > 1) for (const s of fits[c]!) score.set(s, score.get(s)! + 1);
       }
-      const labels = Object.values(label);
-      const nEng = labels.filter((l) => l === "eng").length;
-      const nOrg = labels.filter((l) => l === "org").length;
-      const majority: "eng" | "org" = nEng || nOrg ? (nEng >= nOrg ? "eng" : "org") : defaultScheme;
+      const pick = (options: StdScheme[]): StdScheme => {
+        const best = Math.max(...options.map((s) => score.get(s)!));
+        if (best === 0) return options.includes(fallback) ? fallback : options[0];
+        const top = options.filter((s) => score.get(s) === best);
+        if (top.length === 1) return top[0];
+        if (top.includes("eng")) return "eng";
+        return label && top.includes(label) ? label : top[0];
+      };
+      const majority = pick(candidates);
 
       const schemes: Record<number, Scheme | null> = {};
       const counts: Record<number, number> = {};
       for (let c = 1; c <= nCh; c++) {
-        const lab = label[c];
-        const s: "eng" | "org" | null =
-          lab === "both" || lab === "unknown" ? majority : lab === "none" ? null : lab;
+        const f = fits[c];
+        const s: StdScheme | null = f === undefined ? majority : f.length === 0 ? null : pick(f);
         schemes[c] = s;
         counts[c] = actual[c] ?? std.count(s ?? majority, book, c);
       }
@@ -303,9 +414,15 @@ export function countsFromIndex(index: unknown): ChapterCounts {
   return out;
 }
 
+/** YouVersion's numbering label for a bible id, when known (bundled; the API doesn't expose it). */
+export function versificationLabel(bibleId: number): StdScheme | undefined {
+  return VRS_LABELS[bibleId];
+}
+
 /**
  * Build the map for a version from the best data available: the API index
  * (if the app key may read it), else the built-in table, else an assumption.
+ * The version's bundled numbering label, if any, is used throughout.
  */
 export function buildVersionMap(
   abbr: string,
@@ -314,11 +431,11 @@ export function buildVersionMap(
   defaultScheme: "eng" | "org" = "eng",
 ): { map: VersionMap; source: "api-index" | "builtin" | "assumed" } {
   const std = Standard.load();
-  const overrides = builtinOverrides(bibleId);
+  const base = { overrides: builtinOverrides(bibleId), defaultScheme, label: versificationLabel(bibleId) };
   if (apiIndex) {
-    return { map: VersionMap.build(abbr, std, { knownCounts: countsFromIndex(apiIndex), overrides, defaultScheme }), source: "api-index" };
+    return { map: VersionMap.build(abbr, std, { ...base, knownCounts: countsFromIndex(apiIndex) }), source: "api-index" };
   }
   const known = builtinCounts(bibleId);
-  if (known) return { map: VersionMap.build(abbr, std, { knownCounts: known, overrides, defaultScheme }), source: "builtin" };
-  return { map: VersionMap.build(abbr, std, { overrides, defaultScheme }), source: "assumed" };
+  if (known) return { map: VersionMap.build(abbr, std, { ...base, knownCounts: known }), source: "builtin" };
+  return { map: VersionMap.build(abbr, std, base), source: "assumed" };
 }

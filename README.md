@@ -60,8 +60,10 @@ tells you how sure it is of that version's numbering:
 - **Numbering from YouVersion**: worked out from YouVersion's own verse counts.
   Chapters that follow no standard pattern are skipped rather than guessed.
 - **Numbering assumed**: YouVersion wouldn't share the verse counts, so English
-  numbering is assumed. Fine for most of the Bible; in the Psalms and a few Old
-  Testament chapters a highlight could land a verse or two off.
+  numbering is assumed (or Russian Synodal, Septuagint or Vulgate numbering,
+  for versions YouVersion marks as using it). Fine for most of the Bible; in
+  the Psalms and a few Old Testament chapters a highlight could land a verse
+  or two off.
 
 ## Languages and appearance
 

@@ -7,9 +7,13 @@ English (`eng`), Hebrew/Greek original (`org`), Russian Synodal (`rso`, `rsc`),
 Septuagint (`lxx`) and Vulgate (`vul`). YouVersion labels each version with
 one of these (`vrs`).
 
+**Since then** the engine also supports `rso`, `rsc`, `lxx` and `vul` for
+versions labelled with them ([below](#synodal-and-septuagint-support)). The
+tables here are the survey as taken, against the two-system engine.
+
 **Columns.** *Label*: YouVersion's system for the version. *Fits*: of the ~348
 chapters where the systems disagree, how many match the label / another system
-/ none. *Skipped*: verses the current engine (eng/org detection plus our
+/ none. *Skipped*: verses the engine of the time (eng/org detection plus our
 correction tables) leaves unsynced. *Misplaced*: verses the current engine maps
 differently from the version's labelled system, counting only chapters whose
 verse count fits the label (so the label is very likely right there); the
@@ -35,12 +39,12 @@ Exodus 5–6, 1 Samuel 20, Nehemiah 8, Job 38–41, Hosea 1–2 and Haggai 1–2
 (HSV, TB and Het Boek almost identically), so one correction table per
 tradition would cover a family of versions.
 
-**3. Russian and Ukrainian versions are not safe today.** SYNO (`rso`), NRT
-(`rsc`) and UBIO (`lxx`) get **87–169 verses placed in the wrong spot**, where a
+**3. Russian and Ukrainian versions were not safe (fixed since).** SYNO (`rso`), NRT
+(`rsc`) and UBIO (`lxx`) got **87–169 verses placed in the wrong spot**, where a
 chapter's verse count coincides with an English or Hebrew chapter that holds
 different text. Synodal Psalm 91 *is* English Psalm 92 (checked on the text);
-Daniel 5–6 and Jeremiah 34/36 shift too. Another 2,300–3,000 verses are skipped.
-Anyone adding one of these versions by link today would get misplaced
+Daniel 5–6 and Jeremiah 34/36 shift too. Another 2,300–3,000 verses were skipped.
+Anyone adding one of these versions by link would have got misplaced
 highlights.
 
 **4. YouVersion's label is a useful prior, not the truth.** It's per version:
@@ -61,12 +65,10 @@ The scanner and data behind this survey are in
 
 
 1. **Guard now:** refuse or clearly block versions whose numbering is Synodal,
-   Septuagint or Vulgate until they're supported, e.g. when a large share of
-   Psalms chapters fit neither `eng` nor `org`, or from a bundled table of
-   YouVersion's labels.
-2. **Support `rso`, `rsc`, `lxx` and `vul`:** generalise detection from two
-   systems to six, using SIL's tables (MIT), with YouVersion's label as the tie
-   breaker when several systems fit a chapter's count.
+   Septuagint or Vulgate until they're supported. Superseded by 2 for the
+   282 labelled versions.
+2. **Support `rso`, `rsc`, `lxx` and `vul`:** done; see
+   [below](#synodal-and-septuagint-support).
 3. **Bundle the scanned counts** for all 54 versions so they get
    count-based numbering without the API, and promote the English-numbered
    ones to "verified" once REV 12 / 3 John are handled generically.
@@ -156,3 +158,28 @@ The scanner and data behind this survey are in
 - **NRT** (rsc), 87 verses: PSA.91 (16), PSA.57 (12), PSA.62 (12), PSA.63 (11), PSA.111 (10), PSA.98 (9), PSA.129 (8), PSA.133 (3), NUM.26 (1), 1KI.22 (1), 1CH.12 (1), NEH.7 (1), ISA.64 (1), REV.13 (1)
 - **SYNO** (rso), 124 verses: DAN.6 (28), PSA.91 (16), PSA.57 (12), PSA.62 (12), PSA.63 (11), PSA.111 (10), PSA.98 (9), PSA.114 (8), PSA.129 (8), PSA.133 (3), NUM.26 (1), 1KI.22 (1), 1CH.12 (1), NEH.7 (1), ISA.64 (1), DAN.5 (1), REV.13 (1)
 - **UBIO** (lxx), 169 verses: JER.36 (32), EXO.36 (27), JER.34 (22), PSA.91 (16), PSA.57 (12), PSA.62 (12), PSA.63 (11), PSA.111 (10), PSA.98 (9), PSA.129 (8), EXO.20 (3), PSA.133 (3), EXO.21 (2), DEU.5 (2)
+
+## Synodal and Septuagint support
+
+The engine now offers `rso`, `rsc`, `lxx` or `vul` as a per-chapter candidate
+alongside `eng` and `org` for versions YouVersion labels with them (labels are
+bundled by bible id; unlabelled versions keep `eng`/`org` only). Measured by
+`packages/core/test/survey.test.ts`, which runs the TypeScript engine over
+`counts.json`:
+
+| Version | Skipped (before → after) | Misplaced (before → after) |
+|---|---:|---:|
+| NRT (143, `rsc`) | 2,670 → 0 | 87 → 0 |
+| SYNO (400, `rso`) | 3,052 → 0 | 124 → 0 |
+| UBIO (186, `lxx`) | 2,329 → 0 | 169 → 0 |
+
+The other 51 versions map exactly as before. "Misplaced" here is checked on
+the text, not against the label: the label turned out to be wrong for a few
+chapters whose counts fit it by coincidence, and the survey's column counted
+those as misplaced although the old engine had them right. UBIO follows
+Hebrew order in Exodus 36 and Jeremiah 34 and 36 (the `lxx` table would move
+them), and SYNO and NRT Nehemiah 7:68 (horses and mules, absent from the
+Hebrew) is kept with English 7:68. Two of SIL's tables needed corrections,
+also checked on the text: `rso` doesn't shift Daniel 5:31–6:28 as Synodal
+does, and `lxx` puts the commandments in Greek order where UBIO keeps the
+Hebrew. Psalms, Daniel 5–6 and Jeremiah 34–36 were spot-checked against NIV.

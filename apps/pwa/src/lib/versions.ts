@@ -16,7 +16,8 @@ export const titleOf = (bibleId: number) => BUILTIN_VERSIONS.find((v) => v.bible
 /**
  * Build verse maps for the configured versions. The four verified versions use
  * built-in data; others use the API index when the app key may read it
- * (cached), else English numbering is assumed.
+ * (cached), else the version's bundled numbering label (Synodal, Septuagint,
+ * Vulgate) or English numbering is assumed.
  */
 export async function resolveVersions(settings: VersionSetting[]): Promise<ResolvedVersion[]> {
   const out: ResolvedVersion[] = [];
