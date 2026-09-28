@@ -10,6 +10,7 @@ import {
   chaptersToRead,
   planBook,
   readBook,
+  supported,
   type BookPlan,
   type SyncState,
   type SyncVersion,
@@ -67,16 +68,25 @@ export interface RunSummary {
    * (sign-in expired or offline); later books were not attempted.
    */
   fatal?: { reason: "auth" | "network"; message: string };
+  /**
+   * Versions left out because their numbering is unsupported: nothing was
+   * read or written for them, and their snapshot is untouched.
+   */
+  refused: string[];
 }
 
 export async function runSync(o: RunOptions): Promise<RunSummary> {
   const books = o.scope.kind === "books" ? o.scope.books : [o.scope.book];
-  const scope = o.scope.kind === "chapter" ? chapterScope(o.versions, o.scope.book, o.scope.chapter) : undefined;
-  const readTotal = books.reduce((n, b) => n + chaptersToRead(o.versions, b, scope?.chapters).length, 0);
-  const maxRemovals = o.maxRemovals ?? 25;
+  const versions = supported(o.versions);
+  const refused = o.versions.filter((v) => !versions.includes(v)).map((v) => v.abbr);
   const summary: RunSummary = {
     books: [], sets: 0, removals: 0, differences: 0, failedBooks: 0, blockedBooks: 0, writeErrors: 0, aborted: false,
+    refused,
   };
+  if (versions.length === 0) return summary;
+  const scope = o.scope.kind === "chapter" ? chapterScope(versions, o.scope.book, o.scope.chapter) : undefined;
+  const readTotal = books.reduce((n, b) => n + chaptersToRead(versions, b, scope?.chapters).length, 0);
+  const maxRemovals = o.maxRemovals ?? 25;
   let readDone = 0;
   let removalsSoFar = 0;
 
@@ -86,10 +96,10 @@ export async function runSync(o: RunOptions): Promise<RunSummary> {
       break;
     }
     const result: BookResult = { book, writeErrors: [] };
-    const bookTotal = chaptersToRead(o.versions, book, scope?.chapters).length;
+    const bookTotal = chaptersToRead(versions, book, scope?.chapters).length;
     let bookDone = 0;
     try {
-      const current = await readBook(o.api, o.versions, book, {
+      const current = await readBook(o.api, versions, book, {
         concurrency: o.concurrency,
         chapters: scope?.chapters,
         onChapter: () => {
@@ -98,6 +108,7 @@ export async function runSync(o: RunOptions): Promise<RunSummary> {
           o.onProgress?.({ phase: "reading", book, done: bookDone, total: bookTotal, readDone, readTotal });
         },
       });
+      // All of them: planBook keeps the refused versions' snapshot.
       result.plan = planBook(book, o.versions, current, o.state, scope?.canon);
     } catch (e) {
       if (!(e instanceof ApiError)) throw e;
@@ -128,7 +139,7 @@ export async function runSync(o: RunOptions): Promise<RunSummary> {
       } else {
         removalsSoFar += rems;
         let done = 0;
-        result.writeErrors = await applyPlan(o.api, o.versions, plan, o.state, () => {
+        result.writeErrors = await applyPlan(o.api, versions, plan, o.state, () => {
           done++;
           o.onProgress?.({ phase: "writing", book, done, total: plan.actions.length, readDone, readTotal });
         });

@@ -2,12 +2,14 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   BOOKS,
+  MAX_UNFIT_CHAPTERS,
   Standard,
   VersionMap,
   buildVersionMap,
   builtinOverrides,
   isVerifiedVersion,
   parseRef,
+  unfitChapters,
   versificationLabel,
   type ChapterCounts,
   type StdScheme,
@@ -146,6 +148,37 @@ describe("surveyed versions", () => {
         expect(schemes.size, `${SCAN[id].abbr} ${canon}`).toBe(1);
       }
     }
+  });
+});
+
+describe("unsupported numbering", () => {
+  const ids = Object.keys(SCAN).map(Number);
+  const LABEL_ONLY = new Set(["rso", "rsc", "lxx", "vul"]);
+  const unfit = (id: number) => unfitChapters(knownCounts(SCAN[id]), builtinOverrides(id));
+  // A bible id with no label, correction table or bundled counts.
+  const UNKNOWN = 999_999;
+
+  it.each(ids)("bible %i: is never refused", (id) => {
+    expect(buildVersionMap(SCAN[id].abbr, id).source).not.toBe("unsupported");
+    expect(buildVersionMap(SCAN[id].abbr, id, indexOf(SCAN[id])).source).not.toBe("unsupported");
+  });
+
+  it("leaves every English or Hebrew numbered version well below the threshold, even unlabelled", () => {
+    const worst = Math.max(...ids.filter((id) => !LABEL_ONLY.has(SCAN[id].vrs!)).map(unfit));
+    expect(worst).toBe(35); // UKRK: 38 chapters, 3 of them described by shared correction tables
+    expect(worst * 2).toBeLessThan(MAX_UNFIT_CHAPTERS + 1);
+    for (const id of ids.filter((i) => !LABEL_ONLY.has(SCAN[i].vrs!))) {
+      expect(buildVersionMap(SCAN[id].abbr, UNKNOWN, indexOf(SCAN[id])).source, SCAN[id].abbr).toBe("api-index");
+    }
+  });
+
+  it.each([143, 186, 400])("bible %i: would be refused without its label", (id) => {
+    expect(unfit(id)).toBeGreaterThan(MAX_UNFIT_CHAPTERS + 50);
+    const unlabelled = buildVersionMap(SCAN[id].abbr, UNKNOWN, indexOf(SCAN[id]));
+    expect(unlabelled.source).toBe("unsupported");
+    expect(unlabelled.unfit).toBe(unfit(id));
+    expect(unlabelled.map.unsupported).toBe(true);
+    expect(BOOKS.flatMap((b) => unlabelled.map.chapters(b))).toEqual([]);
   });
 });
 

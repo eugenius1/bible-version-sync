@@ -41,7 +41,7 @@ function Notice({ tone, children }: { tone: "warn" | "error"; children: React.Re
 }
 
 export function Results({ run, onApply, onApplyAllowingRemovals, onSignInAgain }: Props) {
-  const { t, plural } = useI18n();
+  const { t, f, plural } = useI18n();
   const tr = t.results;
   const s = run.summary;
   const changed = s.books.filter(
@@ -71,6 +71,7 @@ export function Results({ run, onApply, onApplyAllowingRemovals, onSignInAgain }
         </p>
       </div>
 
+      {s.refused.length > 0 && <Notice tone="warn">{f(tr.refused, { names: s.refused.join(", ") })}</Notice>}
       {s.failedBooks > 0 && <Notice tone="error">{plural(tr.booksSkipped, s.failedBooks)}</Notice>}
       {s.writeErrors > 0 && <Notice tone="error">{plural(tr.writeErrors, s.writeErrors)}</Notice>}
 

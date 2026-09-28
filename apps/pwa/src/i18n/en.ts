@@ -70,8 +70,12 @@ export const en = {
         text: "Numbering assumed",
         hint: "Couldn't read this version's verse counts, so {system} numbering is assumed. Highlights in Psalms and some Old Testament chapters may land on the wrong verse.",
       },
+      unsupported: {
+        text: "Numbering not supported",
+        hint: "{n} chapters of this version match neither English nor Hebrew numbering, and YouVersion doesn't say which system it follows (Russian Synodal, Septuagint…), so highlights would land on the wrong verses. It's left out of every sync, and its highlights aren't touched.",
+      },
     },
-    /** Fills {system} in source.assumed.hint. */
+    /** Fills {system} in source.assumed.hint ({n} in source.unsupported.hint is a number of chapters). */
     systems: {
       eng: "English",
       org: "Hebrew",
@@ -99,6 +103,8 @@ export const en = {
       duplicateVersion: "That version is already in the list.",
       duplicateName: "The name {name} is already used.",
       cantRead: "Couldn't read highlights for version {id}: {problem}",
+      unsupported:
+        "Version {id} can't be synced: {n} of its chapters match neither English nor Hebrew numbering, and YouVersion doesn't say which system it follows, so highlights would land on the wrong verses.",
     },
   },
 
@@ -120,6 +126,7 @@ export const en = {
     writing: "Writing {book} · {done} of {total} changes",
     stop: "Stop",
     stopNote: "Stopping finishes the current book first, so nothing is left half-done.",
+    tooFew: "At least two versions whose numbering is supported are needed to sync.",
   },
 
   results: {
@@ -157,6 +164,7 @@ export const en = {
     removed: "removed",
     action: { fill: "add", recolor: "change color", remove: "remove" },
     more: "…and {n} more",
+    refused: "Left out because their numbering isn't supported: {names}. Nothing was read or changed in them.",
   },
 
   footer: {

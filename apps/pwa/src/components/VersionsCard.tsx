@@ -1,9 +1,15 @@
 import { assumedScheme } from "@bvs/core";
-import { ArrowDown, ArrowUp, BadgeCheck, CircleAlert, Hash, Info, Plus, X } from "lucide-react";
+import { ArrowDown, ArrowUp, BadgeCheck, Ban, CircleAlert, Hash, Info, Plus, X } from "lucide-react";
 import { useState } from "react";
 import { useI18n } from "../i18n";
 import type { VersionSetting } from "../lib/db";
-import { canReadHighlights, parseVersionInput, versionName, type ResolvedVersion } from "../lib/versions";
+import {
+  canReadHighlights,
+  parseVersionInput,
+  resolveVersion,
+  versionName,
+  type ResolvedVersion,
+} from "../lib/versions";
 
 const SOURCE_STYLE: Record<ResolvedVersion["source"], { tone: string; Icon: typeof BadgeCheck }> = {
   verified: { tone: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200", Icon: BadgeCheck },
@@ -11,6 +17,7 @@ const SOURCE_STYLE: Record<ResolvedVersion["source"], { tone: string; Icon: type
   scanned: { tone: "bg-sky-100 text-sky-900 dark:bg-sky-950 dark:text-sky-200", Icon: Hash },
   "api-index": { tone: "bg-sky-100 text-sky-900 dark:bg-sky-950 dark:text-sky-200", Icon: Info },
   assumed: { tone: "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200", Icon: CircleAlert },
+  unsupported: { tone: "bg-red-100 text-red-900 dark:bg-red-950 dark:text-red-200", Icon: Ban },
 };
 
 interface Props {
@@ -21,7 +28,7 @@ interface Props {
 }
 
 export function VersionsCard({ settings, resolved, disabled, onChange }: Props) {
-  const { t, f } = useI18n();
+  const { t, f, num } = useI18n();
   const tv = t.versions;
   const [input, setInput] = useState("");
   const [abbr, setAbbr] = useState("");
@@ -49,8 +56,13 @@ export function VersionsCard({ settings, resolved, disabled, onChange }: Props) 
     if (settings.some((s) => s.abbr === name)) return setError(f(tv.errors.duplicateName, { name }));
     setAdding(true);
     const problem = await canReadHighlights(parsed.bibleId);
+    // A version whose numbering can't be mapped would only ever be left out.
+    const resolved = problem ? null : await resolveVersion({ bibleId: parsed.bibleId, abbr: name });
     setAdding(false);
     if (problem) return setError(f(tv.errors.cantRead, { id: parsed.bibleId, problem }));
+    if (resolved?.source === "unsupported") {
+      return setError(f(tv.errors.unsupported, { id: parsed.bibleId, n: num(resolved.unfit ?? 0) }));
+    }
     setInput("");
     setAbbr("");
     await onChange([...settings, { bibleId: parsed.bibleId, abbr: name }]);
@@ -67,7 +79,10 @@ export function VersionsCard({ settings, resolved, disabled, onChange }: Props) 
         {settings.map((v, i) => {
           const r = resolved?.find((x) => x.bibleId === v.bibleId);
           const source = r ? tv.source[r.source] : null;
-          const src = source && { ...source, hint: f(source.hint, { system: tv.systems[assumedScheme(v.bibleId)] }) };
+          const src = source && {
+            ...source,
+            hint: f(source.hint, { system: tv.systems[assumedScheme(v.bibleId)], n: num(r?.unfit ?? 0) }),
+          };
           const style = r ? SOURCE_STYLE[r.source] : null;
           const name = versionName(v.bibleId);
           return (
@@ -98,6 +113,7 @@ export function VersionsCard({ settings, resolved, disabled, onChange }: Props) 
                   <span className="mt-1 inline-block text-xs text-stone-600 dark:text-stone-400">{tv.checking}</span>
                 )}
                 {r?.source === "assumed" && <p className="mt-1 text-xs text-amber-900 dark:text-amber-200">{src!.hint}</p>}
+                {r?.source === "unsupported" && <p className="mt-1 text-xs text-red-700 dark:text-red-300">{src!.hint}</p>}
               </div>
               <div className="flex shrink-0 items-center">
                 <button

@@ -30,6 +30,11 @@
  * fingerprinted per book, and a version whose fingerprint changed is treated
  * in that book like a version just added: its highlights fill blanks, and
  * nothing is removed or recoloured because of the remap.
+ *
+ * A version whose numbering can't be mapped (VersionMap.unsupported) is left
+ * out of reading, planning and writing altogether, and its snapshot is kept
+ * as it was: with nothing read for it, anything else would look like every
+ * highlight it has being removed.
  */
 
 import { ApiError, type HighlightsApi } from "./api";
@@ -214,9 +219,12 @@ export function chapterScope(versions: SyncVersion[], book: string, chapter: num
   return { canon, chapters };
 }
 
+/** The versions the sync may touch: all but those whose numbering is unsupported. */
+export const supported = (versions: SyncVersion[]) => versions.filter((v) => !v.map.unsupported);
+
 /** Chapters that will be read for `book` (for progress reporting). */
 export function chaptersToRead(versions: SyncVersion[], book: string, only?: Record<string, Set<number>>) {
-  return versions.flatMap((v) =>
+  return supported(versions).flatMap((v) =>
     v.map.chapters(book).filter((c) => !only || only[v.abbr]?.has(c)).map((c) => ({ version: v, chapter: c })),
   );
 }
@@ -252,11 +260,15 @@ export async function readBook(
 
 export function planBook(
   book: string,
-  versions: SyncVersion[],
+  all: SyncVersion[],
   current: BookHighlights,
   state: SyncState,
   only?: Set<Ref>,
 ): BookPlan {
+  const versions = supported(all);
+  // A refused version keeps its snapshot, so that once it can be synced
+  // again, what it changed meanwhile reads as its own change, as usual.
+  const refused = all.filter((v) => !versions.includes(v)).map((v) => v.abbr);
   const plan: BookPlan = {
     book, actions: [], differences: [], newState: {}, members: {}, counts: {}, maps: {}, remapped: [],
   };
@@ -365,6 +377,10 @@ export function planBook(
       if (color) addActions(v, "set", "fill", color);
     }
 
+    for (const a of refused) {
+      const kept = state.verses[canon]?.[a];
+      if (kept) result[a] = kept;
+    }
     if (Object.keys(result).length || canon in state.verses) plan.newState[canon] = result;
   }
   return plan;

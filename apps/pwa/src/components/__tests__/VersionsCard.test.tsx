@@ -1,5 +1,6 @@
 /** @vitest-environment jsdom */
 
+import { BOOKS, Standard, VersionMap } from "@bvs/core";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -7,24 +8,41 @@ import { I18nProvider } from "../../i18n";
 import type { VersionSetting } from "../../lib/db";
 
 const getHighlights = vi.fn();
-vi.mock("../../lib/auth", () => ({ client: { getHighlights: (...a: unknown[]) => getHighlights(...a) } }));
-vi.mock("../../lib/db", () => ({ store: {} }));
+const getIndex = vi.fn();
+vi.mock("../../lib/auth", () => ({
+  client: { getHighlights: (...a: unknown[]) => getHighlights(...a), getIndex: (id: number) => getIndex(id) },
+}));
+vi.mock("../../lib/db", () => ({ store: { getIndex: async () => undefined, setIndex: async () => undefined } }));
 
 const { VersionsCard } = await import("../VersionsCard");
+type Resolved = Parameters<typeof VersionsCard>[0]["resolved"];
 
-function renderCard(settings: VersionSetting[], onChange = vi.fn()) {
+function renderCard(settings: VersionSetting[], onChange = vi.fn(), resolved: Resolved = null) {
   render(
     <I18nProvider>
-      <VersionsCard settings={settings} resolved={null} disabled={false} onChange={onChange} />
+      <VersionsCard settings={settings} resolved={resolved} disabled={false} onChange={onChange} />
     </I18nProvider>,
   );
   return onChange;
 }
 
+// Russian Synodal verse counts, as the API index of a version YouVersion doesn't label.
+const synodalIndex = {
+  books: BOOKS.map((id) => ({
+    id,
+    chapters: Standard.load().counts.rso[id].map((n, i) => ({
+      id: String(i + 1),
+      verses: Array.from({ length: n }, (_, k) => k + 1),
+    })),
+  })),
+};
+
 describe("VersionsCard", () => {
   beforeEach(() => {
     getHighlights.mockReset();
     getHighlights.mockResolvedValue([]);
+    getIndex.mockReset();
+    getIndex.mockResolvedValue(null);
   });
 
   it("shows each version's bundled title next to the person's own name for it", () => {
@@ -76,5 +94,27 @@ describe("VersionsCard", () => {
     await userEvent.click(screen.getByRole("button", { name: "Add" }));
     expect(screen.getByText(/Add a short name/)).toBeInTheDocument();
     expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("refuses to add a version whose numbering it can't map", async () => {
+    getIndex.mockResolvedValue(synodalIndex);
+    const onChange = renderCard([{ abbr: "NIV", bibleId: 111 }]);
+    await userEvent.type(screen.getByLabelText("Add a version"), "999998");
+    await userEvent.type(screen.getByLabelText("Short name"), "rus");
+    await userEvent.click(screen.getByRole("button", { name: "Add" }));
+    expect(await screen.findByText(/Version 999998 can't be synced: 153 of its chapters/)).toBeInTheDocument();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("explains a saved version whose numbering it can't map", () => {
+    const settings = [
+      { abbr: "NIV", bibleId: 111 },
+      { abbr: "RUS", bibleId: 999998 },
+    ];
+    renderCard(settings, vi.fn(), [
+      { ...settings[1], map: VersionMap.unsupported("RUS"), source: "unsupported", unfit: 153 },
+    ]);
+    expect(screen.getByText("Numbering not supported")).toBeInTheDocument();
+    expect(screen.getByText(/^153 chapters of this version match neither/)).toBeInTheDocument();
   });
 });
