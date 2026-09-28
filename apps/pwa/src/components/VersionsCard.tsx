@@ -1,3 +1,4 @@
+import { assumedScheme } from "@bvs/core";
 import { ArrowDown, ArrowUp, BadgeCheck, CircleAlert, Info, Plus, X } from "lucide-react";
 import { useState } from "react";
 import { useI18n } from "../i18n";
@@ -58,7 +59,8 @@ export function VersionsCard({ settings, resolved, disabled, onChange }: Props) 
       <ol className="divide-y divide-stone-200 dark:divide-stone-800">
         {settings.map((v, i) => {
           const r = resolved?.find((x) => x.bibleId === v.bibleId);
-          const src = r ? tv.source[r.source] : null;
+          const source = r ? tv.source[r.source] : null;
+          const src = source && { ...source, hint: f(source.hint, { system: tv.systems[assumedScheme(v.bibleId)] }) };
           const style = r ? SOURCE_STYLE[r.source] : null;
           return (
             <li key={v.bibleId} className="flex items-center gap-3 py-2.5">

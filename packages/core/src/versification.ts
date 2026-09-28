@@ -419,6 +419,12 @@ export function versificationLabel(bibleId: number): StdScheme | undefined {
   return VRS_LABELS[bibleId];
 }
 
+/** The system a version is taken to follow when none of its verse counts are known. */
+export function assumedScheme(bibleId: number, defaultScheme: "eng" | "org" = "eng"): StdScheme {
+  const label = versificationLabel(bibleId);
+  return label && LABEL_ONLY_SCHEMES.includes(label) ? label : defaultScheme;
+}
+
 /**
  * Build the map for a version from the best data available: the API index
  * (if the app key may read it), else the built-in table, else an assumption.

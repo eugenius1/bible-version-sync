@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BOOKS, Standard, VersionMap, buildVersionMap, parseRef, versificationLabel } from "../src";
+import { BOOKS, Standard, assumedScheme, VersionMap, buildVersionMap, parseRef, versificationLabel } from "../src";
 
 const MAPS: Record<string, VersionMap> = {
   NIV: buildVersionMap("NIV", 111).map,
@@ -111,6 +111,13 @@ describe("six numbering systems", () => {
     expect(std.toCanon("rso", "DAN.6.1")).toBe("DAN.6.2");
     expect(std.toCanon("lxx", "DEU.5.17")).toBe("DEU.5.17");
     expect(std.toCanon("lxx", "EXO.20.13")).toBe("EXO.20.13");
+  });
+
+  it("assumes a label-only system, else English", () => {
+    expect(assumedScheme(400)).toBe("rso");
+    expect(assumedScheme(186)).toBe("lxx");
+    expect(assumedScheme(93)).toBe("eng"); // labelled org: counts decide, not the label
+    expect(assumedScheme(999999)).toBe("eng");
   });
 
   it("knows YouVersion's labels by bible id", () => {
