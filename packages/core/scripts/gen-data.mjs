@@ -15,11 +15,15 @@ const read = (...path) => readFileSync(join(data, ...path), "utf8");
 // both 212 and 3407), and the ones users type are their own.
 const BIBLE_ID = /^[1-9]\d*$/;
 const CHAPTER = /^[0-9A-Z]{3}\.[1-9]\d*$/;
+// A whole book the version lacks is stored as "BOOK": 0 rather than a 0 per
+// chapter (see import-survey.mjs).
+const BOOK = /^[0-9A-Z]{3}$/;
 const knownCounts = {};
 for (const [id, counts] of Object.entries(JSON.parse(read("known_counts.json")))) {
   if (!BIBLE_ID.test(id)) throw new Error(`known_counts.json: key ${id} is not a bible id`);
   for (const [ch, n] of Object.entries(counts)) {
-    if (!CHAPTER.test(ch) || !Number.isInteger(n) || n < 0) throw new Error(`known_counts.json: ${id} ${ch}: ${n}`);
+    const ok = CHAPTER.test(ch) ? Number.isInteger(n) && n >= 0 : BOOK.test(ch) && n === 0;
+    if (!ok) throw new Error(`known_counts.json: ${id} ${ch}: ${n}`);
   }
   knownCounts[id] = counts;
 }
@@ -112,7 +116,7 @@ for (const file of readdirSync(join(data, "overrides")).sort()) {
     for (const [ch, last] of Object.entries(signature(t.maps))) {
       if (owner[ch]) throw new Error(`overrides/${file}: ${ch} is in both ${owner[ch]} and ${name}`);
       owner[ch] = name;
-      const count = knownCounts[id][ch] ?? engCounts[ch];
+      const count = knownCounts[id][ch] ?? (knownCounts[id][ch.split(".")[0]] === 0 ? 0 : engCounts[ch]);
       if (count !== last) throw new Error(`overrides/${file}: ${name} is for ${ch} in ${last} verses; bible ${id} has ${count}`);
     }
   }
@@ -130,6 +134,14 @@ for (const [id, vrs] of Object.entries(labels)) {
   if (!BIBLE_ID.test(id) || !SCHEMES.includes(vrs)) throw new Error(`labels.json: ${id}: ${vrs}`);
 }
 const vrs = (name) => JSON.stringify(read(`${name}.vrs`));
+// About 3,000 labels. As {"id":"eng"} they'd add 8 KB to the gzipped app;
+// packed as each scheme's ids, sorted, as base-36 gaps from the previous
+// one ("1,7,4"), 1.6 KB. labels.json stays one entry per line for review.
+const packedLabels = {};
+for (const scheme of SCHEMES) {
+  const ids = Object.keys(labels).filter((id) => labels[id] === scheme).map(Number).sort((a, b) => a - b);
+  packedLabels[scheme] = ids.map((id, i) => (id - (ids[i - 1] ?? 0)).toString(36)).join(",");
+}
 
 // Each surveyed version's name as YouVersion gives it (see
 // scripts/import-survey.mjs), so a version added by number isn't nameless.
@@ -142,6 +154,9 @@ for (const [id, name] of Object.entries(names)) {
     Object.values(name).every((s) => typeof s === "string" && s && s === s.trim()) &&
     Intl.getCanonicalLocales(name.language)[0] === name.language;
   if (!ok) throw new Error(`names.json: ${id}: ${JSON.stringify(name)}`);
+}
+for (const id of Object.keys(knownCounts)) {
+  if (!names[id]) throw new Error(`names.json: no name for ${id}, which has bundled counts`);
 }
 for (const v of VERIFIED) {
   if (names[v.bibleId]?.abbr !== v.abbr) throw new Error(`verified.mjs: ${v.bibleId} is ${v.abbr} but names.json says ${names[v.bibleId]?.abbr}`);
@@ -160,10 +175,12 @@ export const LXX_VRS: string = ${vrs("lxx")};
 export const VUL_VRS: string = ${vrs("vul")};
 
 /**
- * YouVersion's numbering label (\`vrs\`) by bible id, from bible.com (Sept 2026).
- * Versions not listed are unlabelled or weren't surveyed.
+ * YouVersion's numbering label (\`vrs\`) by bible id, from bible.com (Sept 2026),
+ * for every version of every language YouVersion lists: per scheme, the ids
+ * in order as base-36 gaps from the previous id ("1,7,4" is 1, 8, 12).
+ * Versions not listed are unlabelled or newer than the survey.
  */
-export const VRS_LABELS: Record<number, "eng" | "org" | "rso" | "rsc" | "lxx" | "vul"> = ${JSON.stringify(labels)};
+export const VRS_LABEL_IDS: Record<"eng" | "org" | "rso" | "rsc" | "lxx" | "vul", string> = ${JSON.stringify(packedLabels)};
 
 /** A version's name: its abbreviation, its title in its own script, and its BCP 47 language. */
 export interface VersionName {
@@ -173,10 +190,13 @@ export interface VersionName {
 }
 
 /**
- * Names of the versions surveyed on bible.com (Sept 2026), by bible id, as
- * bible.com shows them (YouVersion's local abbreviation and title).
+ * Names of the versions with bundled verse counts, by bible id, as bible.com
+ * shows them (YouVersion's local abbreviation and title, Sept 2026). Every
+ * other version's name is in names.generated.ts, loaded on demand.
  */
-export const VERSION_NAMES: Record<number, VersionName> = ${JSON.stringify(names)};
+export const VERSION_NAMES: Record<number, VersionName> = ${JSON.stringify(
+  Object.fromEntries(Object.keys(knownCounts).map((id) => [id, names[id]])),
+)};
 
 /** A version whose numbering was checked by hand, chapter by chapter. */
 export interface VerifiedVersion {
@@ -191,7 +211,7 @@ export const VERIFIED_VERSIONS: VerifiedVersion[] = ${JSON.stringify(VERIFIED, n
  * others scanned for the versification survey, for every chapter where a
  * version differs from English numbering or where its candidate systems
  * disagree. Every other chapter has the count the engine would infer.
- * 0 is a chapter the version doesn't have.
+ * 0 is a chapter the version doesn't have, and "BOOK": 0 a book it lacks.
  * { bibleId: { "BOOK.chapter": verseCount } }
  */
 export const KNOWN_COUNTS: Record<number, Record<string, number>> = ${JSON.stringify(knownCounts)};
@@ -209,4 +229,25 @@ export const SHARED_OVERRIDES: Record<string, string> = ${JSON.stringify(Object.
 export const OVERRIDES: Record<number, { use: string[]; own: string }> = ${JSON.stringify(overrides, null, 2)};
 `;
 writeFileSync(join(root, "src", "data.generated.ts"), out);
-console.log("wrote src/data.generated.ts");
+
+// Every version's name: about 100 KB gzipped for 3,864 versions, so the app
+// loads it as a chunk of its own (loadVersionNames) rather than with the
+// engine. Grouped by language, which saves repeating it per version.
+const byLanguage = {};
+for (const id of Object.keys(names).sort((a, b) => a - b)) {
+  const { abbr, language, title } = names[id];
+  (byLanguage[language] ??= []).push([Number(id), abbr, title]);
+}
+writeFileSync(
+  join(root, "src", "names.generated.ts"),
+  `// Generated by scripts/gen-data.mjs from data/names.json - do not edit by hand.
+/* eslint-disable */
+
+/**
+ * Every version YouVersion lists (Sept 2026), as bible.com names it, by BCP 47
+ * language: [bible id, abbreviation, title in the version's own script].
+ */
+export const NAMES_BY_LANGUAGE: Record<string, [number, string, string][]> = ${JSON.stringify(byLanguage)};
+`,
+);
+console.log("wrote src/data.generated.ts and src/names.generated.ts");

@@ -65,7 +65,8 @@ describe("VersionsCard", () => {
   it("names a version as soon as its number is typed, and uses its abbreviation", async () => {
     const onChange = renderCard([{ abbr: "NIV", bibleId: 111 }]);
     await userEvent.type(screen.getByLabelText("Add a version"), "12");
-    expect(screen.getByText("American Standard Version")).toHaveAttribute("lang", "en");
+    // ASV's name is in the chunk of every version's name, which the card loads.
+    expect(await screen.findByText("American Standard Version")).toHaveAttribute("lang", "en");
     expect(screen.getByLabelText("Short name")).toHaveAttribute("placeholder", "ASV");
     await userEvent.click(screen.getByRole("button", { name: "Add" }));
     expect(onChange).toHaveBeenCalledWith([

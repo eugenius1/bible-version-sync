@@ -2,6 +2,9 @@
 
 Uses bible.youversionapi.com (the API behind bible.com) read-only, gently,
 for a one-off survey. Resumable: one JSON file per version in out/.
+
+    python3 scan.py <bible ids...>         scan into out/
+    python3 scan.py --add <bible ids...>   copy those scans into data/counts.json
 """
 import json, os, re, sys, time, urllib.request, urllib.error
 from concurrent.futures import ThreadPoolExecutor
@@ -55,7 +58,31 @@ def scan(vid):
     os.replace(path + ".tmp", path)
     print(f"{vid} {meta['abbreviation']}: {len(chs)} chapters in {time.time()-t0:.0f}s", flush=True)
 
+COUNTS = os.path.join(os.path.dirname(__file__), "data", "counts.json")
+
+def add(vids):
+    """Copy scans from out/ into data/counts.json, in its compact form."""
+    counts = json.load(open(COUNTS))
+    for vid in vids:
+        d = json.load(open(os.path.join(OUT, f"{vid}.json")))
+        entry = {"abbr": d["abbr"], "local_abbr": d["local_abbr"], "title": d["title"], "lang": d["lang"], "vrs": d["vrs"],
+                 "counts": {}, "gaps": {}, "merged": []}
+        for b in d["books"]:
+            chs = sorted((int(u.split(".")[1]), r) for u, r in d["chapters"].items() if u.split(".")[0] == b)
+            entry["counts"][b] = [max(r["verses"], default=0) if r else 0 for _, r in chs]
+            for c, r in chs:
+                if not r: continue
+                missing = sorted(set(range(1, max(r["verses"], default=0) + 1)) - set(r["verses"]))
+                if missing: entry["gaps"][f"{b}.{c}"] = missing
+                entry["merged"].extend(r["merged"])
+        counts[str(vid)] = entry
+    counts = dict(sorted(counts.items()))  # by key as text, as the file always was
+    open(COUNTS, "w").write(json.dumps(counts, separators=(",", ":"), ensure_ascii=False))
+
 if __name__ == "__main__":
+    if sys.argv[1:2] == ["--add"]:
+        add(map(int, sys.argv[2:]))
+        sys.exit()
     for vid in map(int, sys.argv[1:]):
         try: scan(vid)
         except Exception as e: print(f"{vid} ERROR {e}", flush=True)

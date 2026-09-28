@@ -89,6 +89,17 @@ const OFF_LABEL: Record<number, Record<string, number>> = {
   186: { "EXO.36": 27, "JER.34": 22, "JER.36": 32 },
 };
 
+describe("bundled labels", () => {
+  it("unpack to exactly data/labels.json", () => {
+    const labels: Record<string, StdScheme> = JSON.parse(
+      readFileSync(new URL("../data/labels.json", import.meta.url), "utf8"),
+    );
+    expect(Object.keys(labels).length).toBeGreaterThan(3000);
+    for (const [id, vrs] of Object.entries(labels)) expect(versificationLabel(Number(id)), id).toBe(vrs);
+    for (let id = 1; id <= 5000; id++) if (!(id in labels)) expect(versificationLabel(id), String(id)).toBeUndefined();
+  });
+});
+
 describe("surveyed versions", () => {
   it("has a label for every scanned version", () => {
     for (const [id, v] of Object.entries(SCAN)) expect(versificationLabel(Number(id)), v.abbr).toBe(v.vrs);

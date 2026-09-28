@@ -1,6 +1,6 @@
-import { assumedScheme } from "@bvs/core";
+import { assumedScheme, loadVersionNames } from "@bvs/core";
 import { ArrowDown, ArrowUp, BadgeCheck, Ban, CircleAlert, Hash, Info, Plus, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useI18n } from "../i18n";
 import type { VersionSetting } from "../lib/db";
 import {
@@ -34,6 +34,15 @@ export function VersionsCard({ settings, resolved, disabled, onChange }: Props) 
   const [abbr, setAbbr] = useState("");
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Only versions with bundled counts are named up front; the other ~3,800
+  // names are a chunk of their own. Re-render once they're in.
+  const [, setNamesLoaded] = useState(false);
+  useEffect(() => {
+    loadVersionNames().then(
+      () => setNamesLoaded(true),
+      () => undefined, // offline before the app was cached: "Version {id}" until next time
+    );
+  }, []);
 
   const move = (i: number, d: -1 | 1) => {
     const next = [...settings];

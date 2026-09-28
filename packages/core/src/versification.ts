@@ -30,7 +30,7 @@ import {
   SHARED_OVERRIDES,
   VERIFIED_VERSIONS,
   VERSION_NAMES,
-  VRS_LABELS,
+  VRS_LABEL_IDS,
   VUL_VRS,
   type VersionName,
 } from "./data.generated";
@@ -405,9 +405,16 @@ export function builtinCounts(bibleId: number): ChapterCounts | undefined {
   const flat = KNOWN_COUNTS[bibleId];
   if (!flat) return undefined;
   const out: ChapterCounts = {};
+  const std = Standard.load();
   for (const [key, n] of Object.entries(flat)) {
     const [book, ch] = key.split(".");
-    (out[book] ??= {})[Number(ch)] = n;
+    if (ch === undefined) {
+      // A book the version lacks: every chapter English or Hebrew has is 0.
+      const chapters = Math.max(std.counts.eng[book]?.length ?? 0, std.counts.org[book]?.length ?? 0);
+      out[book] = Object.fromEntries(Array.from({ length: chapters }, (_, i) => [i + 1, 0]));
+    } else {
+      (out[book] ??= {})[Number(ch)] = n;
+    }
   }
   return out;
 }
@@ -429,12 +436,38 @@ export function isVerifiedVersion(bibleId: number): boolean {
   return VERIFIED_VERSIONS.some((v) => v.bibleId === bibleId);
 }
 
+let allNames: Map<number, VersionName> | undefined;
+let loadingNames: Promise<void> | undefined;
+
 /**
- * A surveyed version's name as bible.com shows it. The official API doesn't
- * give names for most versions (their text isn't licensed to the app key).
+ * Load every version's name (about 100 KB gzipped, in a chunk of its own),
+ * after which versionName knows them all. Safe to call repeatedly; a failed
+ * load (offline, before the app is cached) can be retried.
+ */
+export function loadVersionNames(): Promise<void> {
+  loadingNames ??= import("./names.generated").then(
+    ({ NAMES_BY_LANGUAGE }) => {
+      const map = new Map<number, VersionName>();
+      for (const [language, list] of Object.entries(NAMES_BY_LANGUAGE)) {
+        for (const [id, abbr, title] of list) map.set(id, { abbr, language, title });
+      }
+      allNames = map;
+    },
+    (e: unknown) => {
+      loadingNames = undefined;
+      throw e;
+    },
+  );
+  return loadingNames;
+}
+
+/**
+ * A version's name as bible.com shows it. The official API doesn't give
+ * names for most versions (their text isn't licensed to the app key). Versions
+ * with bundled counts are always named; the rest once loadVersionNames is done.
  */
 export function versionName(bibleId: number): VersionName | undefined {
-  return Object.hasOwn(VERSION_NAMES, bibleId) ? VERSION_NAMES[bibleId] : undefined;
+  return Object.hasOwn(VERSION_NAMES, bibleId) ? VERSION_NAMES[bibleId] : allNames?.get(bibleId);
 }
 
 /** Whether a version's verse counts are bundled, so the API index isn't needed. */
@@ -479,9 +512,18 @@ export function countsFromIndex(index: unknown): ChapterCounts {
   return out;
 }
 
+let labels: Map<number, StdScheme> | undefined;
+
 /** YouVersion's numbering label for a bible id, when known (bundled; the API doesn't expose it). */
 export function versificationLabel(bibleId: number): StdScheme | undefined {
-  return VRS_LABELS[bibleId];
+  if (!labels) {
+    labels = new Map();
+    for (const s of STD_SCHEMES) {
+      let id = 0;
+      for (const gap of VRS_LABEL_IDS[s] ? VRS_LABEL_IDS[s].split(",") : []) labels.set((id += parseInt(gap, 36)), s);
+    }
+  }
+  return labels.get(bibleId);
 }
 
 /** The system a version is taken to follow when none of its verse counts are known. */

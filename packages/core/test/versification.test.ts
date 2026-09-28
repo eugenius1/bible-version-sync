@@ -10,6 +10,7 @@ import {
   isVerifiedVersion,
   parseRef,
   versificationLabel,
+  loadVersionNames,
   versionName,
 } from "../src";
 import { KNOWN_COUNTS, OVERRIDES, VERIFIED_VERSIONS } from "../src/data.generated";
@@ -279,6 +280,20 @@ describe("six numbering systems", () => {
   });
 });
 
+describe("versificationLabel", () => {
+  it("knows YouVersion's label beyond the surveyed languages", () => {
+    expect(versificationLabel(111)).toBe("eng");
+    expect(versificationLabel(93)).toBe("org");
+    expect(versificationLabel(400)).toBe("rso");
+    expect(versificationLabel(2202)).toBe("rsc"); // Georgian GEO02
+    expect(versificationLabel(1558)).toBe("rso"); // Bulgarian СИ
+    expect(versificationLabel(1723)).toBe("rsc"); // Belarusian ББЛ
+    expect(versificationLabel(2860)).toBe("lxx"); // Armenian ՆԷԱ
+    expect(versificationLabel(3830)).toBeUndefined(); // CAROS: YouVersion gives none
+    expect(versificationLabel(999999)).toBeUndefined();
+  });
+});
+
 describe("versionName", () => {
   it("uses the abbreviation bible.com shows, not YouVersion's internal one", () => {
     // Internally NIV11, NRT, NAV, CUNP-Shen.
@@ -300,9 +315,18 @@ describe("versionName", () => {
     expect(versionName(83)).toEqual({ abbr: "JCB", language: "ja", title: "リビングバイブル" });
   });
 
-  it("names versions surveyed but not scanned", () => {
+  it("names every other version once all names are loaded", async () => {
     expect(hasKnownCounts(12)).toBe(false);
+    expect(versionName(12)).toBeUndefined(); // in the names chunk, not loaded yet
+    await Promise.all([loadVersionNames(), loadVersionNames()]);
     expect(versionName(12)).toEqual({ abbr: "ASV", language: "en", title: "American Standard Version" });
+    expect(versionName(111)?.abbr).toBe("NIV");
+    // YouVersion's own tag suffixes become BCP 47 scripts and regions, or are dropped.
+    expect(versionName(820)?.language).toBe("hi-Latn"); // hin_ro
+    expect(versionName(2377)?.language).toBe("fuv-Arab"); // fuv_ar
+    expect(versionName(1637)?.language).toBe("es-ES"); // spa_es
+    expect(versionName(3173)?.language).toBe("gax"); // gax_ars, Arsi Oromo
+    expect(versionName(2202)?.language).toBe("ka");
   });
 
   it("has no name for a version nobody surveyed", () => {
