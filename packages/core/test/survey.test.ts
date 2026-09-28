@@ -98,15 +98,15 @@ describe("surveyed versions", () => {
     expect(offLabel, v.abbr).toEqual(OFF_LABEL[id] ?? {});
   });
 
-  it("maps eng and org versions exactly as without their label", () => {
+  const ENG_ORG = Object.keys(SCAN).map(Number).filter((id) => SCAN[id].vrs === "eng" || SCAN[id].vrs === "org");
+
+  it.each(ENG_ORG)("bible %i: maps exactly as without its label", (id) => {
+    const v = SCAN[id];
     const std = Standard.load();
-    for (const [id, v] of Object.entries(SCAN)) {
-      if (v.vrs !== "eng" && v.vrs !== "org") continue;
-      const opts = { knownCounts: knownCounts(v), overrides: builtinOverrides(Number(id)) };
-      const withLabel = VersionMap.build(v.abbr, std, { ...opts, label: v.vrs });
-      const without = VersionMap.build(v.abbr, std, opts);
-      expect([...withLabel.toCanon], v.abbr).toEqual([...without.toCanon]);
-    }
+    const opts = { knownCounts: knownCounts(v), overrides: builtinOverrides(id) };
+    const withLabel = VersionMap.build(v.abbr, std, { ...opts, label: v.vrs ?? undefined });
+    const without = VersionMap.build(v.abbr, std, opts);
+    expect([...withLabel.toCanon], v.abbr).toEqual([...without.toCanon]);
   });
 
   it("never mixes schemes on one canonical verse", () => {
