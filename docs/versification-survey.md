@@ -53,6 +53,10 @@ highlight on a merged span (one verse, or each) hasn't been tested.
 
 ## Recommendations
 
+Details for picking these up, and the scanner and data behind this survey
+(`tools/versification-survey/`), are in [handover-versification.md](handover-versification.md).
+
+
 1. **Guard now:** refuse or clearly block versions whose numbering is Synodal,
    Septuagint or Vulgate until they're supported, e.g. when a large share of
    Psalms chapters fit neither `eng` nor `org`, or from a bundled table of
