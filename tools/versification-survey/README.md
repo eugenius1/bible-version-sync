@@ -10,6 +10,7 @@ handles each.
 | Path | What |
 |---|---|
 | `scan.py` | Scans every chapter of the given versions. `python3 scan.py <bible ids…>` writes `out/<id>.json` (gitignored); resumable, ~50 s per version at 6 concurrent requests. |
+| `names.py` | Adds the abbreviation bible.com shows (`local_abbreviation`: NIV, where the internal `abbreviation` is NIV11) to `data/candidates.json` and `data/counts.json`. One cached request per language. |
 | `analyse.py` | Classifies every chapter against six numbering systems and simulates the engine. Reads `out/` if present, else `data/counts.json`; writes `data/analysis.json` and prints a summary. Reads the six SIL [libpalaso](https://github.com/sillsdev/libpalaso) `.vrs` files (MIT) from `packages/core/data/`, the copies the app ships. |
 | `data/counts.json` | The scan of 54 versions (Sept 2026), compact. |
 | `data/analysis.json` | `analyse.py`'s output for that scan. |
@@ -23,15 +24,15 @@ S21). It doesn't know the `rso`/`rsc`/`lxx`/`vul` support added since;
 and is the measurement to trust.
 
 The app doesn't read this folder. `npm run import-survey -w @bvs/core` copies
-each scanned version's exception counts and every `vrs` label (from
-`counts.json` and `candidates.json`) into `packages/core/data/`, so a new scan
+each scanned version's exception counts, and every `vrs` label and version
+name (from `counts.json` and `candidates.json`), into `packages/core/data/`, so a new scan
 changes the app only through a reviewed diff there.
 
 ## `counts.json`
 
 ```json
 { "<bible id>": {
-    "abbr": "NIV11", "title": "…", "lang": "eng", "vrs": "eng",
+    "abbr": "NIV11", "local_abbr": "NIV", "title": "…", "lang": "eng", "vrs": "eng",
     "counts": { "GEN": [31, 25, …] },
     "gaps": { "MAT.17": [21] },
     "merged": ["JHN.3.1+JHN.3.2"] } }
@@ -40,7 +41,9 @@ changes the app only through a reviewed diff there.
 `counts` holds the **highest verse number present** in each chapter (0 when
 the chapter doesn't exist), not the number of verses, so an omitted verse
 (NIV Matthew 17:21) doesn't shift anything. `gaps` lists verse numbers missing
-below that maximum; `merged` lists verses printed as one span.
+below that maximum; `merged` lists verses printed as one span. `abbr` is
+YouVersion's internal abbreviation and `local_abbr` the one bible.com shows,
+which is what the app bundles.
 
 Key versions by bible id: YouVersion abbreviations aren't unique (`NVI-S` is
 both 128 and 2664, `ARC` both 212 and 3407).

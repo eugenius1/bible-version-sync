@@ -49,7 +49,7 @@ def scan(vid):
     t0 = time.time()
     with ThreadPoolExecutor(6) as pool:
         res = dict(pool.map(lambda u: chapter(vid, u), chs))
-    json.dump({"id": vid, "abbr": meta["abbreviation"], "title": meta["local_title"], "lang": meta["language"]["language_tag"],
+    json.dump({"id": vid, "abbr": meta["abbreviation"], "local_abbr": meta["local_abbreviation"], "title": meta["local_title"], "lang": meta["language"]["language_tag"],
                "vrs": meta.get("vrs"), "books": [b["usfm"] for b in books], "chapters": res},
               open(path + ".tmp", "w"), ensure_ascii=False)
     os.replace(path + ".tmp", path)

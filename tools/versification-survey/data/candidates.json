@@ -4,529 +4,617 @@
 "id": 4670,
 "abbreviation": "AFINTEXP",
 "local_title": "African International New Testament: Explanatory Paraphrase (American English Edition)",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "AFINTEXP"
 },
 {
 "id": 4669,
 "abbreviation": "AFINTLIT",
 "local_title": "African International New Testament: Literal Translation (British English Edition)",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "AFINTLIT"
 },
 {
 "id": 4253,
 "abbreviation": "AFV",
 "local_title": "A Faithful Version",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "AFV"
 },
 {
 "id": 1588,
 "abbreviation": "AMP",
 "local_title": "Amplified Bible",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "AMP"
 },
 {
 "id": 8,
 "abbreviation": "AMPC",
 "local_title": "Amplified Bible, Classic Edition",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "AMPC"
 },
 {
 "id": 12,
 "abbreviation": "ASV",
 "local_title": "American Standard Version",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "ASV"
 },
 {
 "id": 31,
 "abbreviation": "BOOKS",
 "local_title": "The Books of the Bible NT",
-"vrs": null
+"vrs": null,
+"local_abbreviation": "BOOKS"
 },
 {
 "id": 3034,
 "abbreviation": "BSB",
 "local_title": "Berean Standard Bible",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "BSB"
 },
 {
 "id": 37,
 "abbreviation": "CEB",
 "local_title": "Common English Bible",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "CEB"
 },
 {
 "id": 392,
 "abbreviation": "CEV",
 "local_title": "Contemporary English Version",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "CEV"
 },
 {
 "id": 303,
 "abbreviation": "CEVDCI",
 "local_title": "Contemporary English Version Interconfessional Edition",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "CEVDCI"
 },
 {
 "id": 294,
 "abbreviation": "CEVUK",
 "local_title": "Contemporary English Version (Anglicised) 2012",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "CEVUK"
 },
 {
 "id": 1275,
 "abbreviation": "CJB",
 "local_title": "Complete Jewish Bible",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "CJB"
 },
 {
 "id": 42,
 "abbreviation": "CPDV",
 "local_title": "Catholic Public Domain Version",
-"vrs": "vul"
+"vrs": "vul",
+"local_abbreviation": "CPDV"
 },
 {
 "id": 1713,
 "abbreviation": "CSB",
 "local_title": "Christian Standard Bible",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "CSB"
 },
 {
 "id": 4124,
 "abbreviation": "CSBA",
 "local_title": "Christian Standard Bible Anglicised",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "CSBA"
 },
 {
 "id": 478,
 "abbreviation": "DARBY",
 "local_title": "Darby's Translation 1890",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "DARBY"
 },
 {
 "id": 55,
 "abbreviation": "DRC1752",
 "local_title": "Douay-Rheims Challoner Revision 1752 ✠",
-"vrs": "vul"
+"vrs": "vul",
+"local_abbreviation": "DRC1752"
 },
 {
 "id": 2079,
 "abbreviation": "EASY",
 "local_title": "EasyEnglish Bible 2024",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "EASY"
 },
 {
 "id": 4224,
 "abbreviation": "EHV",
 "local_title": "Evangelical Heritage Version - 2021",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "EHV"
 },
 {
 "id": 406,
 "abbreviation": "ERV",
 "local_title": "Holy Bible: Easy-to-Read Version",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "ERV"
 },
 {
 "id": 59,
 "abbreviation": "ESV",
 "local_title": "English Standard Version 2025",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "ESV"
 },
 {
 "id": 4765,
 "abbreviation": "ESVUK25",
 "local_title": "Anglicised English Standard Version 2025",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "ESVUK25"
 },
 {
 "id": 1932,
 "abbreviation": "FBV",
 "local_title": "Free Bible Version",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "FBV"
 },
 {
 "id": 3633,
 "abbreviation": "FNVNT",
 "local_title": "First Nations Version",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "FNVNT"
 },
 {
 "id": 416,
 "abbreviation": "GNBDC",
 "local_title": "Good News Bible (British) with DC section 2017",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "GNBDC"
 },
 {
 "id": 431,
 "abbreviation": "GNBDK",
 "local_title": "Good News Bible (British) Catholic Edition 2017",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "GNBDK"
 },
 {
 "id": 296,
 "abbreviation": "GNBUK",
 "local_title": "Good News Bible (British Version) 2017",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "GNBUK"
 },
 {
 "id": 68,
 "abbreviation": "GNT",
 "local_title": "Good News Translation",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "GNT"
 },
 {
 "id": 69,
 "abbreviation": "GNTD",
 "local_title": "Good News Translation (US Version)",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "GNTD"
 },
 {
 "id": 2163,
 "abbreviation": "enggnv",
 "local_title": "Geneva Bible",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "GNV"
 },
 {
 "id": 70,
 "abbreviation": "GW",
 "local_title": "GOD'S WORD",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "GW"
 },
 {
 "id": 1047,
 "abbreviation": "GWC",
 "local_title": "St Paul from the Trenches 1916",
-"vrs": null
+"vrs": null,
+"local_abbreviation": "GWC"
 },
 {
 "id": 72,
 "abbreviation": "HCSB",
 "local_title": "Holman Christian Standard Bible",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "HCSB"
 },
 {
 "id": 1359,
 "abbreviation": "ICB",
 "local_title": "International Children’s Bible",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "ICB"
 },
 {
 "id": 1077,
 "abbreviation": "JUB",
 "local_title": "Jubilee Bible",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "JUB"
 },
 {
 "id": 1,
 "abbreviation": "KJV",
 "local_title": "King James Version",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "KJV"
 },
 {
 "id": 546,
 "abbreviation": "KJVAAE",
 "local_title": "King James Version with Apocrypha, American Edition",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "KJVAAE"
 },
 {
 "id": 547,
 "abbreviation": "KJVAE",
 "local_title": "King James Version, American Edition",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "KJVAE"
 },
 {
 "id": 90,
 "abbreviation": "LEB",
 "local_title": "Lexham English Bible",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "LEB"
 },
 {
 "id": 3345,
 "abbreviation": "LSB",
 "local_title": "Legacy Standard Bible",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "LSB"
 },
 {
 "id": 2660,
 "abbreviation": "LSV",
 "local_title": "Literal Standard Version",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "LSV"
 },
 {
 "id": 1171,
 "abbreviation": "MEV",
 "local_title": "Modern English Version",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "MEV"
 },
 {
 "id": 4540,
 "abbreviation": "MP1562",
 "local_title": "Metrical Psalms and Scripture Selections 1562 (Sternhold and Hopkins)",
-"vrs": null
+"vrs": null,
+"local_abbreviation": "MP1562"
 },
 {
 "id": 1365,
 "abbreviation": "MP1650",
 "local_title": "Psalms of David in Metre 1650 (Scottish Psalter)",
-"vrs": null
+"vrs": null,
+"local_abbreviation": "MP1650"
 },
 {
 "id": 2593,
 "abbreviation": "MP1696",
 "local_title": "Metrical Psalms and Scripture Selections 1698 (Brady & Tate)",
-"vrs": null
+"vrs": null,
+"local_abbreviation": "MP1696"
 },
 {
 "id": 3051,
 "abbreviation": "MP1781",
 "local_title": "Scottish Metrical Paraphrases 1781",
-"vrs": null
+"vrs": null,
+"local_abbreviation": "MP1781"
 },
 {
 "id": 4754,
 "abbreviation": "MSB",
 "local_title": "Majority Standard Bible",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "MSB"
 },
 {
 "id": 97,
 "abbreviation": "MSG",
 "local_title": "The Message",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "MSG"
 },
 {
 "id": 463,
 "abbreviation": "NABRE",
 "local_title": "New American Bible, revised edition",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "NABRE"
 },
 {
 "id": 100,
 "abbreviation": "NASB1995",
 "local_title": "New American Standard Bible - NASB 1995",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NASB1995"
 },
 {
 "id": 2692,
 "abbreviation": "NASB2020",
 "local_title": "New American Standard Bible - NASB",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NASB2020"
 },
 {
 "id": 105,
 "abbreviation": "NCV",
 "local_title": "New Century Version",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NCV"
 },
 {
 "id": 107,
 "abbreviation": "NET",
 "local_title": "New English Translation",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NET"
 },
 {
 "id": 110,
 "abbreviation": "NIrV",
 "local_title": "New International Reader’s Version",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NIrV"
 },
 {
 "id": 111,
 "abbreviation": "NIV11",
 "local_title": "New International Version",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NIV"
 },
 {
 "id": 113,
 "abbreviation": "NIVUK11",
 "local_title": "New International Version (Anglicised)",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NIVUK"
 },
 {
 "id": 114,
 "abbreviation": "NKJV",
 "local_title": "New King James Version",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NKJV"
 },
 {
 "id": 116,
 "abbreviation": "NLT",
 "local_title": "New Living Translation",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NLT"
 },
 {
 "id": 4249,
 "abbreviation": "NLTCE",
 "local_title": "New Living Translation Catholic Edition",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NLTCE"
 },
 {
 "id": 2135,
 "abbreviation": "NMV",
 "local_title": "New Messianic Version Bible",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NMV"
 },
 {
 "id": 2015,
 "abbreviation": "NRSVCI",
 "local_title": "New Revised Standard Version Catholic Interconfessional",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NRSV-CI"
 },
 {
 "id": 3523,
 "abbreviation": "NRSVUE",
 "local_title": "New Revised Standard Version Updated Edition 2021",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NRSVUE"
 },
 {
 "id": 4732,
 "abbreviation": "NTFE",
 "local_title": "The New Testament for Everyone",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NTFE"
 },
 {
 "id": 3915,
 "abbreviation": "OYBCENGL",
 "local_title": "The third line (in English) translating the meaning of each word in the Orthodox Yiddish Brit Chadashah (New Testament)",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "OYBCENGL"
 },
 {
 "id": 4557,
 "abbreviation": "OYTNKHEG",
 "local_title": "English word for word translation of Orthodox Yiddish Tanakh (OYTANAKH)",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "OYTNKHEG"
 },
 {
 "id": 4070,
 "abbreviation": "OYTORHEG",
 "local_title": "Translation into English of Orthodox Yiddish Torah (OYTORAH)",
-"vrs": null
+"vrs": null,
+"local_abbreviation": "OYTORHEG"
 },
 {
 "id": 2530,
 "abbreviation": "PEV",
 "local_title": "Plain English Version",
-"vrs": null
+"vrs": null,
+"local_abbreviation": "PEV"
 },
 {
 "id": 2753,
 "abbreviation": "RAD",
 "local_title": "Radiate New Testament",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "RAD"
 },
 {
 "id": 2020,
 "abbreviation": "RSV",
 "local_title": "Revised Standard Version",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "RSV"
 },
 {
 "id": 2017,
 "abbreviation": "RSV-C",
 "local_title": "Revised Standard Version Old Tradition 1952",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "RSV-C"
 },
 {
 "id": 3548,
 "abbreviation": "RSVCI",
 "local_title": "Revised Standard Version",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "RSVCI"
 },
 {
 "id": 477,
 "abbreviation": "RV1885",
 "local_title": "Revised Version 1885",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "RV1885"
 },
 {
 "id": 1922,
 "abbreviation": "RV1895",
 "local_title": "Revised Version with Apocrypha 1885, 1895",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "RV1895"
 },
 {
 "id": 3427,
 "abbreviation": "TCENT",
 "local_title": "The Text-Critical English New Testament",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "TCENT"
 },
 {
 "id": 3010,
 "abbreviation": "TEG",
 "local_title": "Isaiah 1830, 1842 (John Jones alias Ioan Tegid)",
-"vrs": null
+"vrs": null,
+"local_abbreviation": "TEG"
 },
 {
 "id": 314,
 "abbreviation": "TLV",
 "local_title": "Tree of Life Version",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "TLV"
 },
 {
 "id": 130,
 "abbreviation": "TOJB2011",
 "local_title": "The Orthodox Jewish Bible",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "TOJB2011"
 },
 {
 "id": 1849,
 "abbreviation": "TPT",
 "local_title": "The Passion Translation (In Review)",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "TPT"
 },
 {
 "id": 316,
 "abbreviation": "TS2009",
 "local_title": "The Scriptures 2009",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "TS2009"
 },
 {
 "id": 2407,
 "abbreviation": "WBMS",
 "local_title": "Wycliffe's Bible with Modern Spelling",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "WBMS"
 },
 {
 "id": 1204,
 "abbreviation": "WEBBE",
 "local_title": "World English Bible British Edition",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "WEBBE"
 },
 {
 "id": 206,
 "abbreviation": "engWEBUS",
 "local_title": "World English Bible, American English Edition, without Strong's Numbers",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "WEBUS"
 },
 {
 "id": 1209,
 "abbreviation": "WMB",
 "local_title": "World Messianic Bible",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "WMB"
 },
 {
 "id": 1207,
 "abbreviation": "WMBBE",
 "local_title": "World Messianic Bible British Edition",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "WMBBE"
 },
 {
 "id": 4108,
 "abbreviation": "YALL",
 "local_title": "Y'all Version Bible",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "YALL"
 },
 {
 "id": 821,
 "abbreviation": "YLT98",
 "local_title": "Young's Literal Translation 1898",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "YLT98"
 },
 {
 "id": 4829,
 "abbreviation": "YW",
 "local_title": "YAHWEH'S WORD",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "YW"
 }
 ],
 "spa": [
@@ -534,181 +622,211 @@
 "id": 1715,
 "abbreviation": "BDO1573",
 "local_title": "Biblia del Oso 1573",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "BDO1573"
 },
 {
 "id": 222,
 "abbreviation": "BHTI",
 "local_title": "La Biblia Hispanoamericana (Traducción Interconfesional, versión hispanoamericana)",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "BHTI"
 },
 {
 "id": 28,
 "abbreviation": "BLPH",
 "local_title": "La Palabra (versión hispanoamericana)",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "BLPH"
 },
 {
 "id": 4278,
 "abbreviation": "DHH23ST",
 "local_title": "Dios habla hoy 4ta. edición. Estándar.",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "DHH23ST"
 },
 {
 "id": 52,
 "abbreviation": "DHH94I",
 "local_title": "Biblia Dios Habla Hoy",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "DHH94I"
 },
 {
 "id": 411,
 "abbreviation": "DHH94PC",
 "local_title": "Biblia Dios Habla Hoy",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "DHH94PC"
 },
 {
 "id": 1845,
 "abbreviation": "DHHDK",
 "local_title": "Dios Habla Hoy DK",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "DHHDK"
 },
 {
 "id": 1846,
 "abbreviation": "DHHS94",
 "local_title": "Dios habla Hoy Estándar",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "DHHS94"
 },
 {
 "id": 4212,
 "abbreviation": "GlossSP",
 "local_title": "Gloss Spanish",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "GlossSP"
 },
 {
 "id": 1076,
 "abbreviation": "JBS",
 "local_title": "Biblia del Jubileo",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "JBS"
 },
 {
 "id": 89,
 "abbreviation": "LBLA",
 "local_title": "La Biblia de las Américas",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "LBLA"
 },
 {
 "id": 4221,
 "abbreviation": "LSB",
 "local_title": "LA SANTA BIBLIA",
-"vrs": null
+"vrs": null,
+"local_abbreviation": "LSB"
 },
 {
 "id": 103,
 "abbreviation": "NBLA",
 "local_title": "Nueva Biblia de las Américas",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NBLA"
 },
 {
 "id": 753,
 "abbreviation": "NBV",
 "local_title": "Nueva Biblia Viva",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NBV"
 },
 {
 "id": 3539,
 "abbreviation": "NTBIZ",
 "local_title": "Nuevo Testamento: Segun el texto bizantino",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NTBIZ"
 },
 {
 "id": 127,
 "abbreviation": "NTV",
 "local_title": "Nueva Traducción Viviente",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NTV"
 },
 {
 "id": 128,
 "abbreviation": "NVI-S",
 "local_title": "Nueva Versión Internacional - Español",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NVI"
 },
 {
 "id": 2664,
 "abbreviation": "NVI-S",
 "local_title": "La Santa Biblia, Nueva Versión Internacional Simplificada",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NVIs"
 },
 {
 "id": 3365,
 "abbreviation": "spaPdDpt",
 "local_title": "Palabla de Dios para ti",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "PdDpt"
 },
 {
 "id": 197,
 "abbreviation": "PDT",
 "local_title": "La Biblia: La Palabra de Dios para todos",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "PDT"
 },
 {
 "id": 1782,
 "abbreviation": "RVA2015",
 "local_title": "Reina Valera Actualizada",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "RVA2015"
 },
 {
 "id": 146,
 "abbreviation": "RVC",
 "local_title": "Reina Valera Contemporánea",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "RVC"
 },
 {
 "id": 147,
 "abbreviation": "RVES",
 "local_title": "Reina-Valera Antigua",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "RVES"
 },
 {
 "id": 1718,
 "abbreviation": "RVR09",
 "local_title": "Biblia Reina Valera 1909",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "RVR09"
 },
 {
 "id": 149,
 "abbreviation": "RVR1960",
 "local_title": "Biblia Reina Valera 1960",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "RVR1960"
 },
 {
 "id": 150,
 "abbreviation": "RVR95",
 "local_title": "Biblia Reina Valera 1995",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "RVR95"
 },
 {
 "id": 4013,
 "abbreviation": "TCB",
 "local_title": "Traducción Contemporánea de la Biblia - NT +",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "TCB"
 },
 {
 "id": 176,
 "abbreviation": "TLA",
 "local_title": "Traducción en Lenguaje Actual",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "TLA"
 },
 {
 "id": 178,
 "abbreviation": "TLAI",
 "local_title": "Traducción en Lenguaje Actual Interconfesional",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "TLAI"
 },
 {
 "id": 3291,
 "abbreviation": "VBL",
 "local_title": "Versión Biblia Libre",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "VBL"
 }
 ],
 "por": [
@@ -716,103 +834,120 @@
 "id": 2645,
 "abbreviation": "A21",
 "local_title": "Biblia Almeida Século 21",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "A21"
 },
 {
 "id": 1608,
 "abbreviation": "ARA",
 "local_title": "Almeida Revista e Atualizada",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "ARA"
 },
 {
 "id": 212,
 "abbreviation": "ARC",
 "local_title": "Almeida Revista e Corrigida",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "ARC"
 },
 {
 "id": 3407,
 "abbreviation": "ARC",
 "local_title": "Almeida Revista e Corrigida (Portugal Brazil)",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "ARC"
 },
 {
 "id": 4542,
 "abbreviation": "AVM",
 "local_title": "Bíblia Sagrada Ave-Maria",
-"vrs": "lxx"
+"vrs": "lxx",
+"local_abbreviation": "AVM"
 },
 {
 "id": 3254,
 "abbreviation": "BLT",
 "local_title": "Biblia Livre Para Todos",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "BLT"
 },
 {
 "id": 4094,
 "abbreviation": "mzNVI",
 "local_title": "Nova Versão Internacional, Português de Moçambique",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "mzNVI"
 },
 {
 "id": 1840,
 "abbreviation": "NAA",
 "local_title": "Nova Almeida Atualizada",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NAA"
 },
 {
 "id": 1966,
 "abbreviation": "NBV-P",
 "local_title": "Nova Bíblia Viva Português",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NBV-P"
 },
 {
 "id": 211,
 "abbreviation": "NTLH",
 "local_title": "Nova Tradução na Linguagem de Hoje",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NTLH"
 },
 {
 "id": 4539,
 "abbreviation": "NTLH CE",
 "local_title": "New Translation on Today’s Language Catholic Edition",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "NTLH CE"
 },
 {
 "id": 4509,
 "abbreviation": "NTTFL",
 "local_title": "O Novo Testamento: Vida do Pai",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NTVDP"
 },
 {
 "id": 129,
 "abbreviation": "NVI",
 "local_title": "Nova Versão Internacional - Português",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NVI"
 },
 {
 "id": 4360,
 "abbreviation": "ptNVI",
 "local_title": "Nova Versão Internacional 2011",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NVI"
 },
 {
 "id": 1930,
 "abbreviation": "NVT",
 "local_title": "Bíblia Sagrada, Nova Versão Transformadora",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NVT"
 },
 {
 "id": 277,
 "abbreviation": "TB",
 "local_title": "Tradução Brasileira",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "TB"
 },
 {
 "id": 200,
 "abbreviation": "VFL",
 "local_title": "Bíblia Sagrada: Versão Fácil de Ler",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "VFL"
 }
 ],
 "fra": [
@@ -820,121 +955,141 @@
 "id": 504,
 "abbreviation": "BCC1923",
 "local_title": "Bible catholique Crampon 1923",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "BCC1923"
 },
 {
 "id": 21,
 "abbreviation": "BDS",
 "local_title": "La Bible du Semeur 2015",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "BDS"
 },
 {
 "id": 4410,
 "abbreviation": "BenFS",
 "local_title": "Bible en Français Simple 2023",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "BenFS"
 },
 {
 "id": 3286,
 "abbreviation": "BEX",
 "local_title": "La Bible expliquée",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "BEX2004"
 },
 {
 "id": 63,
 "abbreviation": "BFC",
 "local_title": "Bible en français courant",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "BFC"
 },
 {
 "id": 62,
 "abbreviation": "FMAR",
 "local_title": "Martin 1744",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "FMAR"
 },
 {
 "id": 64,
 "abbreviation": "JND",
 "local_title": "Bible J.N. Darby",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "JND"
 },
 {
 "id": 4722,
 "abbreviation": "JXLFR",
 "local_title": "Nouveau Testament juxtalinéaire en français 2026",
-"vrs": null
+"vrs": null,
+"local_abbreviation": "JXLFR"
 },
 {
 "id": 93,
 "abbreviation": "LSG",
 "local_title": "La Sainte Bible par Louis Segond 1910",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "LSG"
 },
 {
 "id": 104,
 "abbreviation": "NBS",
 "local_title": "Nouvelle Bible Segond",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "NBS"
 },
 {
 "id": 3877,
 "abbreviation": "SGNEG79",
 "local_title": "Version Segond Nouvelle Edition de Genève 1979",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "NEG 1979"
 },
 {
 "id": 106,
 "abbreviation": "NEG79",
 "local_title": "Nouvelle Edition de Genève 1979",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "NEG79"
 },
 {
 "id": 2367,
 "abbreviation": "NFC",
 "local_title": "Nouvelle Français courant",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "NFC"
 },
 {
 "id": 2053,
 "abbreviation": "NVS78P",
 "local_title": "Nouvelle Segond révisée",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "NVS78P"
 },
 {
 "id": 131,
 "abbreviation": "OST",
 "local_title": "Ostervald",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "OST"
 },
 {
 "id": 133,
 "abbreviation": "PDV2017",
 "local_title": "Parole de Vie 2017",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "PDV2017"
 },
 {
 "id": 152,
 "abbreviation": "S21",
 "local_title": "La Bible Segond 21",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "S21"
 },
 {
 "id": 2599,
 "abbreviation": "Sacy",
 "local_title": "Évangile de Saint Matthieu 1855 (de Sacy)",
-"vrs": null
+"vrs": null,
+"local_abbreviation": "Sacy"
 },
 {
 "id": 3447,
 "abbreviation": "TFM",
 "local_title": "Traduction Française de Modèle",
-"vrs": null
+"vrs": null,
+"local_abbreviation": "TFM"
 },
 {
 "id": 3547,
 "abbreviation": "THU",
 "local_title": "Saint Maitthieu 1864 (Frainc-Comtou - Thuriet)",
-"vrs": null
+"vrs": null,
+"local_abbreviation": "THU"
 }
 ],
 "deu": [
@@ -942,85 +1097,99 @@
 "id": 877,
 "abbreviation": "NeU",
 "local_title": "bibel heute",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "bibel.heute"
 },
 {
 "id": 4796,
 "abbreviation": "BTD",
 "local_title": "Byzantinischer Text Deutsch. Die Evangelien übersetzt aus dem griechischen Text des Ökumenischen Patriarchats von Konstantinopel (1904/1912)",
-"vrs": null
+"vrs": null,
+"local_abbreviation": "BTD"
 },
 {
 "id": 4631,
 "abbreviation": "dasbuch",
 "local_title": "Das Buch. Neues Testament und Psalmen.",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "dasbuch"
 },
 {
 "id": 51,
 "abbreviation": "DELUT",
 "local_title": "Lutherbibel 1912",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "DELUT"
 },
 {
 "id": 57,
 "abbreviation": "deuelo",
 "local_title": "Darby Unrevidierte Elberfelder",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "ELB"
 },
 {
 "id": 58,
 "abbreviation": "ELB71",
 "local_title": "Elberfelder 1871",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "ELB71"
 },
 {
 "id": 2351,
 "abbreviation": "ELBBK",
 "local_title": "Elberfelder Übersetzung (Version von bibelkommentare.de)",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "ELBBK"
 },
 {
 "id": 65,
 "abbreviation": "GANTP",
 "local_title": "Albrecht NT und Psalmen",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "GANTP"
 },
 {
 "id": 73,
 "abbreviation": "Hfa",
 "local_title": "Hoffnung für alle",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "Hfa"
 },
 {
 "id": 3100,
 "abbreviation": "LUTheute",
 "local_title": "luther.heute",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "LUTheute"
 },
 {
 "id": 108,
 "abbreviation": "NGU2011",
 "local_title": "Neue Genfer Übersetzung",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "NGU2011"
 },
 {
 "id": 158,
 "abbreviation": "SCH1951",
 "local_title": "Die Heilige Schrift (Schlachter 1951)",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "SCH1951"
 },
 {
 "id": 157,
 "abbreviation": "SCH2000",
 "local_title": "Die Bibel (Schlachter 2000)",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "SCH2000"
 },
 {
 "id": 2200,
 "abbreviation": "deutkw",
 "local_title": "Textbibel von Kautzsch und Weizsäcker",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "TKW"
 }
 ],
 "kor": [
@@ -1028,37 +1197,43 @@
 "id": 86,
 "abbreviation": "KLB",
 "local_title": "현대인의 성경",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "KLB"
 },
 {
 "id": 3803,
 "abbreviation": "KOERV",
 "local_title": "읽기 쉬운 성경",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "KOERV"
 },
 {
 "id": 88,
 "abbreviation": "KRV",
 "local_title": "개역한글",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "KRV"
 },
 {
 "id": 3502,
 "abbreviation": "NLTNK",
 "local_title": "하나님의 약속: 평양말 New Living Translation",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NLTNK"
 },
 {
 "id": 142,
 "abbreviation": "RNKSV",
 "local_title": "새번역",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "RNKSV"
 },
 {
 "id": 4639,
 "abbreviation": "WB",
 "local_title": "Woorimal Bible 5th Edition",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "WB"
 }
 ],
 "cmn": [
@@ -1066,13 +1241,15 @@
 "id": 4804,
 "abbreviation": "CUVMPS",
 "local_title": "现代标点和合本",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "CUVMPS"
 },
 {
 "id": 4841,
 "abbreviation": "CUVMPT",
 "local_title": "現代標點和和本",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "CUVMPT"
 }
 ],
 "ind": [
@@ -1080,61 +1257,71 @@
 "id": 3384,
 "abbreviation": "AGS",
 "local_title": "Alkitab Gratis untuk Semua",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "AGS"
 },
 {
 "id": 199,
 "abbreviation": "AMD",
 "local_title": "Perjanjian Baru: Alkitab Mudah Dibaca",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "AMD"
 },
 {
 "id": 27,
 "abbreviation": "BIMK",
 "local_title": "Alkitab dalam Bahasa Indonesia Masa Kini",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "BIMK"
 },
 {
 "id": 2727,
 "abbreviation": "ILB",
 "local_title": "Firman Allah Yang Hidup",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "FAYH"
 },
 {
 "id": 2862,
 "abbreviation": "inotazi",
 "local_title": "Indonesian Tazi NT",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "inotazi"
 },
 {
 "id": 4548,
 "abbreviation": "KKH",
 "local_title": "Kitab Kehidupan",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "KKH"
 },
 {
 "id": 2861,
 "abbreviation": "LAI-TL",
 "local_title": "Alkitab Terjemahan Lama",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "LAI-TL"
 },
 {
 "id": 2863,
 "abbreviation": "PBTB2",
 "local_title": "Perjanjian Baru Terjemahan Baru Edisi 2",
-"vrs": "lxx"
+"vrs": "lxx",
+"local_abbreviation": "PBTB2"
 },
 {
 "id": 306,
 "abbreviation": "TB",
 "local_title": "Alkitab Terjemahan Baru",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "TB"
 },
 {
 "id": 320,
 "abbreviation": "TSI",
 "local_title": "Terjemahan Sederhana Indonesia",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "TSI"
 }
 ],
 "rus": [
@@ -1142,85 +1329,99 @@
 "id": 313,
 "abbreviation": "RBT",
 "local_title": "Библия под ред. М.П. Кулакова и М.М. Кулакова",
-"vrs": "rsc"
+"vrs": "rsc",
+"local_abbreviation": "BTI"
 },
 {
 "id": 3830,
 "abbreviation": "CAROS",
 "local_title": "Священное Писание, Устный Восточный перевода",
-"vrs": null
+"vrs": null,
+"local_abbreviation": "CAROS"
 },
 {
 "id": 385,
 "abbreviation": "CARS",
 "local_title": "Восточный перевод",
-"vrs": "rsc"
+"vrs": "rsc",
+"local_abbreviation": "CARS"
 },
 {
 "id": 840,
 "abbreviation": "CARS-A",
 "local_title": "Восточный перевод",
-"vrs": "rsc"
+"vrs": "rsc",
+"local_abbreviation": "CARSA"
 },
 {
 "id": 853,
 "abbreviation": "CARS-T",
 "local_title": "Восточный перевод, версия для Таджикистана",
-"vrs": "rsc"
+"vrs": "rsc",
+"local_abbreviation": "CARST"
 },
 {
 "id": 480,
 "abbreviation": "CASS70",
 "local_title": "перевод Еп. Кассиана",
-"vrs": "lxx"
+"vrs": "lxx",
+"local_abbreviation": "CASS70"
 },
 {
 "id": 45,
 "abbreviation": "CSLAV",
 "local_title": "Библия на церковнославянском языке",
-"vrs": "rsc"
+"vrs": "rsc",
+"local_abbreviation": "CSLAV"
 },
 {
 "id": 3873,
 "abbreviation": "DROT",
 "local_title": "Dramatized Russian Oral Translation",
-"vrs": null
+"vrs": null,
+"local_abbreviation": "DROT"
 },
 {
 "id": 3764,
 "abbreviation": "ROT",
 "local_title": "Устный перевод на русский язык",
-"vrs": null
+"vrs": null,
+"local_abbreviation": "ROT"
 },
 {
 "id": 201,
 "abbreviation": "RSP",
 "local_title": "Святая Библия: Современный перевод",
-"vrs": "rsc"
+"vrs": "rsc",
+"local_abbreviation": "RSP"
 },
 {
 "id": 400,
 "abbreviation": "SYNO",
 "local_title": "Синодальный перевод",
-"vrs": "rso"
+"vrs": "rso",
+"local_abbreviation": "SYNO"
 },
 {
 "id": 143,
 "abbreviation": "NRT",
 "local_title": "Новый русский перевод",
-"vrs": "rsc"
+"vrs": "rsc",
+"local_abbreviation": "НРП"
 },
 {
 "id": 167,
 "abbreviation": "Synod",
 "local_title": "Синодальный перевод",
-"vrs": "rso"
+"vrs": "rso",
+"local_abbreviation": "Синод"
 },
 {
 "id": 1999,
 "abbreviation": "CRVNT",
 "local_title": "Современный русский перевод (2-е изд.)",
-"vrs": "rsc"
+"vrs": "rsc",
+"local_abbreviation": "СРП-2"
 }
 ],
 "tgl": [
@@ -1228,43 +1429,50 @@
 "id": 2196,
 "abbreviation": "ABTAG",
 "local_title": "Ang Biblia (1905/1982)",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "ABTAG"
 },
 {
 "id": 2195,
 "abbreviation": "ABTAG01",
 "local_title": "Ang Biblia, 2001",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "ABTAG01"
 },
 {
 "id": 1264,
 "abbreviation": "ASD",
 "local_title": "Ang Salita ng Diyos",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "ASD"
 },
 {
 "id": 144,
 "abbreviation": "MBB05",
 "local_title": "Magandang Balita Biblia (2005)",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "MBB05"
 },
 {
 "id": 2197,
 "abbreviation": "MBBTAG12",
 "local_title": "Magandang Balita Biblia",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "MBBTAG12"
 },
 {
 "id": 399,
 "abbreviation": "RTPV05",
 "local_title": "Magandang Balita Bible (Revised)",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "RTPV05"
 },
 {
 "id": 177,
 "abbreviation": "TLAB",
 "local_title": "Ang Biblia",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "TLAB"
 }
 ],
 "swh": [
@@ -1272,79 +1480,92 @@
 "id": 74,
 "abbreviation": "BHN",
 "local_title": "Biblia Habari Njema",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "BHN"
 },
 {
 "id": 393,
 "abbreviation": "BHND",
 "local_title": "Biblia Habari Njema",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "BHND"
 },
 {
 "id": 2144,
 "abbreviation": "BHNTLK",
 "local_title": "Biblia Habari Njema: Toleo la Kujifunza",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "BHNTLK"
 },
 {
 "id": 1627,
 "abbreviation": "NEN",
 "local_title": "Neno",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NEN"
 },
 {
 "id": 4369,
 "abbreviation": "NMM24",
 "local_title": "Neno: Maandiko Matakatifu 2024",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NENO"
 },
 {
 "id": 2937,
 "abbreviation": "RSUVDC",
 "local_title": "BIBLIA KISWAHILI",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "RSUVDC"
 },
 {
 "id": 2936,
 "abbreviation": "SCLDC10",
 "local_title": "BIBLIA Yenye Vitabu vya Deuterokanoni HABARI NJEMA",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "SCLDC10"
 },
 {
 "id": 3049,
 "abbreviation": "SRB37",
 "local_title": "Swahili Roehl Bible 1937",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "SRB37"
 },
 {
 "id": 1818,
 "abbreviation": "SRUV",
 "local_title": "Swahili Revised Union Version",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "SRUV"
 },
 {
 "id": 1817,
 "abbreviation": "SRUVDC",
 "local_title": "Swahili Revised Union Version",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "SRUVDC"
 },
 {
 "id": 164,
 "abbreviation": "SUV",
 "local_title": "Maandiko Matakatifu ya Mungu Yaitwayo Biblia",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "SUV"
 },
 {
 "id": 3048,
 "abbreviation": "SWZZB1921",
 "local_title": "New Testament in Swahili (Zanzibar) Revised Edition 1921",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "SWZZB1921"
 },
 {
 "id": 2484,
 "abbreviation": "TKU",
 "local_title": "Agano Jipya: Tafsiri ya Kusoma-Kwa-Urahisi",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "TKU"
 }
 ],
 "hin": [
@@ -1352,55 +1573,64 @@
 "id": 1628,
 "abbreviation": "HCV",
 "local_title": "सरल हिन्दी बाइबल",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "HCV"
 },
 {
 "id": 2562,
 "abbreviation": "HERV",
 "local_title": "पवित्र बाइबल",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "HERV"
 },
 {
 "id": 819,
 "abbreviation": "HHBD",
 "local_title": "Hindi Holy Bible",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "HHBD"
 },
 {
 "id": 1682,
 "abbreviation": "HINCLBSI",
 "local_title": "पवित्र बाइबिल CL Bible (BSI)",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "HINCLBSI"
 },
 {
 "id": 1683,
 "abbreviation": "HINOVBSI",
 "local_title": "पवित्र बाइबिल OV (Re-edited) Bible (BSI)",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "HINOVBSI"
 },
 {
 "id": 4459,
 "abbreviation": "HLT",
 "local_title": "हिंदी लिटरल टेक्स्ट",
-"vrs": null
+"vrs": null,
+"local_abbreviation": "HLT"
 },
 {
 "id": 3540,
 "abbreviation": "HSB",
 "local_title": "नवीन हिंदी बाइबल",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "HSB"
 },
 {
 "id": 1980,
 "abbreviation": "IRVHin",
 "local_title": "इंडियन रिवाइज्ड वर्जन (IRV) हिंदी - 2019",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "IRVHin"
 },
 {
 "id": 4679,
 "abbreviation": "MYG",
 "local_title": "Muktidata Yeshu Granth",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "MYG"
 }
 ],
 "jpn": [
@@ -1408,43 +1638,50 @@
 "id": 3802,
 "abbreviation": "JERV",
 "local_title": "ERV 訳 ー 読みやすい聖書 ー",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "ERV訳"
 },
 {
 "id": 81,
 "abbreviation": "JA1955",
 "local_title": "Colloquial Japanese (1955)",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "JA1955"
 },
 {
 "id": 83,
 "abbreviation": "JCB",
 "local_title": "リビングバイブル",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "JCB"
 },
 {
 "id": 4869,
 "abbreviation": "NJB",
 "local_title": "聖書 新改訳",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NJB"
 },
 {
 "id": 1820,
 "abbreviation": "JC",
 "local_title": "Japanese: 聖書　口語訳",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "口語訳"
 },
 {
 "id": 4016,
 "abbreviation": "JCV",
 "local_title": "聖書 口語訳",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "口語訳"
 },
 {
 "id": 1819,
 "abbreviation": "JNIV",
 "local_title": "Seisho Shinkyoudoyaku 聖書 新共同訳",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "新共同訳"
 }
 ],
 "arb": [
@@ -1452,85 +1689,99 @@
 "id": 13,
 "abbreviation": "AVD",
 "local_title": "الكتاب المقدس",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "AVD"
 },
 {
 "id": 14,
 "abbreviation": "AVDDV",
 "local_title": "الكتاب المقدس  (تخفيف تشكيل)",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "AVDDV"
 },
 {
 "id": 4220,
 "abbreviation": "CGB",
 "local_title": "الترجمة الجليلية",
-"vrs": "lxx"
+"vrs": "lxx",
+"local_abbreviation": "CGB"
 },
 {
 "id": 2301,
 "abbreviation": "FAOV",
 "local_title": "مزامير داود النبيّ - ترجمة الأب عفيف عسيران",
-"vrs": null
+"vrs": null,
+"local_abbreviation": "FAOV"
 },
 {
 "id": 67,
 "abbreviation": "GNA2025",
 "local_title": "الترجمة العربية المشتركة",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "GNA2025"
 },
 {
 "id": 1665,
 "abbreviation": "GNA2025DC",
 "local_title": "2025 الترجمة العربية المشتركة",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "GNADC 25"
 },
 {
 "id": 3513,
 "abbreviation": "GOV",
 "local_title": "الكتاب المقدس العهد الجديد، النسخة الارثوذكسية/ القدس",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "GOV"
 },
 {
 "id": 101,
 "abbreviation": "NAV",
 "local_title": "كتاب الحياة",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "KEH"
 },
 {
 "id": 3901,
 "abbreviation": "afbQAV",
 "local_title": "الترجمة العربية القطيفية الجديدة",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "QNAV"
 },
 {
 "id": 153,
 "abbreviation": "SAB",
 "local_title": "الكتاب الشريف",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "SAB"
 },
 {
 "id": 1714,
 "abbreviation": "arb",
 "local_title": "المعنى الصحيح لإنجيل المسيح",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "TMA"
 },
 {
 "id": 3275,
 "abbreviation": "TMA-C",
 "local_title": "المعنى الصحيح لإنجيل المسيح - ترتيل",
-"vrs": null
+"vrs": null,
+"local_abbreviation": "TMA-C"
 },
 {
 "id": 195,
 "abbreviation": "SAT",
 "local_title": "الكِتاب المُقَدَّس: التَّرْجَمَةُ العَرَبِيَّةُ المُبَسَّطَةُ",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "ت ع م"
 },
 {
 "id": 1981,
 "abbreviation": "CAV",
 "local_title": "الترجمة الكاثوليكيّة (اليسوعيّة)",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "ت.ك.ع"
 }
 ],
 "ita": [
@@ -1538,49 +1789,57 @@
 "id": 54,
 "abbreviation": "DB1885",
 "local_title": "Diodati Bibbia 1885",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "DB1885"
 },
 {
 "id": 1196,
 "abbreviation": "ICL00D",
 "local_title": "Traduzione Interconfessionale in Lingua Corrente",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "ICL00D"
 },
 {
 "id": 1197,
 "abbreviation": "ICL00P",
 "local_title": "Parola del Signore - la Bibbia in lingua corrente",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "ICL00P"
 },
 {
 "id": 3368,
 "abbreviation": "IRB20",
 "local_title": "La Sacra Bibbia Versione Riveduta 2020 (R2)",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "IRB20"
 },
 {
 "id": 122,
 "abbreviation": "NR06",
 "local_title": "Nuova Riveduta 2006",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NR06"
 },
 {
 "id": 4833,
 "abbreviation": "NR2006",
 "local_title": "La Sacra Bibbia",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NR2006"
 },
 {
 "id": 123,
 "abbreviation": "NR94",
 "local_title": "Nuova Riveduta 1994",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NR94"
 },
 {
 "id": 141,
 "abbreviation": "RDV24",
 "local_title": "Versione Diodati Riveduta",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "RDV24"
 }
 ],
 "nld": [
@@ -1588,67 +1847,78 @@
 "id": 1276,
 "abbreviation": "BB",
 "local_title": "BasisBijbel, de bijbel in makkelijk Nederlands",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "BB"
 },
 {
 "id": 3699,
 "abbreviation": "EBV24",
 "local_title": "EBV24 een eigentijdse Bijbelvertaling",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "EBV24"
 },
 {
 "id": 4209,
 "abbreviation": "gbvnt",
 "local_title": "Gods Boek - het Nieuwe Testament",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "gbvnt"
 },
 {
 "id": 1990,
 "abbreviation": "HSVU",
 "local_title": "Herziene Statenvertaling",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "HSV"
 },
 {
 "id": 75,
 "abbreviation": "HTB",
 "local_title": "Het Boek",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "HTB"
 },
 {
 "id": 3932,
 "abbreviation": "HW",
 "local_title": "Het Woord",
-"vrs": null
+"vrs": null,
+"local_abbreviation": "HW"
 },
 {
 "id": 328,
 "abbreviation": "NBG51",
 "local_title": "NBG-vertaling 1951",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "NBG51"
 },
 {
 "id": 2307,
 "abbreviation": "nld1939",
 "local_title": "De Heilige Schrift, Petrus Canisiusvertaling, 1939",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NLD1939"
 },
 {
 "id": 165,
 "abbreviation": "STV",
 "local_title": "Statenvertaling (Importantia edition)",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "STV"
 },
 {
 "id": 3799,
 "abbreviation": "SVV",
 "local_title": "Statenvertaling Jongbloed-editie",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "SVV"
 },
 {
 "id": 3743,
 "abbreviation": "VB",
 "local_title": "De VensterBijbel",
-"vrs": null
+"vrs": null,
+"local_abbreviation": "VB"
 }
 ],
 "ron": [
@@ -1656,73 +1926,85 @@
 "id": 1506,
 "abbreviation": "BINT09",
 "local_title": "Română Noul Testament Interconfesional 2009",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "BINT09"
 },
 {
 "id": 1466,
 "abbreviation": "BIV2014",
 "local_title": "Biblia în versuri 2014",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "BIV2014"
 },
 {
 "id": 903,
 "abbreviation": "BTF2015",
 "local_title": "Biblia Traducerea Fidela 2015",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "BTF2015"
 },
 {
 "id": 1454,
 "abbreviation": "BVA",
 "local_title": "Biblia în Versiune Actualizată 2018",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "BVA"
 },
 {
 "id": 3914,
 "abbreviation": "EDC100",
 "local_title": "Biblia Dumitru Cornilescu 2024",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "EDC100"
 },
 {
 "id": 2311,
 "abbreviation": "EDCR",
 "local_title": "Ediția Dumitru Cornilescu revizuită 2024",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "EDCR"
 },
 {
 "id": 126,
 "abbreviation": "NTR",
 "local_title": "Noua Traducere Românească",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NTR"
 },
 {
 "id": 3616,
 "abbreviation": "NTSBR",
 "local_title": "Noul Testament SBR 2023",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NTSBR"
 },
 {
 "id": 1467,
 "abbreviation": "VBRC2020",
 "local_title": "Versiunea Biblia Romano-Catolică 2020",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "VBRC2020"
 },
 {
 "id": 191,
 "abbreviation": "BDC",
 "local_title": "Biblia sau Sfânta Scriptură cu Trimiteri 1924, Dumitru Cornilescu",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "VDC"
 },
 {
 "id": 1996,
 "abbreviation": "VDCL",
 "local_title": "Traducere Literală Cornilescu 1931",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "VDCL"
 },
 {
 "id": 2072,
 "abbreviation": "BDCC",
 "local_title": "Библия Думитру Корнилеску 1924",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "БДК"
 }
 ],
 "ukr": [
@@ -1730,43 +2012,50 @@
 "id": 3786,
 "abbreviation": "UCV2023",
 "local_title": "БІБЛІЯ Сучасний переклад",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "CUV"
 },
 {
 "id": 186,
 "abbreviation": "UBIO",
 "local_title": "Біблія в пер. Івана Огієнка 1962",
-"vrs": "lxx"
+"vrs": "lxx",
+"local_abbreviation": "UBIO"
 },
 {
 "id": 188,
 "abbreviation": "UKRK",
 "local_title": "Біблія в пер. П.Куліша та І.Пулюя, 1905",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "UKRK"
 },
 {
 "id": 204,
 "abbreviation": "UMT",
 "local_title": "Свята Біблія: Сучасною мовою",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "UMT"
 },
 {
 "id": 3269,
 "abbreviation": "NPU",
 "local_title": "Новий Переклад Українською",
-"vrs": "lxx"
+"vrs": "lxx",
+"local_abbreviation": "НПУ"
 },
 {
 "id": 3149,
 "abbreviation": "UKRB",
 "local_title": "Переклад. Ю. Попченка.",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "НУП"
 },
 {
 "id": 1755,
 "abbreviation": "UTT",
 "local_title": "Переклад Р. Турконяка",
-"vrs": "lxx"
+"vrs": "lxx",
+"local_abbreviation": "УТТ"
 }
 ],
 "pol": [
@@ -1774,49 +2063,57 @@
 "id": 3490,
 "abbreviation": "PLWB1975",
 "local_title": "Biblia Warszawska 1975",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "BW1975"
 },
 {
 "id": 319,
 "abbreviation": "NBG",
 "local_title": "Nowa Biblia Gdańska",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "NBG"
 },
 {
 "id": 3551,
 "abbreviation": "NT NPD",
 "local_title": "Dobra Wiadomość o ratunku w Chrystusie. Nowy Przekład Dynamiczny Nowego Testamentu",
-"vrs": "lxx"
+"vrs": "lxx",
+"local_abbreviation": "NT NPD"
 },
 {
 "id": 132,
 "abbreviation": "PBG",
 "local_title": "Biblia Gdańska",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "PBG"
 },
 {
 "id": 137,
 "abbreviation": "PLNT",
 "local_title": "Słowo Życia",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "PLNT"
 },
 {
 "id": 2095,
 "abbreviation": "SNP",
 "local_title": "Biblia, to jest Pismo Święte Starego i Nowego Przymierza Wydanie pierwsze 2018",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "SNP"
 },
 {
 "id": 3881,
 "abbreviation": "SNPD4",
 "local_title": "Biblia, to jest Pismo Święte Starego i Nowego Przymierza",
-"vrs": "org"
+"vrs": "org",
+"local_abbreviation": "SNPD4"
 },
 {
 "id": 138,
 "abbreviation": "polUBG",
 "local_title": "UWSPÓŁCZEŚNIONA BIBLIA GDAŃSKA",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "UBG"
 }
 ],
 "vie": [
@@ -1824,37 +2121,43 @@
 "id": 19,
 "abbreviation": "BD2011",
 "local_title": "Kinh Thánh Tiếng Việt, Bản Dịch 2011",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "BD2011"
 },
 {
 "id": 205,
 "abbreviation": "BPT",
 "local_title": "Thánh Kinh: Bản Phổ thông",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "BPT"
 },
 {
 "id": 1638,
 "abbreviation": "VCB",
 "local_title": "Kinh Thánh Hiện Đại",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "KTHD"
 },
 {
 "id": 449,
 "abbreviation": "NVB",
 "local_title": "Kinh Thánh Bản Dịch Mới",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "NVB"
 },
 {
 "id": 193,
 "abbreviation": "VIE1925",
 "local_title": "Kinh Thánh Tiếng Việt 1925",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "VIE1925"
 },
 {
 "id": 151,
 "abbreviation": "VIE2010",
 "local_title": "Kinh Thánh Tiếng Việt Bản Hiệu Đính 2010",
-"vrs": "eng"
+"vrs": "eng",
+"local_abbreviation": "VIE2010"
 }
 ]
 }

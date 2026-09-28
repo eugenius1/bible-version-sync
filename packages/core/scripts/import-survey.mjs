@@ -1,7 +1,8 @@
 // Copies what the app needs from the versification survey into data/: each
 // scanned version's verse counts (exceptions only) into known_counts.json,
-// and YouVersion's numbering labels into labels.json. Run it deliberately
-// after a new scan and review the diff: the app never reads tools/ itself.
+// YouVersion's numbering labels into labels.json, and every surveyed
+// version's name into names.json. Run it deliberately after a new scan and
+// review the diff: the app never reads tools/ itself.
 //
 //   npm run import-survey -w @bvs/core
 import { readFileSync, writeFileSync } from "node:fs";
@@ -63,12 +64,15 @@ function exceptions(version) {
 }
 
 const byNumber = (a, b) => Number(a) - Number(b);
-/** One entry per line, keyed by bible id, so a diff shows exactly which chapters changed. */
-function writeJson(file, obj) {
+/**
+ * One entry per line, keyed by bible id, so a diff shows exactly which
+ * chapters changed. `inline` keeps each version's object on its own line.
+ */
+function writeJson(file, obj, { inline = false } = {}) {
   const entry = (k, v) => `${JSON.stringify(k)}: ${v}`;
   const lines = Object.keys(obj).sort(byNumber).map((id) => {
     const value = obj[id];
-    if (typeof value !== "object") return entry(id, JSON.stringify(value));
+    if (typeof value !== "object" || inline) return entry(id, JSON.stringify(value));
     const inner = Object.keys(value).sort().map((k) => entry(k, JSON.stringify(value[k])));
     return entry(id, `{\n${inner.join(",\n")}\n}`);
   });
@@ -98,11 +102,51 @@ const candidates = JSON.parse(readFileSync(join(survey, "candidates.json"), "utf
 for (const versions of Object.values(candidates)) {
   for (const v of versions) addLabel(String(v.id), v.vrs, "candidates.json");
 }
+
+// Each version's name as bible.com shows it, so the app can name a version
+// the person only gave a number for. That's YouVersion's local abbreviation
+// (NIV), not its internal one (NIV11); tools/versification-survey/names.py
+// records it. Every candidate, not just the scanned
+// versions: the 305 add about 8 KB to the gzipped app (the 54 alone, under
+// 2 KB) and let the add form name any version someone is likely to add. The
+// survey's ISO 639-3 codes become BCP 47 (eng -> en, zho_tw -> zh-TW) for the
+// page's lang attribute, which picks Japanese rather than Chinese glyphs, and
+// the voice a screen reader uses.
+const names = {};
+const BIBLE_ID = /^[1-9]\d*$/;
+// Control characters, and bidi overrides that would reorder the text around a title.
+const UNPRINTABLE = /[\p{Cc}\u202A-\u202E\u2066-\u2069]/u;
+const addName = (id, abbr, title, lang, from) => {
+  if (!BIBLE_ID.test(id)) throw new Error(`${from}: ${id} is not a bible id`);
+  for (const [what, s] of [["abbreviation", abbr], ["title", title]]) {
+    if (typeof s !== "string" || !s || s !== s.trim() || UNPRINTABLE.test(s)) {
+      throw new Error(`${from}: ${id}: bad ${what} ${JSON.stringify(s)} (run the survey's names.py?)`);
+    }
+  }
+  let language;
+  try {
+    [language] = Intl.getCanonicalLocales(String(lang).replace("_", "-"));
+  } catch {
+    throw new Error(`${from}: ${id}: bad language ${JSON.stringify(lang)}`);
+  }
+  const name = { abbr, language, title };
+  if (names[id] && JSON.stringify(names[id]) !== JSON.stringify(name)) {
+    throw new Error(`${from}: ${id} is both ${JSON.stringify(names[id])} and ${JSON.stringify(name)}`);
+  }
+  names[id] = name;
+};
+for (const [id, v] of Object.entries(scanned)) addName(id, v.local_abbr, v.title, v.lang, "counts.json");
+for (const [lang, versions] of Object.entries(candidates)) {
+  for (const v of versions) addName(String(v.id), v.local_abbreviation, v.local_title, lang, "candidates.json");
+}
+
 writeJson("known_counts.json", known);
 writeJson("labels.json", labels);
+writeJson("names.json", names, { inline: true });
 
 const total = Object.values(known).reduce((n, v) => n + Object.keys(v).length, 0);
 console.log(
   `wrote data/known_counts.json (${Object.keys(known).length} versions, ${total} chapters)` +
-    ` and data/labels.json (${Object.keys(labels).length} labels)`,
+    `, data/labels.json (${Object.keys(labels).length} labels)` +
+    ` and data/names.json (${Object.keys(names).length} names)`,
 );
