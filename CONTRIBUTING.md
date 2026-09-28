@@ -62,16 +62,37 @@ Two standard systems explain almost everything: **English** numbering
 itself. Versions don't pick one: Louis Segond uses original numbering in the
 Psalms and Exodus 7–8, English numbering in Malachi and Joel, and neither in
 Job 38–41. So the system is detected **per chapter**, by comparing the chapter's
-real verse count with both systems' counts
+real verse count with each candidate system's count
 (`VersionMap.build` in `packages/core/src/versification.ts`):
 
-- A chapter matching one system uses it; one matching both inherits its book's
-  majority; one matching neither is skipped.
+- The candidates are `eng` and `org`, plus the version's YouVersion label when
+  that's Russian Synodal (`rso`, `rsc`), Septuagint (`lxx`) or Vulgate (`vul`).
+  Those four are never offered to other versions: their chapter counts often
+  coincide with an English or Hebrew chapter holding different text (Synodal
+  Psalm 91 has English Psalm 91's count and Hebrew Psalm 92's text), so they
+  only come in on the label's say-so. The official API doesn't expose the
+  label, so `VRS_LABELS` bundles it by bible id from the survey.
+- A chapter matching one candidate uses it; one matching none is skipped.
+- A chapter matching several takes the one that fits most of the book's
+  chapters where the candidates disagree, then `eng`, then the label. The book
+  outranks the label because labels are loose: UBIO is labelled `lxx` but
+  follows Hebrew order in Jeremiah, where two `lxx` chapters have the Hebrew
+  counts by coincidence.
+- Chapters without a known count take the book's pick; with nothing known,
+  the label, else English.
 - If two chapters on different systems would claim the same canonical verse,
   both are skipped rather than guessed.
-- Chapters that follow neither system are described by hand in a **correction
+- Chapters that follow no system are described by hand in a **correction
   table**, `packages/core/data/overrides/<ABBR>.map`, in `.vrs` mapping syntax:
   `LOCAL = CANONICAL`. Every chapter such a table touches uses only the table.
+
+The `rso`, `rsc`, `lxx` and `vul` tables are read from
+`tools/versification-survey/vrs/`, with a few corrections checked against the
+text (`SUPPLEMENTAL` in `versification.ts`), and a mapping into another of the
+66 books is dropped: the sync plans one book at a time, so such a verse would
+look unread, and so removed, when the other book syncs.
+`packages/core/test/survey.test.ts` runs the engine over all 54 surveyed
+versions and pins what each one skips.
 
 Verse counts come from, in order: the YouVersion API's
 `/v1/bibles/{id}/index` (only for versions the app key may read), then
@@ -81,9 +102,8 @@ from English or where English and original differ; everywhere else the counts
 agree, so nothing more is needed.
 
 [docs/versification-survey.md](docs/versification-survey.md) records how 54
-widely used versions in 20 languages fare against this, and what's still
-missing (Synodal and Septuagint numbering in particular). The scanner and data
-behind it are in [tools/versification-survey](tools/versification-survey/README.md).
+widely used versions in 20 languages fared against the two-system engine,
+which is what led to the other four. The scanner and data behind it are in [tools/versification-survey](tools/versification-survey/README.md).
 
 **Adding a verified version.** Collect its verse count for every chapter
 (`tools/versification-survey/scan.py`), add the
@@ -119,6 +139,13 @@ Safety rules, all tested:
   mistaken for a removal next time; a retryable failure keeps the old snapshot
   so the next run tries again.
 - **Removals above a limit per run** (25 by default) need explicit consent.
+- **A version whose verse mapping changed is re-added, not diffed.** The
+  snapshot is keyed by canonical verse, so after a mapping change (new
+  numbering support, better counts) a version's old colours sit on the wrong
+  verses and would read as removals and recolours. `maps` fingerprints each
+  version's mapping per book; when it differs, that version is planned as a
+  newcomer in that book and its old snapshot there is dropped. A snapshot
+  saved before fingerprints existed counts as changed wherever it has data.
 
 ## The YouVersion API: things that will bite you
 
@@ -161,7 +188,9 @@ write fine. That's why verse counts are bundled rather than fetched.
 **The API doesn't say how a version numbers its verses.** YouVersion labels
 each version (`vrs`: `eng`, `org`, `rso`, `rsc`, `lxx`, `vul`), but only its
 unofficial bible.com API exposes the label; see
-[tools/versification-survey](tools/versification-survey/README.md).
+[tools/versification-survey](tools/versification-survey/README.md). The app
+uses a bundled copy for the 282 versions surveyed; any other version is
+treated as `eng`/`org`.
 
 **`/v1/bibles` lists only the platform's subset.** Spanish has 9 versions there
 (no Reina-Valera 1960) against 30 in the app, and `page_size` must be at most

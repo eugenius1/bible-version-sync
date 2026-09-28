@@ -61,12 +61,20 @@ export const fr: Dictionary = {
       },
       "api-index": {
         text: "Numérotation de YouVersion",
-        hint: "Le nombre de versets vient de l'API YouVersion. Les chapitres qui ne suivent aucun des deux systèmes standard sont ignorés.",
+        hint: "Le nombre de versets vient de l'API YouVersion. Les chapitres qui ne suivent aucun système standard sont ignorés.",
       },
       assumed: {
         text: "Numérotation supposée",
-        hint: "Impossible de lire le nombre de versets de cette version : la numérotation anglaise est supposée. Dans les Psaumes et certains chapitres de l'Ancien Testament, des surlignages pourraient tomber sur le mauvais verset.",
+        hint: "Impossible de lire le nombre de versets de cette version : la numérotation {system} est supposée. Dans les Psaumes et certains chapitres de l'Ancien Testament, des surlignages pourraient tomber sur le mauvais verset.",
       },
+    },
+    systems: {
+      eng: "anglaise",
+      org: "hébraïque",
+      rso: "synodale russe",
+      rsc: "synodale russe",
+      lxx: "de la Septante",
+      vul: "de la Vulgate",
     },
     checking: "Vérification de la numérotation…",
     unnamed: "Version n° {id}",

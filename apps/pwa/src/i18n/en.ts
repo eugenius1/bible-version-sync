@@ -60,12 +60,21 @@ export const en = {
       },
       "api-index": {
         text: "Numbering from YouVersion",
-        hint: "Verse counts come from the YouVersion API. Chapters that follow neither standard system are skipped.",
+        hint: "Verse counts come from the YouVersion API. Chapters that follow no standard system are skipped.",
       },
       assumed: {
         text: "Numbering assumed",
-        hint: "Couldn't read this version's verse counts, so English numbering is assumed. Highlights in Psalms and some Old Testament chapters may land on the wrong verse.",
+        hint: "Couldn't read this version's verse counts, so {system} numbering is assumed. Highlights in Psalms and some Old Testament chapters may land on the wrong verse.",
       },
+    },
+    /** Fills {system} in source.assumed.hint. */
+    systems: {
+      eng: "English",
+      org: "Hebrew",
+      rso: "Russian Synodal",
+      rsc: "Russian Synodal",
+      lxx: "Septuagint",
+      vul: "Vulgate",
     },
     checking: "Checking numbering…",
     unnamed: "Version {id}",

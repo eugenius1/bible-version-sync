@@ -1,3 +1,4 @@
+import { STD_SCHEMES } from "@bvs/core";
 import { describe, expect, it } from "vitest";
 import { createI18n, detectLanguage, DICTIONARIES, interpolate, LANGUAGES } from "..";
 import { copyrightYears } from "../../lib/copyright";
@@ -36,6 +37,19 @@ describe("dictionaries", () => {
     for (const [path, value] of strings(fr)) {
       expect(placeholders(value), `placeholders differ at ${path}`).toEqual(placeholders(reference.get(path) ?? ""));
     }
+  });
+
+  it("name every numbering system the assumed-numbering hint can mention", () => {
+    for (const lang of LANGUAGES) {
+      const { source, systems } = DICTIONARIES[lang].versions;
+      for (const system of STD_SCHEMES) {
+        expect(systems[system], `${lang} ${system}`).toBeTruthy();
+        expect(interpolate(source.assumed.hint, { system: systems[system] }), `${lang} ${system}`).not.toMatch(/[{}]/);
+      }
+    }
+    expect(interpolate(en.versions.source.assumed.hint, { system: en.versions.systems.rso })).toContain(
+      "so Russian Synodal numbering is assumed",
+    );
   });
 
   it("have no French strings left identical to English by accident", () => {

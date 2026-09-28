@@ -11,15 +11,18 @@ handles each.
 |---|---|
 | `scan.py` | Scans every chapter of the given versions. `python3 scan.py <bible ids…>` writes `out/<id>.json` (gitignored); resumable, ~50 s per version at 6 concurrent requests. |
 | `analyse.py` | Classifies every chapter against six numbering systems and simulates the engine. Reads `out/` if present, else `data/counts.json`; writes `data/analysis.json` and prints a summary. |
-| `vrs/` | SIL [libpalaso](https://github.com/sillsdev/libpalaso) versification files (MIT): `eng`, `org` (also bundled in `packages/core/data/`), `rso`, `rsc` (Russian Synodal), `lxx` (Septuagint), `vul` (Vulgate). |
+| `vrs/` | SIL [libpalaso](https://github.com/sillsdev/libpalaso) versification files (MIT): `eng`, `org` (copies bundled from `packages/core/data/`), `rso`, `rsc` (Russian Synodal), `lxx` (Septuagint), `vul` (Vulgate), the last four bundled into the app from here by `packages/core/scripts/gen-data.mjs`. |
 | `data/counts.json` | The scan of 54 versions (Sept 2026), compact. |
 | `data/analysis.json` | `analyse.py`'s output for that scan. |
 | `data/candidates.json` | Every text version for 20 language codes, with YouVersion's numbering label; a starting point for choosing more versions. |
 
-`analyse.py` uses the engine from the Python prototype (`tools/python-cli`),
-which maps verses identically to `packages/core` (checked verse for verse for
-AMP, NIV, LSG and S21). Anything the app ships still needs tests in
-`packages/core`.
+`analyse.py` simulates the engine as it was at the survey: the Python
+prototype (`tools/python-cli`), eng/org only, which maps those versions
+identically to `packages/core` (checked verse for verse for AMP, NIV, LSG and
+S21). It doesn't know the `rso`/`rsc`/`lxx`/`vul` support added since;
+`packages/core/test/survey.test.ts` runs the real engine over `counts.json`
+and is the measurement to trust. `gen-data.mjs` also bundles every version's
+`vrs` label from `counts.json` and `candidates.json`.
 
 ## `counts.json`
 

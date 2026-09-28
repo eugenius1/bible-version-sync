@@ -1,6 +1,9 @@
+import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   ApiError,
+  Standard,
+  VersionMap,
   applyPlan,
   buildVersionMap,
   chapterScope,
@@ -28,6 +31,8 @@ class FakeApi implements HighlightsApi {
   store: Record<number, Record<string, string>> = Object.fromEntries(Object.values(IDS).map((i) => [i, {}]));
   failReads = new Set<string>();
   rejectWrites = new Set<string>();
+  /** Writes that fail once with a retryable error. */
+  flakyWrites = new Set<string>();
   writes = 0;
 
   hl(abbr: string, ref: string, color: string) {
@@ -47,6 +52,7 @@ class FakeApi implements HighlightsApi {
 
   async setHighlight(bibleId: number, passageId: string, color: string) {
     if (this.rejectWrites.has(`${bibleId}:${passageId}`)) throw new ApiError(422, "verse not in this version", passageId);
+    if (this.flakyWrites.delete(`${bibleId}:${passageId}`)) throw new ApiError(503, "try again", passageId);
     this.writes++;
     this.store[bibleId][passageId] = color;
   }
@@ -187,6 +193,24 @@ describe("sync", () => {
     expect((await sync("JHN")).actions).toEqual([]);
   });
 
+  it("retries a newcomer's fill that failed retryably", async () => {
+    const three = VERSIONS.filter((v) => v.abbr !== "S21");
+    const syncWith = async (versions: SyncVersion[]) => {
+      const plan = planBook("JHN", versions, await readBook(api, versions, "JHN"), state);
+      await applyPlan(api, versions, plan, state);
+      return plan;
+    };
+    api.hl("AMP", "JHN.1.1", "ff9999");
+    await syncWith(three);
+    api.flakyWrites.add(`${IDS.S21}:JHN.1.1`);
+    await syncWith(VERSIONS); // S21 added; its fill fails once
+    expect(api.color("S21", "JHN.1.1")).toBeNull();
+    const retry = await syncWith(VERSIONS);
+    expect(retry.actions.map((a) => [a.version, a.op, a.local])).toEqual([["S21", "set", "JHN.1.1"]]);
+    expect(api.color("S21", "JHN.1.1")).toBe("ff9999");
+    expect((await syncWith(VERSIONS)).actions).toEqual([]);
+  });
+
   it("forgets a removed version so re-adding it fills it again", async () => {
     api.hl("AMP", "JHN.1.1", "ff9999");
     await sync("JHN");
@@ -254,3 +278,94 @@ describe("runSync", () => {
     expect(seen.at(-1)).toBe(1);
   });
 });
+
+describe("a version whose mapping changed", () => {
+  // Synodal Psalms as mapped before rso support (eng/org only: Psalm 91 taken
+  // as English 91) and after (Psalm 91 is Hebrew 92).
+  const scan = JSON.parse(
+    readFileSync(new URL("../../../tools/versification-survey/data/counts.json", import.meta.url), "utf8"),
+  );
+  const psa: Record<number, number> = Object.fromEntries(scan["400"].counts.PSA.map((n: number, i: number) => [i + 1, n]));
+  const std = Standard.load();
+  const NIV: SyncVersion = { abbr: "NIV", bibleId: 111, map: buildVersionMap("NIV", 111).map };
+  const synoOld: SyncVersion = { abbr: "SYNO", bibleId: 400, map: VersionMap.build("SYNO", std, { knownCounts: { PSA: psa } }) };
+  const synoNew: SyncVersion = { ...synoOld, map: VersionMap.build("SYNO", std, { knownCounts: { PSA: psa }, label: "rso" }) };
+
+  const run = async (versions: SyncVersion[]) => {
+    const plan = planBook("PSA", versions, await readBook(api, versions, "PSA"), state);
+    await applyPlan(api, versions, plan, state);
+    return plan;
+  };
+  const syno = (r: string) => api.store[400][r] ?? null;
+
+  beforeEach(() => {
+    api.store[400] = {};
+    api.hl("NIV", "PSA.91.1", "ffe066");
+    api.hl("NIV", "PSA.92.1", "a3d9ff");
+    api.hl("NIV", "PSA.99.1", "b2f2bb");
+    api.store[400]["PSA.98.1"] = "b2f2bb"; // Hebrew 99:1, as NIV
+  });
+
+  it("is re-added rather than read as removals and recolours", async () => {
+    expect(synoOld.map.toCanon.get("PSA.91.2")).not.toBe(synoNew.map.toCanon.get("PSA.91.2"));
+    await run([NIV, synoOld]);
+    expect(syno("PSA.91.1")).toBe("ffe066"); // the old mapping's fill, on the wrong psalm
+
+    const plan = await run([NIV, synoNew]);
+    expect(plan.remapped).toEqual(["SYNO"]);
+    expect(plan.actions.filter((a) => a.reason !== "fill")).toEqual([]);
+    expect(api.color("NIV", "PSA.91.1")).toBe("ffe066");
+    expect(api.color("NIV", "PSA.92.1")).toBe("a3d9ff");
+    expect(api.color("NIV", "PSA.99.1")).toBe("b2f2bb");
+    expect(syno("PSA.91.2")).toBe("a3d9ff"); // NIV 92:1 now lands on Synodal 91:2
+
+    const again = await run([NIV, synoNew]);
+    expect(again.remapped).toEqual([]);
+    expect(again.actions).toEqual([]);
+
+    // A real removal after the remap still propagates.
+    delete api.store[400]["PSA.91.2"];
+    const removal = await run([NIV, synoNew]);
+    expect(removal.actions.map((a) => [a.version, a.op, a.local])).toEqual([["NIV", "remove", "PSA.92.1"]]);
+  });
+
+  it("treats a snapshot without fingerprints as possibly remapped, once", async () => {
+    await run([NIV, synoNew]);
+    delete state.maps; // as saved before fingerprints existed
+    api.hl("NIV", "PSA.99.1", "ff0000"); // would otherwise recolour Synodal 98:1
+    const plan = await run([NIV, synoNew]);
+    expect(plan.remapped.sort()).toEqual(["NIV", "SYNO"]);
+    expect(plan.actions.filter((a) => a.reason !== "fill")).toEqual([]);
+
+    api.hl("NIV", "PSA.99.1", "00ff00");
+    const next = await run([NIV, synoNew]);
+    expect(next.remapped).toEqual([]);
+    delete api.store[111]["PSA.92.1"];
+    const removal = await run([NIV, synoNew]);
+    expect(removal.actions.map((a) => [a.version, a.op, a.local])).toEqual([["SYNO", "remove", "PSA.91.2"]]);
+  });
+
+  it("retries a remapped version's fill that failed retryably", async () => {
+    await run([NIV, synoOld]);
+    api.store[111]["PSA.92.1"] = "a3d9ff";
+    api.flakyWrites.add("400:PSA.91.2");
+    await run([NIV, synoNew]); // the fill of Synodal 91:2 fails once
+    expect(syno("PSA.91.2")).toBeNull();
+    const retry = await run([NIV, synoNew]);
+    expect(retry.actions.map((a) => [a.version, a.op, a.local])).toEqual([["SYNO", "set", "PSA.91.2"]]);
+    expect(syno("PSA.91.2")).toBe("a3d9ff");
+  });
+
+  it("drops the old snapshot for the whole book, and forgets fingerprints with the version", async () => {
+    await run([NIV, synoOld]);
+    await run([NIV, synoNew]);
+    expect(state.maps?.SYNO?.PSA).toBeTruthy();
+    const stale = Object.entries(state.verses).filter(
+      ([canon, colors]) => colors.SYNO && !synoNew.map.fromCanon.has(canon),
+    );
+    expect(stale).toEqual([]);
+    forgetVersion(state, "SYNO");
+    expect(state.maps?.SYNO).toBeUndefined();
+  });
+});
+
