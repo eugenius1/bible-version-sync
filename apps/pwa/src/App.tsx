@@ -158,6 +158,7 @@ function Main() {
         const state = await store.getState();
         const summary = await runSync({
           api: client,
+          // Unsupported ones too: the sync leaves them out but keeps their snapshot.
           versions,
           scope,
           state,
@@ -227,7 +228,12 @@ function Main() {
   return (
     <Shell account={account}>
       <VersionsCard settings={settings.versions} resolved={versions} disabled={running} onChange={saveVersions} />
-      <SyncCard versions={versions} run={run} onRun={startRun} onCancel={() => abort.current?.abort()} />
+      <SyncCard
+        versions={versions?.filter((v) => v.source !== "unsupported") ?? null}
+        run={run}
+        onRun={startRun}
+        onCancel={() => abort.current?.abort()}
+      />
       {run.status === "done" && (
         <Results
           run={run}

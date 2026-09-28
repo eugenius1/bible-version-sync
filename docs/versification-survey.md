@@ -10,8 +10,11 @@ one of these (`vrs`).
 **Since then** the engine also supports `rso`, `rsc`, `lxx` and `vul` for
 versions labelled with them ([below](#synodal-and-septuagint-support)), and
 shared correction tables map most chapters that fit no system
-([below](#shared-correction-tables)). The tables here are the survey as taken,
-against the two-system engine.
+([below](#shared-correction-tables)). The app now knows the label of every
+version YouVersion lists, and the numbering of the versions in 84% of its
+languages ([below](#label-coverage)); a version whose counts no available
+system explains is refused ([below](#refusing-what-cant-be-mapped)). The
+tables here are the survey as taken, against the two-system engine.
 
 **Columns.** *Label*: YouVersion's system for the version. *Fits*: of the ~348
 chapters where the systems disagree, how many match the label / another system
@@ -68,7 +71,8 @@ The scanner and data behind this survey are in
 
 1. **Guard now:** refuse or clearly block versions whose numbering is Synodal,
    Septuagint or Vulgate until they're supported. Superseded by 2 for the
-   282 labelled versions.
+   labelled versions; done for unlabelled ones with counts, see
+   [below](#refusing-what-cant-be-mapped).
 2. **Support `rso`, `rsc`, `lxx` and `vul`:** done; see
    [below](#synodal-and-septuagint-support).
 3. **Bundle the scanned counts** for all 54 versions so they get
@@ -228,3 +232,100 @@ Het Boek is a paraphrase whose verse numbers drift inside the chapters it
 renumbers (its Exodus 6:2 holds 6:2–3, its 6:3 is 6:4, and so on), so only
 the chapters whose boundaries match HSV's exactly were given tables; the rest
 waits for the merged-verse work (#3, task 5).
+
+## Label coverage
+
+The engine needs YouVersion's label to use `rso`, `rsc`, `lxx` or `vul`, and
+the label is only on the unofficial bible.com API, so the app bundles it.
+`configuration.json` there lists every language YouVersion has, with its
+version count, and `versions.json` gives each language's versions with their
+labels (one request per language, cached; `tools/versification-survey/languages.py`).
+In Sept 2026: **2,462 languages, 3,864 versions**.
+
+A language counts as covered when every one of its versions has a known
+numbering: YouVersion's label, or a scan of its verse counts (bundled, so the
+engine maps it, or refuses it, from its real counts).
+
+| | Versions known | Languages fully known |
+|---|---:|---:|
+| Before (the 20 surveyed languages' labels) | 282 (7.3%) | 12 (0.5%) |
+| Every label bundled | 3,082 (79.8%) | 1,862 (75.6%) |
+| And 220 unlabelled versions scanned | **3,302 (85.5%)** | **2,069 (84.0%)** |
+
+782 versions carry no label. Most are small: a single Gospel, Ruth and Jonah
+read aloud, a psalter. `unlabelled.py` orders the uncovered languages by how
+many chapters their unlabelled versions have; scanning the cheapest 200
+languages' took 4,173 chapter requests and covers all but one of them. They include the Russian oral
+versions CAROS (3830), DROT (3873) and ROT (3764), which are Ruth and Jonah
+only: there Hebrew and Synodal numbering agree, and Jonah 2:1 is the fish
+swallowing Jonah, as mapped. The 11 unlabelled versions in Orthodox and
+Eastern-rite languages (Adyghe, Altai, Bashkir, Buryat, Kabardian,
+Macedonian, Greek, two Arabic) were scanned as well, being the ones an
+English assumption is most likely to get wrong. One, TUKARA84 (3404, the
+Iranian Turkmen language's only version), numbers its chapters `1_1`,
+`2_1`…, which isn't USFM; it was left out.
+
+`survey.test.ts` checks each unlabelled scan against all six systems:
+wherever another system fits a chapter's count, would map it differently,
+and fits the version's chapters of that book as well as the engine's choice,
+the counts couldn't tell them apart and a verse could be misplaced. That
+happens only in Jonah 2 against `vul` (SIL's `vul.vrs` counts 11 verses there
+but maps 10) and in Kabardian Nehemiah 7:68, mapped as English on purpose as
+in SYNO. So every unlabelled scan either maps with no verse misplaced or is
+refused (next section).
+
+**Bundle size.** The 3,082 labels as `{"id": "eng"}` would add 8 KB to the
+gzipped app; packed per scheme as base-36 gaps between sorted ids, 1.6 KB.
+Names for every version are 100 KB gzipped (titles in their own scripts
+don't compress well), so they moved out of the main bundle into a chunk the
+app loads when the versions card mounts, and the main bundle names none. The
+220 scanned versions' counts add 6.4 KB (a book a version lacks is stored as
+one `"BOOK": 0`). Built with an app key (without one the UI is tree-shaken
+away and sizes mislead), the main bundle is 166.2 KB gzipped against 166.0 KB
+before, plus the 100.7 KB names chunk.
+
+**Still unknown:** 562 unlabelled, unscanned versions in 393 languages. When
+the app key can't read their verse counts they're assumed English, as before.
+48 of them are in languages where YouVersion labels some version `rso`, `rsc`,
+`lxx` or `vul`, mostly Welsh, Scottish Gaelic and English psalters and
+Albanian, Slovenian and Romani portions: Protestant traditions, so likely
+English or Hebrew numbered, but unchecked. A language hint wasn't added: the
+languages are in the names chunk, not the engine, and for the Orthodox-region
+languages a scan was cheaper and says more. Versions published after the scan
+have no label or name at all.
+
+## Refusing what can't be mapped
+
+Without a label only `eng` and `org` are candidates, and counts alone can't
+say which of the other four a version follows (UBIO fits `lxx` in 131
+chapters and `rsc` in 130). So `buildVersionMap` refuses a version, with the
+source `"unsupported"` and an empty map, when its known counts leave more than
+80 chapters fitting neither `eng` nor `org` (leaving out chapters it lacks and
+those a correction table describes) and it isn't labelled `rso`, `rsc`, `lxx`
+or `vul`. The sync leaves it out entirely, keeping its snapshot; the add form
+refuses it, and a saved one shows "Numbering not supported".
+
+| | Chapters fitting neither `eng` nor `org` |
+|---|---:|
+| English and Hebrew numbered versions, most | 35 (UKRK; 38 before its correction tables) |
+| The next | 11 (PBG, NBG) |
+| Unlabelled scans, not refused, most | 23 (TMA-C, Arabic selections) |
+| **Threshold** | **80** |
+| Synodal and Septuagint versions (labelled, so not refused) | 131 (UBIO), 143 (NRT), 153 (SYNO) |
+| Unlabelled scans refused | 132 (MAK2024PS), 133 (AdyBBL), 136 (BOTp), 187 (grcbrent) |
+| The label-only tables themselves | 145 (`rsc`), 153 (`rso`), 180 (`vul`), 187 (`lxx`) |
+
+80 is over twice the English/Hebrew maximum and 50 below the lowest Synodal
+or Septuagint version. The four refused versions are a Macedonian psalter,
+an Adyghe selection, a Bashkir Old Testament and Brenton's Greek Septuagint;
+in each, Psalm 22 is "The Lord is my shepherd" (bible.com, Sept 2026), Psalm
+23 in English, which the engine would otherwise have mapped as English Psalm
+22. No English or Hebrew numbered version, labelled or scanned, is refused.
+
+Two Synodal-numbered scans aren't refused, rightly: Kabardian and Altai have
+none of the books where Synodal renumbers verses that English or Hebrew also
+counts alike, so every chapter either maps as those would or is skipped.
+The threshold is absolute, so a small Synodal selection whose books do hold
+such chapters (a few psalms) could stay under it; the scans have none, and a
+version with no counts at all can't be checked.
+

@@ -46,13 +46,19 @@ const count = (s, book, ch) => std[s][book]?.[ch - 1] ?? 0;
  * version, Esther in NABRE, whose Esther is the Greek ESG) is stored as 0 so
  * it isn't read: a failed read would hold back the whole book. Chapters only
  * a label-only system has (Daniel 13) are left out, since a 0 there would
- * count as evidence against that system.
+ * count as evidence against that system. A book the version lacks entirely
+ * is stored as one "BOOK": 0: many versions are a New Testament, or a few
+ * books, and a 0 per chapter would cost about 15 KB per version.
  */
 function exceptions(version) {
   const candidates = ["eng", "org", ...(LABEL_ONLY.includes(version.vrs) ? [version.vrs] : [])];
   const out = {};
   for (const book of BOOKS) {
-    const actual = version.counts[book] ?? [];
+    if (!(version.counts[book] ?? []).some((n) => n > 0)) {
+      out[book] = 0;
+      continue;
+    }
+    const actual = version.counts[book];
     const nCh = Math.max(std.eng[book]?.length ?? 0, std.org[book]?.length ?? 0, actual.length);
     for (let c = 1; c <= nCh; c++) {
       const n = actual[c - 1] ?? 0;
@@ -114,6 +120,18 @@ for (const versions of Object.values(candidates)) {
 // the voice a screen reader uses.
 const names = {};
 const BIBLE_ID = /^[1-9]\d*$/;
+// YouVersion's language tags are ISO 639-3, some with a suffix of its own
+// for the script or the country (hin_ro is Hindi in Roman script, fuv_ar
+// Fulfulde in Arabic script, spa_es Spanish of Spain). The clear ones become
+// the BCP 47 script or region; any other suffix (gax_ars, Arsi Oromo) is a
+// variety BCP 47 has no subtag for, and the base language is enough.
+const TAG_SUFFIX = {
+  rom: "Latn", ro: "Latn", lat: "Latn", latn: "Latn", ltr: "Latn",
+  ar: "Arab", arb: "Arab", kur: "Arab",
+  cyr: "Cyrl",
+  dev: "Deva", dv: "Deva",
+  es: "ES", pt: "PT", tw: "TW", mz: "MZ",
+};
 // Control characters, and bidi overrides that would reorder the text around a title.
 const UNPRINTABLE = /[\p{Cc}\u202A-\u202E\u2066-\u2069]/u;
 const addName = (id, abbr, title, lang, from) => {
@@ -125,7 +143,9 @@ const addName = (id, abbr, title, lang, from) => {
   }
   let language;
   try {
-    [language] = Intl.getCanonicalLocales(String(lang).replace("_", "-"));
+    const [base, suffix] = String(lang).split("_");
+    const extra = suffix === undefined ? undefined : TAG_SUFFIX[suffix];
+    [language] = Intl.getCanonicalLocales(extra ? `${base}-${extra}` : base);
   } catch {
     throw new Error(`${from}: ${id}: bad language ${JSON.stringify(lang)}`);
   }

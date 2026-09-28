@@ -9,6 +9,7 @@ import { Select } from "./Select";
 type Kind = "bible" | "book" | "chapter";
 
 interface Props {
+  /** The versions that can be synced: those with unsupported numbering are left out. */
   versions: ResolvedVersion[] | null;
   run: RunState;
   onRun: (scope: Scope, apply: boolean) => void;
@@ -29,7 +30,8 @@ export function SyncCard({ versions, run, onRun, onCancel }: Props) {
     : kind === "book" ? { kind: "books", books: [book] }
     : { kind: "chapter", book, chapter };
   const running = run.status === "running";
-  const ready = !!versions && !running && (kind !== "chapter" || validChapter);
+  const tooFew = !!versions && versions.length < 2;
+  const ready = !!versions && !tooFew && !running && (kind !== "chapter" || validChapter);
 
   return (
     <section className="card space-y-4" aria-labelledby="sync-title">
@@ -72,7 +74,8 @@ export function SyncCard({ versions, run, onRun, onCancel }: Props) {
             )}
           </div>
         )}
-        {kind === "chapter" && !validChapter && versions && (
+        {tooFew && <p className="text-sm text-red-700 dark:text-red-300">{ts.tooFew}</p>}
+        {kind === "chapter" && !validChapter && versions && !tooFew && (
           <p className="text-sm text-red-700 dark:text-red-300">
             {plural(ts.chapterCount, chapters.length, { book: bookName(book), abbr: versions[0].abbr })}
           </p>

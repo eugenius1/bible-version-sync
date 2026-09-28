@@ -95,6 +95,10 @@ const PAIRS: Array<[Pair, Pair]> = [
     { label: "assumed-numbering badge", fg: "amber-200", bg: "amber-950", need: 4.5 },
   ],
   [
+    { label: "unsupported-numbering badge", fg: "red-900", bg: "red-100", need: 4.5 },
+    { label: "unsupported-numbering badge", fg: "red-200", bg: "red-950", need: 4.5 },
+  ],
+  [
     { label: "assumed-numbering warning on a card", fg: "amber-900", bg: "white", need: 4.5 },
     { label: "assumed-numbering warning on a card", fg: "amber-200", bg: "stone-900", need: 4.5 },
   ],

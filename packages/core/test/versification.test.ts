@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import {
   BOOKS,
   Standard,
@@ -10,7 +10,9 @@ import {
   isVerifiedVersion,
   parseRef,
   versificationLabel,
+  loadVersionNames,
   versionName,
+  versionNamesLoaded,
 } from "../src";
 import { KNOWN_COUNTS, OVERRIDES, VERIFIED_VERSIONS } from "../src/data.generated";
 
@@ -279,39 +281,73 @@ describe("six numbering systems", () => {
   });
 });
 
+describe("versificationLabel", () => {
+  it("knows YouVersion's label beyond the surveyed languages", () => {
+    expect(versificationLabel(111)).toBe("eng");
+    expect(versificationLabel(93)).toBe("org");
+    expect(versificationLabel(400)).toBe("rso");
+    expect(versificationLabel(2202)).toBe("rsc"); // Georgian GEO02
+    expect(versificationLabel(1558)).toBe("rso"); // Bulgarian СИ
+    expect(versificationLabel(1723)).toBe("rsc"); // Belarusian ББЛ
+    expect(versificationLabel(2860)).toBe("lxx"); // Armenian ՆԷԱ
+    expect(versificationLabel(3830)).toBeUndefined(); // CAROS: YouVersion gives none
+    expect(versificationLabel(999999)).toBeUndefined();
+  });
+});
+
 describe("versionName", () => {
-  it("uses the abbreviation bible.com shows, not YouVersion's internal one", () => {
-    // Internally NIV11, NRT, NAV, CUNP-Shen.
-    expect(versionName(111)).toEqual({ abbr: "NIV", language: "en", title: "New International Version" });
-    expect(versionName(143)?.abbr).toBe("НРП");
-    expect(versionName(101)?.abbr).toBe("KEH");
-    expect(versionName(46)?.abbr).toBe("CUNP-神");
-    expect(versionName(93)?.title).toBe("La Sainte Bible par Louis Segond 1910");
+  it("knows no name until every name is loaded", async () => {
+    expect(versionNamesLoaded()).toBe(false);
+    expect(versionName(111)).toBeUndefined(); // in the names chunk
+    await Promise.all([loadVersionNames(), loadVersionNames()]);
+    expect(versionNamesLoaded()).toBe(true);
+    expect(versionName(111)?.abbr).toBe("NIV");
   });
 
-  it("names each verified version as the verified list does", () => {
-    for (const v of VERIFIED_VERSIONS) expect(versionName(v.bibleId)?.abbr).toBe(v.abbr);
-  });
+  describe("once loaded", () => {
+    beforeAll(() => loadVersionNames());
 
-  it("names scanned versions in their own script, with a BCP 47 language", () => {
-    expect(versionName(400)).toEqual({ abbr: "SYNO", language: "ru", title: "Синодальный перевод" });
-    expect(versionName(13)?.language).toBe("ar");
-    expect(versionName(46)?.language).toBe("zh-TW"); // zho_tw in the survey
-    expect(versionName(83)).toEqual({ abbr: "JCB", language: "ja", title: "リビングバイブル" });
-  });
+    it("uses the abbreviation bible.com shows, not YouVersion's internal one", () => {
+      // Internally NIV11, NRT, NAV, CUNP-Shen.
+      expect(versionName(111)).toEqual({ abbr: "NIV", language: "en", title: "New International Version" });
+      expect(versionName(143)?.abbr).toBe("НРП");
+      expect(versionName(101)?.abbr).toBe("KEH");
+      expect(versionName(46)?.abbr).toBe("CUNP-神");
+      expect(versionName(93)?.title).toBe("La Sainte Bible par Louis Segond 1910");
+    });
 
-  it("names versions surveyed but not scanned", () => {
-    expect(hasKnownCounts(12)).toBe(false);
-    expect(versionName(12)).toEqual({ abbr: "ASV", language: "en", title: "American Standard Version" });
-  });
+    it("names each verified version as the verified list does", () => {
+      for (const v of VERIFIED_VERSIONS) expect(versionName(v.bibleId)?.abbr).toBe(v.abbr);
+    });
 
-  it("has no name for a version nobody surveyed", () => {
-    expect(versionName(999999)).toBeUndefined();
-    expect(versionName(0)).toBeUndefined();
-  });
+    it("names versions in their own script, with a BCP 47 language", () => {
+      expect(versionName(400)).toEqual({ abbr: "SYNO", language: "ru", title: "Синодальный перевод" });
+      expect(versionName(13)?.language).toBe("ar");
+      expect(versionName(46)?.language).toBe("zh-TW"); // zho_tw in the survey
+      expect(versionName(83)).toEqual({ abbr: "JCB", language: "ja", title: "リビングバイブル" });
+      expect(versionName(2202)?.language).toBe("ka");
+    });
 
-  it("names every version with bundled counts", () => {
-    for (const id of Object.keys(KNOWN_COUNTS)) expect(versionName(Number(id)), id).toBeDefined();
+    it("names every version YouVersion lists, scanned or not", () => {
+      expect(hasKnownCounts(12)).toBe(false);
+      expect(versionName(12)).toEqual({ abbr: "ASV", language: "en", title: "American Standard Version" });
+    });
+
+    it("turns YouVersion's own tag suffixes into BCP 47 scripts and regions, or drops them", () => {
+      expect(versionName(820)?.language).toBe("hi-Latn"); // hin_ro
+      expect(versionName(2377)?.language).toBe("fuv-Arab"); // fuv_ar
+      expect(versionName(1637)?.language).toBe("es-ES"); // spa_es
+      expect(versionName(3173)?.language).toBe("gax"); // gax_ars, Arsi Oromo
+    });
+
+    it("has no name for a version YouVersion doesn't list", () => {
+      expect(versionName(999999)).toBeUndefined();
+      expect(versionName(0)).toBeUndefined();
+    });
+
+    it("names every version with bundled counts", () => {
+      for (const id of Object.keys(KNOWN_COUNTS)) expect(versionName(Number(id)), id).toBeDefined();
+    });
   });
 });
 

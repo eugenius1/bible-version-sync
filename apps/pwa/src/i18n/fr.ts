@@ -71,6 +71,10 @@ export const fr: Dictionary = {
         text: "Numérotation supposée",
         hint: "Impossible de lire le nombre de versets de cette version : la numérotation {system} est supposée. Dans les Psaumes et certains chapitres de l'Ancien Testament, des surlignages pourraient tomber sur le mauvais verset.",
       },
+      unsupported: {
+        text: "Numérotation non prise en charge",
+        hint: "{n} chapitres de cette version ne suivent ni la numérotation anglaise ni l'hébraïque, et YouVersion n'indique pas le système qu'elle suit (synodale russe, Septante…) : les surlignages tomberaient sur les mauvais versets. Elle est exclue de toute synchronisation et ses surlignages ne sont pas modifiés.",
+      },
     },
     systems: {
       eng: "anglaise",
@@ -99,6 +103,8 @@ export const fr: Dictionary = {
       duplicateVersion: "Cette version est déjà dans la liste.",
       duplicateName: "Le nom {name} est déjà utilisé.",
       cantRead: "Impossible de lire les surlignages de la version {id} : {problem}",
+      unsupported:
+        "La version {id} ne peut pas être synchronisée : {n} de ses chapitres ne suivent ni la numérotation anglaise ni l'hébraïque, et YouVersion n'indique pas le système qu'elle suit, donc les surlignages tomberaient sur les mauvais versets.",
     },
   },
 
@@ -120,6 +126,7 @@ export const fr: Dictionary = {
     writing: "Écriture de {book} · {done} sur {total} modifications",
     stop: "Arrêter",
     stopNote: "L'arrêt termine d'abord le livre en cours, pour que rien ne reste à moitié fait.",
+    tooFew: "Il faut au moins deux versions dont la numérotation est prise en charge pour synchroniser.",
   },
 
   results: {
@@ -161,6 +168,7 @@ export const fr: Dictionary = {
     removed: "supprimé",
     action: { fill: "ajouter", recolor: "changer la couleur", remove: "supprimer" },
     more: "…et {n} de plus",
+    refused: "Exclues car leur numérotation n'est pas prise en charge : {names}. Rien n'y a été lu ni modifié.",
   },
 
   footer: {

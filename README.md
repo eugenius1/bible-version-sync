@@ -61,15 +61,21 @@ tells you how sure it is of that version's numbering:
 - **Verified numbering**: checked chapter by chapter.
 - **Verse counts known**: the app comes with the verse count of every chapter
   for 50 more widely used versions (KJV, ESV, NLT, Reina-Valera 1960, Synodal
-  and others), scanned in Sept 2026 but not checked by hand. Chapters that
+  and others) and about 200 smaller ones, scanned in Sept 2026 but not checked
+  by hand. Chapters that
   follow no standard pattern are skipped rather than guessed.
 - **Numbering from YouVersion**: worked out from YouVersion's own verse counts.
   Chapters that follow no standard pattern are skipped rather than guessed.
 - **Numbering assumed**: YouVersion wouldn't share the verse counts, so English
   numbering is assumed (or Russian Synodal, Septuagint or Vulgate numbering,
-  for versions YouVersion marks as using it). Fine for most of the Bible; in
-  the Psalms and a few Old Testament chapters a highlight could land a verse
-  or two off.
+  for versions YouVersion marks as using it; the app knows which system
+  YouVersion gives for every version it listed in Sept 2026). Fine for most
+  of the Bible; in the Psalms and a few Old Testament chapters a highlight
+  could land a verse or two off.
+- **Numbering not supported**: the version's verse counts follow Synodal or
+  Septuagint numbering, but YouVersion doesn't say which, so the app can't
+  place its verses. It won't add such a version, and one already in your list
+  is left out of every sync: nothing is read from it or written to it.
 
 ## Languages and appearance
 

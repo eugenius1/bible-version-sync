@@ -34,6 +34,8 @@ class FakeApi implements HighlightsApi {
   /** Writes that fail once with a retryable error. */
   flakyWrites = new Set<string>();
   writes = 0;
+  /** The bible id of every chapter read. */
+  reads: number[] = [];
 
   hl(abbr: string, ref: string, color: string) {
     this.store[IDS[abbr]][ref] = color;
@@ -44,6 +46,7 @@ class FakeApi implements HighlightsApi {
   }
 
   async getHighlights(bibleId: number, passageId: string): Promise<Highlight[]> {
+    this.reads.push(bibleId);
     if (this.failReads.has(`${bibleId}:${passageId}`)) throw new ApiError(503, "boom", passageId);
     return Object.entries(this.store[bibleId])
       .filter(([p]) => p.startsWith(`${passageId}.`))
@@ -401,5 +404,83 @@ describe("a version moving from assumed numbering to bundled counts", () => {
     expect(api.color("NIV", "PSA.51.2")).toBe("ffe066");
     expect(api.color("NIV", "PSA.23.1")).toBe("a3d9ff");
     expect(api.store[73]["PSA.51.3"]).toBe("ffe066"); // NIV 51:1, now in its place
+  });
+});
+
+describe("a version whose numbering is unsupported", () => {
+  const refused = (v: SyncVersion): SyncVersion => ({ ...v, map: VersionMap.unsupported(v.abbr) });
+  const withNivRefused = VERSIONS.map((v) => (v.abbr === "NIV" ? refused(v) : v));
+  const run = (versions: SyncVersion[], apply = true) =>
+    runSync({ api, versions, scope: { kind: "books", books: ["JHN"] }, state, apply });
+
+  beforeEach(async () => {
+    api.hl("NIV", "JHN.3.16", "ffe066");
+    api.hl("AMP", "JHN.1.1", "a3d9ff");
+    await run(VERSIONS);
+  });
+
+  it("is neither read nor written, and none of its highlights read as removed", async () => {
+    const niv = { ...api.store[IDS.NIV] };
+    const snapshot = structuredClone(state);
+    api.reads = [];
+    api.writes = 0;
+    // As if its highlights were gone: were it read, both would be removals.
+    delete api.store[IDS.NIV]["JHN.3.16"];
+    delete api.store[IDS.NIV]["JHN.1.1"];
+    const summary = await run(withNivRefused);
+    expect(summary.refused).toEqual(["NIV"]);
+    expect(summary.removals).toBe(0);
+    expect(summary.sets).toBe(0);
+    expect(api.writes).toBe(0);
+    expect(api.reads).not.toContain(IDS.NIV);
+    expect(api.reads.length).toBeGreaterThan(0);
+    expect(every("JHN.3.16")).toEqual({ AMP: "ffe066", NIV: null, LSG: "ffe066", S21: "ffe066" });
+    expect(state).toEqual(snapshot);
+    api.store[IDS.NIV] = niv;
+  });
+
+  it("isn't written when the others change, and keeps its snapshot", async () => {
+    delete api.store[IDS.AMP]["JHN.3.16"];
+    api.hl("LSG", "JHN.5.1", "b2f2bb");
+    const niv = { ...api.store[IDS.NIV] };
+    const summary = await run(withNivRefused);
+    expect(summary.removals).toBe(2); // LSG's and S21's copies
+    expect(api.store[IDS.NIV]).toEqual(niv);
+    expect(state.verses["JHN.3.16"]).toEqual({ NIV: "ffe066" });
+    expect(state.verses["JHN.5.1"]).toEqual({ AMP: "b2f2bb", LSG: "b2f2bb", S21: "b2f2bb" });
+    expect(state.maps?.NIV?.JHN).toBeTruthy();
+  });
+
+  it("takes part again, from its snapshot, once it can be mapped", async () => {
+    await run(withNivRefused);
+    delete api.store[IDS.NIV]["JHN.3.16"]; // its own removal while it sat out
+    const summary = await run(VERSIONS);
+    expect(summary.refused).toEqual([]);
+    expect(every("JHN.3.16")).toEqual({ AMP: null, NIV: null, LSG: null, S21: null });
+  });
+
+  it("is left out of planning even when passed to planBook directly", async () => {
+    delete api.store[IDS.NIV]["JHN.3.16"];
+    const current = await readBook(api, withNivRefused, "JHN");
+    const plan = planBook("JHN", withNivRefused, current, state);
+    expect(plan.actions).toEqual([]);
+    expect(Object.keys(plan.maps)).not.toContain("NIV");
+    expect(plan.remapped).toEqual([]);
+  });
+
+  it("does nothing when every version is refused", async () => {
+    api.reads = [];
+    const summary = await run(VERSIONS.map(refused));
+    expect(summary.refused).toEqual(Object.keys(IDS));
+    expect(summary.books).toEqual([]);
+    expect(api.reads).toEqual([]);
+  });
+
+  it("can be first in the list of a chapter sync", async () => {
+    api.hl("AMP", "JHN.3.17", "ff9999");
+    const versions = [refused(VERSIONS[1]), VERSIONS[0], VERSIONS[2], VERSIONS[3]];
+    const summary = await runSync({ api, versions, scope: { kind: "chapter", book: "JHN", chapter: 3 }, state, apply: true });
+    expect(summary.refused).toEqual(["NIV"]);
+    expect(every("JHN.3.17")).toEqual({ AMP: "ff9999", NIV: null, LSG: "ff9999", S21: "ff9999" });
   });
 });

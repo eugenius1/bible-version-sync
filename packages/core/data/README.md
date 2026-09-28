@@ -11,15 +11,17 @@ are keyed by bible id throughout; abbreviations aren't unique.
   `analyse.py` reads them from here too.
 - `known_counts.json`: real verse counts by bible id, for every chapter where a
   version differs from English numbering or where its candidate systems
-  disagree (0 for a chapter it lacks). Collected from bible.com in Sept 2026;
-  LSG matches the YouVersion API index exactly. The four verified versions
+  disagree (0 for a chapter it lacks, `"BOOK": 0` for a whole book).
+  Collected from bible.com in Sept 2026; LSG matches the YouVersion API index
+  exactly. The four verified versions
   are listed in `scripts/verified.mjs`; the rest are scanned only.
 - `labels.json`: YouVersion's numbering label (`vrs`) by bible id, which the
-  official API doesn't expose.
-- `names.json`: every surveyed version's abbreviation, title (in its own
-  script) and BCP 47 language by bible id, as bible.com shows them (NIV, not
-  YouVersion's internal NIV11), so the app can name a version added by
-  number.
+  official API doesn't expose, for every version YouVersion lists (3,082 of
+  3,864 have one). Bundled packed, as gaps between ids.
+- `names.json`: every version's abbreviation, title (in its own script) and
+  BCP 47 language by bible id, as bible.com shows them (NIV, not YouVersion's
+  internal NIV11), so the app can name a version added by number. Bundled
+  into `src/names.generated.ts`, which the app loads as a chunk of its own.
 - `overrides/<bible id>.map`: hand-checked corrections for chapters that follow
   no system. Format: `LOCAL = CANONICAL` (canonical = org numbering), plus
   `use <name>` lines naming shared tables.
@@ -31,4 +33,4 @@ are keyed by bible id throughout; abbreviations aren't unique.
 `known_counts.json` (for scanned versions), `labels.json` and `names.json`
 are written by `npm run import-survey -w @bvs/core` from the survey's
 `counts.json` and `candidates.json`. After editing anything here, run `npm run gen -w @bvs/core`
-to regenerate `src/data.generated.ts`.
+to regenerate `src/data.generated.ts` and `src/names.generated.ts`.

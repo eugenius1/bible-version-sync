@@ -29,8 +29,7 @@ import {
   RSO_VRS,
   SHARED_OVERRIDES,
   VERIFIED_VERSIONS,
-  VERSION_NAMES,
-  VRS_LABELS,
+  VRS_LABEL_IDS,
   VUL_VRS,
   type VersionName,
 } from "./data.generated";
@@ -217,8 +216,22 @@ export class VersionMap {
   toCanon = new Map<Ref, Ref>();
   fromCanon = new Map<Ref, Ref[]>();
   private overrides = new Map<Ref, Ref>();
+  /**
+   * Set on the empty map of a version whose numbering can't be mapped (see
+   * buildVersionMap). The sync leaves such a version out entirely; the map
+   * is empty so that code which forgets to check still reads and writes
+   * nothing for it.
+   */
+  unsupported = false;
 
   private constructor(readonly abbr: string) {}
+
+  /** A map with no chapters, for a version the sync must refuse. */
+  static unsupported(abbr: string): VersionMap {
+    const vm = new VersionMap(abbr);
+    vm.unsupported = true;
+    return vm;
+  }
 
   /** Chapters of `book` that exist in this version and can be mapped. */
   chapters(book: string): number[] {
@@ -391,9 +404,16 @@ export function builtinCounts(bibleId: number): ChapterCounts | undefined {
   const flat = KNOWN_COUNTS[bibleId];
   if (!flat) return undefined;
   const out: ChapterCounts = {};
+  const std = Standard.load();
   for (const [key, n] of Object.entries(flat)) {
     const [book, ch] = key.split(".");
-    (out[book] ??= {})[Number(ch)] = n;
+    if (ch === undefined) {
+      // A book the version lacks: every chapter English or Hebrew has is 0.
+      const chapters = Math.max(std.counts.eng[book]?.length ?? 0, std.counts.org[book]?.length ?? 0);
+      out[book] = Object.fromEntries(Array.from({ length: chapters }, (_, i) => [i + 1, 0]));
+    } else {
+      (out[book] ??= {})[Number(ch)] = n;
+    }
   }
   return out;
 }
@@ -415,12 +435,43 @@ export function isVerifiedVersion(bibleId: number): boolean {
   return VERIFIED_VERSIONS.some((v) => v.bibleId === bibleId);
 }
 
+let allNames: Map<number, VersionName> | undefined;
+let loadingNames: Promise<void> | undefined;
+
 /**
- * A surveyed version's name as bible.com shows it. The official API doesn't
- * give names for most versions (their text isn't licensed to the app key).
+ * Load every version's name (about 100 KB gzipped, in a chunk of its own),
+ * after which versionName knows them all. Safe to call repeatedly; a failed
+ * load (offline, before the app is cached) can be retried.
+ */
+export function loadVersionNames(): Promise<void> {
+  loadingNames ??= import("./names.generated").then(
+    ({ NAMES_BY_LANGUAGE }) => {
+      const map = new Map<number, VersionName>();
+      for (const [language, list] of Object.entries(NAMES_BY_LANGUAGE)) {
+        for (const [id, abbr, title] of list) map.set(id, { abbr, language, title });
+      }
+      allNames = map;
+    },
+    (e: unknown) => {
+      loadingNames = undefined;
+      throw e;
+    },
+  );
+  return loadingNames;
+}
+
+/**
+ * A version's name as bible.com shows it, once loadVersionNames is done. The
+ * official API doesn't give names for most versions (their text isn't
+ * licensed to the app key).
  */
 export function versionName(bibleId: number): VersionName | undefined {
-  return Object.hasOwn(VERSION_NAMES, bibleId) ? VERSION_NAMES[bibleId] : undefined;
+  return allNames?.get(bibleId);
+}
+
+/** Whether loadVersionNames has finished, so a missing name means an unknown version. */
+export function versionNamesLoaded(): boolean {
+  return allNames !== undefined;
 }
 
 /** Whether a version's verse counts are bundled, so the API index isn't needed. */
@@ -434,8 +485,10 @@ export function hasKnownCounts(bibleId: number): boolean {
  * - scanned: bundled counts from the versification survey, not checked by hand
  * - api-index: counts from the YouVersion API index
  * - assumed: no counts; the version's label, else English numbering
+ * - unsupported: counts that neither English nor Hebrew numbering explains,
+ *   and no label saying which other system does; the sync refuses it
  */
-export type NumberingSource = "verified" | "scanned" | "api-index" | "assumed";
+export type NumberingSource = "verified" | "scanned" | "api-index" | "assumed" | "unsupported";
 
 /** Convert a /v1/bibles/{id}/index response into {book: {chapter: count}}. */
 export function countsFromIndex(index: unknown): ChapterCounts {
@@ -463,9 +516,18 @@ export function countsFromIndex(index: unknown): ChapterCounts {
   return out;
 }
 
+let labels: Map<number, StdScheme> | undefined;
+
 /** YouVersion's numbering label for a bible id, when known (bundled; the API doesn't expose it). */
 export function versificationLabel(bibleId: number): StdScheme | undefined {
-  return VRS_LABELS[bibleId];
+  if (!labels) {
+    labels = new Map();
+    for (const s of STD_SCHEMES) {
+      let id = 0;
+      for (const gap of VRS_LABEL_IDS[s] ? VRS_LABEL_IDS[s].split(",") : []) labels.set((id += parseInt(gap, 36)), s);
+    }
+  }
+  return labels.get(bibleId);
 }
 
 /** The system a version is taken to follow when none of its verse counts are known. */
@@ -475,26 +537,71 @@ export function assumedScheme(bibleId: number, defaultScheme: "eng" | "org" = "e
 }
 
 /**
+ * A version with more chapters than this fitting neither English nor Hebrew
+ * numbering, and no Synodal, Septuagint or Vulgate label, is refused.
+ *
+ * Measured over the survey's 54 scanned versions: English and Hebrew
+ * numbered versions have at most 38 such chapters (UKRK, 35 once its
+ * correction tables are counted; the next is 11), the Synodal and Septuagint
+ * ones 131 (UBIO), 143 (NRT) and 153 (SYNO), and the four label-only tables
+ * themselves 145 (rsc) to 187 (lxx). 80 is over twice the English/Hebrew
+ * maximum and 50 chapters below the lowest Synodal or Septuagint version.
+ * Of the 220 unlabelled versions scanned since, the four refused reach 132
+ * to 187 and the rest at most 23 (see docs/versification-survey.md).
+ *
+ * Without a label the engine can only use eng and org, and counts alone
+ * can't say which other system applies (UBIO fits lxx in 131 of its chapters
+ * and rsc in 130), so such a version would have its Psalms land one psalm
+ * off: refusing it is the only safe answer.
+ */
+export const MAX_UNFIT_CHAPTERS = 80;
+
+/**
+ * Chapters whose known count fits neither English nor Hebrew numbering,
+ * leaving out chapters the version lacks (a count of 0) and chapters a
+ * correction table describes.
+ */
+export function unfitChapters(known: ChapterCounts, overrides: Map<Ref, Ref> = new Map()): number {
+  const std = Standard.load();
+  const described = new Set([...overrides.keys()].map((r) => r.slice(0, r.lastIndexOf("."))));
+  let n = 0;
+  for (const book of BOOKS) {
+    for (const [cs, count] of Object.entries(known[book] ?? {})) {
+      const c = Number(cs);
+      if (count === 0 || described.has(`${book}.${c}`)) continue;
+      if (count !== std.count("eng", book, c) && count !== std.count("org", book, c)) n++;
+    }
+  }
+  return n;
+}
+
+/**
  * Build the map for a version from the data given or bundled: the API index
  * when passed, else the bundled counts, else an assumption. Every lookup is by
  * bible id; `abbr` only names the map.
  * The version's bundled numbering label, if any, is used throughout.
+ *
+ * A version whose known counts leave more than MAX_UNFIT_CHAPTERS chapters
+ * unexplained, without a Synodal, Septuagint or Vulgate label, gets an empty
+ * map and the source "unsupported", which the sync refuses. `unfit` is that
+ * number of chapters, whenever counts are known.
  */
 export function buildVersionMap(
   abbr: string,
   bibleId: number,
   apiIndex?: unknown,
   defaultScheme: "eng" | "org" = "eng",
-): { map: VersionMap; source: NumberingSource } {
+): { map: VersionMap; source: NumberingSource; unfit?: number } {
   const std = Standard.load();
-  const base = { overrides: builtinOverrides(bibleId), defaultScheme, label: versificationLabel(bibleId) };
-  if (apiIndex) {
-    return { map: VersionMap.build(abbr, std, { ...base, knownCounts: countsFromIndex(apiIndex) }), source: "api-index" };
+  const label = versificationLabel(bibleId);
+  const base = { overrides: builtinOverrides(bibleId), defaultScheme, label };
+  const known = apiIndex ? countsFromIndex(apiIndex) : builtinCounts(bibleId);
+  if (!known) return { map: VersionMap.build(abbr, std, base), source: "assumed" };
+  const unfit = unfitChapters(known, base.overrides);
+  if (unfit > MAX_UNFIT_CHAPTERS && !(label && LABEL_ONLY_SCHEMES.includes(label))) {
+    return { map: VersionMap.unsupported(abbr), source: "unsupported", unfit };
   }
-  const known = builtinCounts(bibleId);
-  if (known) {
-    const map = VersionMap.build(abbr, std, { ...base, knownCounts: known });
-    return { map, source: isVerifiedVersion(bibleId) ? "verified" : "scanned" };
-  }
-  return { map: VersionMap.build(abbr, std, base), source: "assumed" };
+  const map = VersionMap.build(abbr, std, { ...base, knownCounts: known });
+  const source = apiIndex ? "api-index" : isVerifiedVersion(bibleId) ? "verified" : "scanned";
+  return { map, source, unfit };
 }
