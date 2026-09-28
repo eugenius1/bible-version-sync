@@ -60,16 +60,35 @@ def scan(vid):
 
 COUNTS = os.path.join(os.path.dirname(__file__), "data", "counts.json")
 
+def chapters_per_book():
+    """Chapters per book in English or Hebrew numbering, whichever has more."""
+    out = {}
+    for name in ("eng", "org"):
+        path = os.path.join(os.path.dirname(__file__), "..", "..", "packages", "core", "data", f"{name}.vrs")
+        for raw in open(path, encoding="utf-8"):
+            parts = raw.split("#", 1)[0].split()
+            if len(parts) > 1 and "=" not in parts and parts[0] in PROT:
+                out[parts[0]] = max(out.get(parts[0], 0), len(parts) - 1)
+    return out
+
 def add(vids):
     """Copy scans from out/ into data/counts.json, in its compact form."""
     counts = json.load(open(COUNTS))
+    full = chapters_per_book()
     for vid in vids:
         d = json.load(open(os.path.join(OUT, f"{vid}.json")))
         entry = {"abbr": d["abbr"], "local_abbr": d["local_abbr"], "title": d["title"], "lang": d["lang"], "vrs": d["vrs"],
                  "counts": {}, "gaps": {}, "merged": []}
+        odd = [u for u in d["chapters"] if not u.split(".")[1].isdigit()]
+        # TUKARA84 (3404) numbers Matthew's chapters 1_1, 2_1...: not USFM, so
+        # nothing the engine could map or the highlights API would take.
+        if odd: raise ValueError(f"{vid}: chapters that aren't numbers, e.g. {odd[0]}")
         for b in d["books"]:
             chs = sorted((int(u.split(".")[1]), r) for u, r in d["chapters"].items() if u.split(".")[0] == b)
-            entry["counts"][b] = [max(r["verses"], default=0) if r else 0 for _, r in chs]
+            # By position, to the book's full length: a version may have only
+            # some chapters (Luke 15), and a chapter it lacks is 0, as a 404 is.
+            by_ch = {c: max(r["verses"], default=0) if r else 0 for c, r in chs}
+            entry["counts"][b] = [by_ch.get(c, 0) for c in range(1, max(max(by_ch, default=0), full[b]) + 1)]
             for c, r in chs:
                 if not r: continue
                 missing = sorted(set(range(1, max(r["verses"], default=0) + 1)) - set(r["verses"]))

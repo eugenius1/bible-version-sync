@@ -26,7 +26,6 @@ describe("resolveVersions", () => {
       { abbr: "SYNO", bibleId: 400 },
     ]);
     expect(out.map((v) => v.source)).toEqual(["verified", "scanned", "scanned"]);
-    expect(out.map((v) => v.title)).toEqual(["New International Version", "King James Version", "Синодальный перевод"]);
     expect(getIndex).not.toHaveBeenCalled();
   });
 

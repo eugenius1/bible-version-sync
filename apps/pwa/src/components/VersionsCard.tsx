@@ -1,4 +1,4 @@
-import { assumedScheme, loadVersionNames } from "@bvs/core";
+import { assumedScheme, loadVersionNames, versionNamesLoaded } from "@bvs/core";
 import { ArrowDown, ArrowUp, BadgeCheck, Ban, CircleAlert, Hash, Info, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useI18n } from "../i18n";
@@ -34,8 +34,7 @@ export function VersionsCard({ settings, resolved, disabled, onChange }: Props) 
   const [abbr, setAbbr] = useState("");
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Only versions with bundled counts are named up front; the other ~3,800
-  // names are a chunk of their own. Re-render once they're in.
+  // Names are a chunk of their own (100 KB gzipped); re-render once they're in.
   const [, setNamesLoaded] = useState(false);
   useEffect(() => {
     loadVersionNames().then(
@@ -107,7 +106,7 @@ export function VersionsCard({ settings, resolved, disabled, onChange }: Props) 
                     lang={name?.language}
                     dir={name ? "auto" : undefined}
                   >
-                    {name?.title ?? f(tv.unnamed, { id: v.bibleId })}
+                    {name?.title ?? (versionNamesLoaded() ? f(tv.unnamed, { id: v.bibleId }) : null)}
                   </span>
                 </div>
                 {src && style ? (

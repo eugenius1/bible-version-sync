@@ -2,7 +2,6 @@ import {
   ApiError,
   buildVersionMap,
   hasKnownCounts,
-  versionName,
   type NumberingSource,
   type SyncVersion,
 } from "@bvs/core";
@@ -14,7 +13,6 @@ export { parseVersionInput, versionName } from "@bvs/core";
 export type { NumberingSource };
 
 export interface ResolvedVersion extends SyncVersion {
-  title?: string;
   source: NumberingSource;
   /** Chapters fitting neither English nor Hebrew numbering, when counts are known. */
   unfit?: number;
@@ -58,7 +56,7 @@ export async function resolveVersion(v: VersionSetting): Promise<ResolvedVersion
     }
   }
   const { map, source, unfit } = buildVersionMap(v.abbr, v.bibleId, index ?? undefined);
-  return { abbr: v.abbr, bibleId: v.bibleId, map, source, unfit, title: versionName(v.bibleId)?.title };
+  return { abbr: v.abbr, bibleId: v.bibleId, map, source, unfit };
 }
 
 /** Quick check that highlights can be read for a version. */

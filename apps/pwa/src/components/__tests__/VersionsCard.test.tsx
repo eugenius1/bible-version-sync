@@ -45,7 +45,7 @@ describe("VersionsCard", () => {
     getIndex.mockResolvedValue(null);
   });
 
-  it("shows each version's bundled title next to the person's own name for it", () => {
+  it("shows each version's bundled title next to the person's own name for it", async () => {
     renderCard([
       { abbr: "MINE", bibleId: 93 },
       { abbr: "RUS", bibleId: 400 },
@@ -53,7 +53,8 @@ describe("VersionsCard", () => {
       { abbr: "X", bibleId: 999999 },
     ]);
     expect(screen.getByText("MINE")).toBeInTheDocument();
-    expect(screen.getByText("La Sainte Bible par Louis Segond 1910")).toHaveAttribute("lang", "fr");
+    // Names are a chunk of their own, which the card loads.
+    expect(await screen.findByText("La Sainte Bible par Louis Segond 1910")).toHaveAttribute("lang", "fr");
     // Scanned versions, titled in their own script.
     expect(screen.getByText("Синодальный перевод")).toHaveAttribute("lang", "ru");
     const arabic = screen.getByText("الكتاب المقدس");

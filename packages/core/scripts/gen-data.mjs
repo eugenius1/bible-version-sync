@@ -189,15 +189,6 @@ export interface VersionName {
   title: string;
 }
 
-/**
- * Names of the versions with bundled verse counts, by bible id, as bible.com
- * shows them (YouVersion's local abbreviation and title, Sept 2026). Every
- * other version's name is in names.generated.ts, loaded on demand.
- */
-export const VERSION_NAMES: Record<number, VersionName> = ${JSON.stringify(
-  Object.fromEntries(Object.keys(knownCounts).map((id) => [id, names[id]])),
-)};
-
 /** A version whose numbering was checked by hand, chapter by chapter. */
 export interface VerifiedVersion {
   abbr: string;
@@ -232,7 +223,8 @@ writeFileSync(join(root, "src", "data.generated.ts"), out);
 
 // Every version's name: about 100 KB gzipped for 3,864 versions, so the app
 // loads it as a chunk of its own (loadVersionNames) rather than with the
-// engine. Grouped by language, which saves repeating it per version.
+// engine; none are in data.generated.ts. Grouped by language, which saves
+// repeating it per version.
 const byLanguage = {};
 for (const id of Object.keys(names).sort((a, b) => a - b)) {
   const { abbr, language, title } = names[id];

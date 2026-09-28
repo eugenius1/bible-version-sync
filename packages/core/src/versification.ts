@@ -29,7 +29,6 @@ import {
   RSO_VRS,
   SHARED_OVERRIDES,
   VERIFIED_VERSIONS,
-  VERSION_NAMES,
   VRS_LABEL_IDS,
   VUL_VRS,
   type VersionName,
@@ -462,12 +461,17 @@ export function loadVersionNames(): Promise<void> {
 }
 
 /**
- * A version's name as bible.com shows it. The official API doesn't give
- * names for most versions (their text isn't licensed to the app key). Versions
- * with bundled counts are always named; the rest once loadVersionNames is done.
+ * A version's name as bible.com shows it, once loadVersionNames is done. The
+ * official API doesn't give names for most versions (their text isn't
+ * licensed to the app key).
  */
 export function versionName(bibleId: number): VersionName | undefined {
-  return Object.hasOwn(VERSION_NAMES, bibleId) ? VERSION_NAMES[bibleId] : allNames?.get(bibleId);
+  return allNames?.get(bibleId);
+}
+
+/** Whether loadVersionNames has finished, so a missing name means an unknown version. */
+export function versionNamesLoaded(): boolean {
+  return allNames !== undefined;
 }
 
 /** Whether a version's verse counts are bundled, so the API index isn't needed. */

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   BOOKS,
   MAX_UNFIT_CHAPTERS,
+  STD_SCHEMES,
   Standard,
   VersionMap,
   buildVersionMap,
@@ -15,8 +16,11 @@ import {
   type StdScheme,
 } from "../src";
 
-// The real engine over every chapter of the 54 versions scanned for
-// docs/versification-survey.md, so what the survey measured stays true.
+// The real engine over every chapter of the versions scanned for
+// docs/versification-survey.md, so what the survey measured stays true: the
+// 54 widely used versions of the original survey, all labelled, and 209 that
+// YouVersion leaves unlabelled, scanned for label coverage (mostly a single
+// Gospel, or Ruth and Jonah).
 interface Scanned {
   abbr: string;
   vrs: StdScheme | null;
@@ -25,6 +29,10 @@ interface Scanned {
 const SCAN: Record<string, Scanned> = JSON.parse(
   readFileSync(new URL("../../../tools/versification-survey/data/counts.json", import.meta.url), "utf8"),
 );
+
+/** The original survey's versions, all labelled. */
+const SURVEYED = Object.keys(SCAN).map(Number).filter((id) => SCAN[id].vrs);
+const UNLABELLED = Object.keys(SCAN).map(Number).filter((id) => !SCAN[id].vrs);
 
 const knownCounts = (v: Scanned): ChapterCounts =>
   Object.fromEntries(Object.entries(v.counts).map(([b, cs]) => [b, Object.fromEntries(cs.map((n, i) => [i + 1, n]))]));
@@ -101,11 +109,11 @@ describe("bundled labels", () => {
 });
 
 describe("surveyed versions", () => {
-  it("has a label for every scanned version", () => {
-    for (const [id, v] of Object.entries(SCAN)) expect(versificationLabel(Number(id)), v.abbr).toBe(v.vrs);
+  it("has YouVersion's label, or none, for every scanned version", () => {
+    for (const [id, v] of Object.entries(SCAN)) expect(versificationLabel(Number(id)), v.abbr).toBe(v.vrs ?? undefined);
   });
 
-  it.each(Object.keys(SCAN).map(Number))("bible %i: skipped and off-label verses", (id) => {
+  it.each(SURVEYED)("bible %i: skipped and off-label verses", (id) => {
     const v = SCAN[id];
     const { map } = buildVersionMap(v.abbr, id, indexOf(v));
     const { skipped, offLabel } = measure(id, map);
@@ -132,6 +140,7 @@ describe("surveyed versions", () => {
       expect(bundled.map.chapters(b), `${v.abbr} ${b}`).toEqual(full.chapters(b));
       expect(bundled.map.skippedChapters(b), `${v.abbr} ${b}`).toEqual(full.skippedChapters(b));
     }
+    if (!v.vrs) return; // below
     const { skipped, offLabel } = measure(id, bundled.map);
     expect(skipped, v.abbr).toBe(SKIPPED[id]);
     expect(offLabel, v.abbr).toEqual(OFF_LABEL[id] ?? {});
@@ -159,6 +168,61 @@ describe("surveyed versions", () => {
         expect(schemes.size, `${SCAN[id].abbr} ${canon}`).toBe(1);
       }
     }
+  });
+});
+
+describe("unlabelled versions", () => {
+  // Verses left unsynced, for those that leave any: chapters fitting neither
+  // English nor Hebrew numbering, as in any version.
+  const SKIPPED_UNLABELLED: Record<number, number> = {
+    1374: 22, 1604: 88, 1611: 52, 1927: 66, 2056: 27, 2320: 72, 2404: 22, 2532: 213, 2598: 13, 2750: 26,
+    3081: 36, 3479: 30, 3800: 116, 3807: 21, 3836: 26, 4175: 4, 4182: 22, 4221: 4, 4446: 22, 4490: 22,
+    4720: 36, 4867: 26,
+  };
+
+  it("are all English or Hebrew numbered as far as their counts show, so none is refused", () => {
+    expect(UNLABELLED.length).toBe(209);
+    for (const id of UNLABELLED) {
+      const { source, unfit } = buildVersionMap(SCAN[id].abbr, id);
+      expect(source, SCAN[id].abbr).toBe("scanned");
+      expect(unfit!, SCAN[id].abbr).toBeLessThanOrEqual(13); // ONE (2532), Oneida selections from 12 books
+    }
+  });
+
+  it.each(UNLABELLED)("bible %i: skipped verses", (id) => {
+    expect(measure(id, buildVersionMap(SCAN[id].abbr, id).map).skipped, SCAN[id].abbr).toBe(SKIPPED_UNLABELLED[id] ?? 0);
+  });
+
+  // With no label, which system a version follows is only known from its
+  // counts. Where a chapter's count also fits another of the six systems that
+  // would map it differently, and that system fits the version's chapters of
+  // the book as well as the one the engine chose, the counts can't tell them
+  // apart and verses could be misplaced. That happens only in Jonah 2 against
+  // vul, and only because SIL's vul.vrs gives it 11 verses but maps it as
+  // English's 10 (JON 2:1-10 = JON 2:2-11). Jonah 2:1 is the fish swallowing
+  // Jonah in all four versions with Jonah (CAROS, DROT, ROT and Lontomba;
+  // bible.com, Sept 2026): Hebrew numbering, which Synodal shares, as mapped.
+  it("map every verse as any system their counts fit as well would", () => {
+    const std = Standard.load();
+    const ambiguous: string[] = [];
+    for (const id of UNLABELLED) {
+      const map = buildVersionMap(SCAN[id].abbr, id).map;
+      for (const b of BOOKS) {
+        const chapters = map.chapters(b);
+        const fits = (s: StdScheme) => chapters.filter((c) => std.count(s, b, c) === map.counts[b][c]).length;
+        for (const c of chapters) {
+          const chosen = map.schemes[b][c];
+          if (chosen === null || chosen === "custom") continue;
+          const n = map.counts[b][c];
+          for (const s of STD_SCHEMES) {
+            if (s === chosen || std.count(s, b, c) !== n || fits(s) < fits(chosen)) continue;
+            const verses = Array.from({ length: n }, (_, k) => `${b}.${c}.${k + 1}`);
+            if (verses.some((l) => std.toCanon(s, l) !== map.toCanon.get(l))) ambiguous.push(`${SCAN[id].abbr} ${s} ${b}.${c}`);
+          }
+        }
+      }
+    }
+    expect(ambiguous.sort()).toEqual(["CAROS vul JON.2", "DROT vul JON.2", "ROT vul JON.2", "nto vul JON.2"]);
   });
 });
 
