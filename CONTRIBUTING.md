@@ -6,13 +6,21 @@ of rules that bind coding agents specifically.
 
 ## Running it
 
-Needs Node 20+ and a YouVersion Platform app key.
+Needs Node 24 (or npm 11) and a YouVersion Platform app key. npm 10 crashes
+installing this workspace ("Cannot read properties of null (reading
+'edgesOut')"); on an older Node, `npx npm@11 install` works. npm 11 holds back
+esbuild's install script by default, which the build doesn't need.
 
 ```bash
 npm install
 cp apps/pwa/.env.example apps/pwa/.env.local   # put your app key in it
 npm run dev                                     # http://localhost:8001
 ```
+
+`npm run dev` is for editing: instant reload, but no Content-Security-Policy
+and no service worker. `npm run preview` serves the production build from
+`apps/pwa/dist/` (run `npm run build` first) with both, so use it to check
+what users will get.
 
 `npm run coverage` runs the tests with coverage (lcov in each package's
 `coverage/`); CI uploads it to Codecov.
@@ -74,14 +82,17 @@ agree, so nothing more is needed.
 
 [docs/versification-survey.md](docs/versification-survey.md) records how 54
 widely used versions in 20 languages fare against this, and what's still
-missing (Synodal and Septuagint numbering in particular).
+missing (Synodal and Septuagint numbering in particular). The scanner and data
+behind it are in [tools/versification-survey](tools/versification-survey/README.md).
 
 **Adding a verified version.** Collect its verse count for every chapter
-(bible.com's chapter pages carry one `data-usfm` per verse), add the
+(`tools/versification-survey/scan.py`), add the
 exceptions to `known_counts.json` and an entry to `BUILTIN` in
 `packages/core/scripts/gen-data.mjs`, and for each chapter that matches neither
-system, read the text against a version you trust and write the correction
-table. Then add test cases to `packages/core/test/versification.test.ts` for
+system, write the correction table. The LSG tables were built by aligning the
+text verse by verse with a closely related version whose numbering is known
+(LSG against S21, by word overlap), then against NIV, and reading every
+boundary by eye. Then add test cases to `packages/core/test/versification.test.ts` for
 the verses you checked by eye, and run `npm run check`.
 
 ## The sync rules
@@ -147,6 +158,19 @@ write fine. That's why verse counts are bundled rather than fetched.
 
 **No highlights is a 204**, not an empty list.
 
+**The API doesn't say how a version numbers its verses.** YouVersion labels
+each version (`vrs`: `eng`, `org`, `rso`, `rsc`, `lxx`, `vul`), but only its
+unofficial bible.com API exposes the label; see
+[tools/versification-survey](tools/versification-survey/README.md).
+
+**`/v1/bibles` lists only the platform's subset.** Spanish has 9 versions there
+(no Reina-Valera 1960) against 30 in the app, and `page_size` must be at most
+99. Versions missing from the list still read and write highlights, so don't
+validate a version against it.
+
+**Abbreviations aren't unique.** `NVI-S` is both 128 and 2664, `ARC` both 212
+and 3407. Key anything version-specific by bible id.
+
 ## Things that will bite you elsewhere
 
 **Nahum is `NAM`, not `NAH`.** Use the USFM book codes exactly as `BOOKS` in
@@ -171,7 +195,10 @@ the two in step.
 `.dark` on `<html>`, so the picker can override the system.
 
 **Some embedded browsers don't allow service workers.** Test offline support in
-a real Chrome.
+a real Chrome. For screenshots of signed-in screens without a real account, a
+throwaway headless Chrome (fresh `--user-data-dir`, driven over the DevTools
+protocol) with a fake token written to IndexedDB works well; any API call then
+exercises the sign-in-expired path.
 
 ## Localisation
 

@@ -53,6 +53,13 @@ highlight on a merged span (one verse, or each) hasn't been tested.
 
 ## Recommendations
 
+Tracked in [#3](https://github.com/eugenius1/bible-version-sync/issues/3).
+
+The scanner and data behind this survey are in
+[tools/versification-survey](../tools/versification-survey/README.md);
+`python3 analyse.py` there reproduces it.
+
+
 1. **Guard now:** refuse or clearly block versions whose numbering is Synodal,
    Septuagint or Vulgate until they're supported, e.g. when a large share of
    Psalms chapters fit neither `eng` nor `org`, or from a bundled table of
