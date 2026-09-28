@@ -31,7 +31,7 @@ function Shell({ children, account }: { children: React.ReactNode; account?: Rea
   return (
     <div className="mx-auto flex min-h-dvh max-w-2xl flex-col gap-4 px-4 py-6 sm:py-10">
       <header className="flex items-center gap-3">
-        <img src="/favicon.svg" alt="" className="size-9" />
+        <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="size-9" />
         <h1 className="text-lg font-semibold">Bible Version Sync</h1>
       </header>
       {children}
@@ -70,7 +70,7 @@ function Callback() {
     started.current = true;
     completeSignIn()
       .then((r) => {
-        if (r === "done") location.replace("/");
+        if (r === "done") location.replace(import.meta.env.BASE_URL);
       })
       .catch(setError);
   }, []);
