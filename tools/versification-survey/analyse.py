@@ -25,10 +25,12 @@ def read_vrs(name):
             v1, v2 = int(v1), int(v2)
             n = min((int(v1e) if v1e else v1) - v1, (int(v2e) if v2e else v2) - v2)
             for i in range(n + 1):
-                src = (b1, int(c1), v1 + i)
-                if src[2] == 0:
+                src, dst = (b1, int(c1), v1 + i), (b2, int(c2), v2 + i)
+                # Psalm titles are verse 0 and can't be highlighted; drop them
+                # on either side, or a title target shadows the real mapping.
+                if src[2] == 0 or dst[2] == 0:
                     continue
-                to_org.setdefault(src, (b2, int(c2), v2 + i))
+                to_org.setdefault(src, dst)
             continue
         m = BOOK_LINE.match(line)
         if m:
@@ -137,8 +139,10 @@ def analyse(vid):
 
 if __name__ == "__main__":
     out_dir = os.path.join(HERE, "out")
-    ids = ([int(f[:-5]) for f in os.listdir(out_dir) if f.endswith(".json")] if os.path.isdir(out_dir)
-           else [int(k) for k in json.load(open(COUNTS))])
+    # Bundled versions plus any freshly scanned ones (load() prefers out/).
+    ids = {int(k) for k in json.load(open(COUNTS))}
+    if os.path.isdir(out_dir):
+        ids |= {int(f[:-5]) for f in os.listdir(out_dir) if f.endswith(".json") and f[:-5].isdigit()}
     results = [analyse(i) for i in sorted(ids)]
     json.dump(results, open(os.path.join(HERE, "data", "analysis.json"), "w"), ensure_ascii=False, indent=1)
     for r in results:
