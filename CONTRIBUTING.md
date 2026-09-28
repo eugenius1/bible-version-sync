@@ -41,15 +41,15 @@ out of the repository anyway.
 <https://eusebius.tech/bible-version-sync/> (`.github/workflows/deploy.yml`).
 The custom domain belongs to the `eugenius1.github.io` user site, so this
 project is served under `/bible-version-sync/`, and the build is run with
-`--base=/bible-version-sync/`. The app key comes from the `VITE_YV_APP_KEY`
+`BASE_PATH=/bible-version-sync/`. The app key comes from the `VITE_YV_APP_KEY`
 repository variable (Settings → Secrets and variables → Actions → Variables),
 and `https://eusebius.tech/bible-version-sync/callback` must be registered in
 the portal. Pages has no SPA fallback, so the build copies `index.html` to
 `callback.html`, which Pages serves at `/callback`.
 
 To host it elsewhere, `npm run build` writes a static site to `apps/pwa/dist/`
-(add `-- --base=/path/` below a domain's root). Set `VITE_YV_APP_KEY` at build
-time and register `<origin><base>callback`. The production build carries a
+(set `BASE_PATH=/path/` to serve it below a domain's root). Set
+`VITE_YV_APP_KEY` at build time and register `<origin><base>callback`. The production build carries a
 strict Content-Security-Policy (see `apps/pwa/vite.config.ts`).
 
 ## Layout

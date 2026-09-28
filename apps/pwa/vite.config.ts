@@ -64,6 +64,10 @@ const callbackPage = (): Plugin => {
 };
 
 export default defineConfig({
+  // Where the build is served from, e.g. /bible-version-sync/ on GitHub Pages.
+  // An env var rather than --base, which npm swallows as its own config flag
+  // when the root build script forwards to the workspace one.
+  base: process.env.BASE_PATH ?? "/",
   // Port 8001 + /callback matches the redirect URI registered for the app key.
   server: { port: 8001, strictPort: true },
   preview: { port: 8001, strictPort: true },

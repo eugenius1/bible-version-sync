@@ -35,11 +35,13 @@ jobs:
           exit 1
 
       # The user site's custom domain (eusebius.tech) serves this project
-      # repository under /bible-version-sync/. The app key is an OAuth client
-      # id baked into the JavaScript, so a repository variable is enough.
+      # repository under /bible-version-sync/, hence BASE_PATH. The app key is
+      # an OAuth client id baked into the JavaScript, so a repository variable
+      # is enough.
       - name: Build
-        run: npm run build -- --base=/bible-version-sync/
+        run: npm run build
         env:
+          BASE_PATH: /bible-version-sync/
           VITE_YV_APP_KEY: ${{ vars.VITE_YV_APP_KEY }}
 
       - uses: actions/upload-pages-artifact@v3
