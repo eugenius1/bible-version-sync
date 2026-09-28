@@ -1,0 +1,9 @@
+# KRV: checked against the text on bible.com, Sept 2026.
+use rev-12-17
+
+# Song of Songs 6 has 14 verses: 6:13 is "Return, return, O Shulamite" and
+# 6:14 "What will ye see in the Shulamite?" (KJV 6:13a and 6:13b), both
+# Hebrew 7:1. Chapter 7 is numbered as in English.
+SNG 6:1-12 = SNG 6:1-12
+SNG 6:13 = SNG 7:1
+SNG 6:14 = SNG 7:1

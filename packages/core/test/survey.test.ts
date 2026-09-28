@@ -60,14 +60,15 @@ function measure(id: number, map: VersionMap) {
   return { skipped, offLabel };
 }
 
-// Verses skipped per version, as in docs/versification-survey.md. Every
-// version but SYNO, NRT and UBIO is eng/org and must stay exactly as it was.
+// Verses skipped per version. Every version but SYNO, NRT and UBIO is
+// eng/org, and was as in docs/versification-survey.md until the shared
+// correction tables (data/overrides/shared/) mapped these chapters.
 const SKIPPED: Record<number, number> = {
-  1: 31, 13: 101, 21: 0, 27: 99, 46: 52, 48: 52, 51: 31, 59: 17, 73: 0, 75: 294, 81: 0, 83: 35, 88: 31, 89: 17,
-  93: 0, 97: 86, 101: 39, 104: 0, 111: 0, 114: 31, 116: 0, 122: 97, 126: 0, 127: 0, 128: 17, 129: 17, 132: 412,
-  133: 0, 141: 353, 142: 7, 144: 20, 149: 17, 151: 172, 152: 0, 157: 0, 164: 69, 188: 1065, 191: 31, 193: 485,
-  212: 92, 306: 342, 319: 315, 399: 20, 463: 318, 1588: 0, 1608: 60, 1627: 17, 1628: 17, 1683: 17, 1840: 43,
-  1990: 394,
+  1: 0, 13: 84, 21: 0, 27: 20, 46: 52, 48: 52, 51: 0, 59: 0, 73: 0, 75: 88, 81: 0, 83: 35, 88: 0, 89: 0,
+  93: 0, 97: 55, 101: 22, 104: 0, 111: 0, 114: 0, 116: 0, 122: 25, 126: 0, 127: 0, 128: 0, 129: 0, 132: 350,
+  133: 0, 141: 230, 142: 7, 144: 20, 149: 0, 151: 0, 152: 0, 157: 0, 164: 52, 188: 1000, 191: 0, 193: 172,
+  212: 32, 306: 0, 319: 315, 399: 20, 463: 307, 1588: 0, 1608: 0, 1627: 0, 1628: 0, 1683: 0, 1840: 0,
+  1990: 0,
   // Were 2,670, 3,052 and 2,329 with eng/org only.
   143: 0, 400: 0, 186: 0,
 };

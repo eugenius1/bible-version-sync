@@ -1,0 +1,15 @@
+# HSVU: checked against the text on bible.com, Sept 2026.
+use exo-5-24
+use 1sa-20-43
+use neh-8-19
+use job-38-41
+use hos-1-12
+use hag-2-24
+use rom-7-26
+
+# John 1 has 52 verses: 1:38 ends at Jesus turning and seeing them follow,
+# and 1:39 is "What seek ye? ... Rabbi, where dwellest thou?" (KJV 1:38), so
+# 1:40 is "Come and see" (1:39).
+JHN 1:1-38 = JHN 1:1-38
+JHN 1:39 = JHN 1:38
+JHN 1:40-52 = JHN 1:39-51

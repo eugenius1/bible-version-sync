@@ -1,0 +1,10 @@
+# PBG: checked against the text on bible.com, Sept 2026.
+use rev-12-17
+use 3jn-1-14
+
+# Jeremiah 29 has 31 verses: 29:30 runs "the word of the LORD came unto
+# Jeremiah" and "Send to all them of the captivity" together (KJV 29:30-31),
+# so 29:31 is "therefore thus saith the LORD; Behold, I will punish Shemaiah"
+# (29:32).
+JER 29:1-30 = JER 29:1-30
+JER 29:31 = JER 29:32

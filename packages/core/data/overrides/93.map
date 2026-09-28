@@ -1,38 +1,12 @@
-# Louis Segond 1910 (LSG, YouVersion id 93): chapters whose numbering matches
-# neither the English nor the Hebrew/original system.
-#
-# Format:  LSG reference(s) = canonical reference(s)   (canonical = org.vrs numbering)
-# Found from the YouVersion API index (verse counts) and checked by aligning the
-# LSG text with S21 / NIV on bible.com, Sept 2026.
-
-# David and Jonathan: LSG ends ch. 20 one verse later.
-1SA 20:1-42 = 1SA 20:1-42
-1SA 20:43 = 1SA 21:1
-1SA 21:1-15 = 1SA 21:2-16
+# Louis Segond 1910 (LSG): chapters whose numbering matches neither the
+# English nor the Hebrew/original system. Found from the YouVersion API index
+# (verse counts) and checked by aligning the LSG text with S21 / NIV on
+# bible.com, Sept 2026.
+use 1sa-20-43
+use job-38-41
+use ecc-12-16
+use mrk-9-51
+use mrk-10-53
 
 # Elihu: LSG 34:36 contains 34:36-37.
 JOB 34:1-36 = JOB 34:1-36
-
-# God's speeches: LSG places the chapter breaks differently.
-JOB 38:1-38 = JOB 38:1-38
-JOB 39:1-3 = JOB 38:39-41
-JOB 39:4-33 = JOB 39:1-30
-JOB 39:34-38 = JOB 40:1-5
-JOB 40:1-27 = JOB 40:6-32
-JOB 40:28 = JOB 41:1
-JOB 41:1-25 = JOB 41:2-26
-
-# "Rejoice, young man" (11:9-10) starts LSG ch. 12.
-ECC 11:1-8 = ECC 11:1-8
-ECC 12:1-2 = ECC 11:9-10
-ECC 12:3-16 = ECC 12:1-14
-
-# LSG splits some verses in two.
-MRK 9:1-43 = MRK 9:1-43
-MRK 9:44 = MRK 9:43
-MRK 9:45 = MRK 9:45
-MRK 9:46 = MRK 9:45
-MRK 9:47-50 = MRK 9:47-50
-MRK 9:51 = MRK 9:50
-MRK 10:1-52 = MRK 10:1-52
-MRK 10:53 = MRK 10:52

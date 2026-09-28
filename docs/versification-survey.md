@@ -8,8 +8,10 @@ Septuagint (`lxx`) and Vulgate (`vul`). YouVersion labels each version with
 one of these (`vrs`).
 
 **Since then** the engine also supports `rso`, `rsc`, `lxx` and `vul` for
-versions labelled with them ([below](#synodal-and-septuagint-support)). The
-tables here are the survey as taken, against the two-system engine.
+versions labelled with them ([below](#synodal-and-septuagint-support)), and
+shared correction tables map most chapters that fit no system
+([below](#shared-correction-tables)). The tables here are the survey as taken,
+against the two-system engine.
 
 **Columns.** *Label*: YouVersion's system for the version. *Fits*: of the ~348
 chapters where the systems disagree, how many match the label / another system
@@ -71,10 +73,10 @@ The scanner and data behind this survey are in
    [below](#synodal-and-septuagint-support).
 3. **Bundle the scanned counts** for all 54 versions so they get
    count-based numbering without the API: done, shown as "Verse counts
-   known". Promoting the English-numbered ones to "verified" waits for
-   REV 12 / 3 John to be handled generically.
+   known".
 4. **Write shared correction tables** for the Dutch/Indonesian tradition
-   (Job 38–41, Hosea 1–2, Nehemiah 8 …).
+   (Job 38–41, Hosea 1–2, Nehemiah 8 …): done, along with Revelation 12 and
+   3 John; see [below](#shared-correction-tables).
 5. **Test merged-verse highlighting** against a paraphrase (MSG) before
    promoting those versions.
 
@@ -184,3 +186,45 @@ Hebrew) is kept with English 7:68. Two of SIL's tables needed corrections,
 also checked on the text: `rso` doesn't shift Daniel 5:31–6:28 as Synodal
 does, and `lxx` puts the commandments in Greek order where UBIO keeps the
 Hebrew. Psalms, Daniel 5–6 and Jeremiah 34–36 were spot-checked against NIV.
+
+## Shared correction tables
+
+A departure several versions share is written once, in
+`packages/core/data/overrides/shared/`, and each version that follows it names
+it in its own table. Every version was checked on its text (boundary verses
+read against NIV on bible.com) before being given a table; none gets one from
+its counts alone. Skipped verses, measured by `survey.test.ts` (no version
+gained a misplaced verse):
+
+| Version | Skipped (before → after) | Tables | Still skipped |
+|---|---:|---|---|
+| KJV (1), DELUT (51), NKJV (114), BDC (191) | 31 → 0 | Revelation 12, 3 John | |
+| ESV, LBLA, NVI-S, NVI, RVR1960, NEN, HCV, HINOVBSI | 17 → 0 | Revelation 12 | |
+| KRV (88) | 31 → 0 | Revelation 12, Song 6 (own) | |
+| MSG (97) | 86 → 55 | Revelation 12, 3 John | 1 Chr 21, 2 Chr 35 |
+| AVD (13) | 101 → 84 | Revelation 12 | 2 Kgs 4, Ps 72, 1 Tim 6 |
+| NAV (101) | 39 → 22 | Revelation 12 | 1 Tim 6 |
+| SUV (164) | 69 → 52 | Revelation 12 | John 7 |
+| PBG (132) | 412 → 350 | Revelation 12, 3 John, Jeremiah 29 (own) | 11 chapters |
+| ARC (212) | 92 → 32 | Revelation 12, 1 Samuel 20 | Judges 5 |
+| ARA (1608) | 60 → 0 | Revelation 12, 1 Samuel 20 | |
+| NAA (1840) | 43 → 0 | 1 Samuel 20 | |
+| UKRK (188) | 1,065 → 1,000 | Revelation 12, 1 Samuel 20, Psalm 13 | 37 chapters |
+| NR06 (122) | 97 → 25 | 1 Samuel 20, Psalm 13, Ecclesiastes 11–12 | 2 Sam 20 |
+| RDV24 (141) | 353 → 230 | 1 Samuel 20, Psalm 13, Ecclesiastes 11–12, Mark 9 | 10 chapters |
+| VIE2010 (151) | 172 → 0 | 1 Samuel 20, Job 38–41 | |
+| VIE1925 (193) | 485 → 172 | 1 Samuel 20, Job 38–41, Mark 9–10, 1 Kings 6 (own) | 6 chapters |
+| TB (306) | 342 → 0 | Exodus 5–6, 1 Samuel 20, Nehemiah 7–8, Job 38–41, Hosea 1–2, Haggai 1–2, Romans 7 | |
+| HSVU (1990) | 394 → 0 | as TB, and John 1 (own) | |
+| HTB (75) | 294 → 88 | 1 Samuel 20, Job 38–41, Hosea 1–2 | Exodus 6, Leviticus 16, Haggai 2 |
+| BIMK (27) | 99 → 20 | Exodus 5–6, Romans 7 | Isaiah 38 |
+| NABRE (463) | 318 → 307 | Psalm 2 (own) | Daniel 3, 13, 14 (Greek additions), John 7, Acts 10 |
+
+LSG's own table was split into the shared 1 Samuel 20, Job 38–41,
+Ecclesiastes 11–12 and Mark 9–10 tables, with only Job 34 left its own; NIV
+and AMP now use the shared Revelation 12 table. Their maps are unchanged.
+
+Het Boek is a paraphrase whose verse numbers drift inside the chapters it
+renumbers (its Exodus 6:2 holds 6:2–3, its 6:3 is 6:4, and so on), so only
+the chapters whose boundaries match HSV's exactly were given tables; the rest
+waits for the merged-verse work (#3, task 5).

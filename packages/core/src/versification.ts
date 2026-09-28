@@ -27,6 +27,7 @@ import {
   OVERRIDES,
   RSC_VRS,
   RSO_VRS,
+  SHARED_OVERRIDES,
   VERIFIED_VERSIONS,
   VRS_LABELS,
   VUL_VRS,
@@ -240,7 +241,8 @@ export class VersionMap {
    * without known counts take that same book-wide pick, which is the label
    * (else `defaultScheme`) when nothing in the book is known. Every chapter
    * touched by an override uses only the override table (unlisted verses keep
-   * their number).
+   * their number), and is skipped when its known count isn't the table's
+   * highest verse.
    *
    * The book's evidence outranks the label because a label describes a whole
    * version loosely: UBIO is labelled lxx but follows Hebrew order in
@@ -315,9 +317,14 @@ export class VersionMap {
         schemes[c] = s;
         counts[c] = actual[c] ?? std.count(s ?? majority, book, c);
       }
-      for (const [c, maxV] of Object.entries(custom[book] ?? {})) {
-        schemes[Number(c)] = "custom";
-        counts[Number(c)] = actual[Number(c)] ?? maxV;
+      // A table is written for a chapter of a given length. If the version's
+      // real count says otherwise (say, the API index of a version whose text
+      // has changed since), the table doesn't describe this text: skip the
+      // chapter rather than guess.
+      for (const [cs, maxV] of Object.entries(custom[book] ?? {})) {
+        const c = Number(cs);
+        schemes[c] = actual[c] === undefined || actual[c] === maxV ? "custom" : null;
+        counts[c] = actual[c] ?? maxV;
       }
       vm.schemes[book] = schemes;
       vm.counts[book] = counts;
@@ -389,10 +396,16 @@ export function builtinCounts(bibleId: number): ChapterCounts | undefined {
   return out;
 }
 
-/** Built-in correction table for a bible id (local ref -> canonical ref). */
+/**
+ * Built-in correction tables for a bible id (local ref -> canonical ref): the
+ * shared tables its own table names, then its own lines. gen-data checks that
+ * no two of them touch the same chapter.
+ */
 export function builtinOverrides(bibleId: number): Map<Ref, Ref> {
-  const text = OVERRIDES[bibleId];
-  return new Map(text ? parseVrs(text).mappings : []);
+  const tables = OVERRIDES[bibleId];
+  if (!tables) return new Map();
+  const text = [...tables.use.map((name) => SHARED_OVERRIDES[name]), tables.own].join("\n");
+  return new Map(parseVrs(text).mappings);
 }
 
 /** Whether a version's numbering was checked by hand, chapter by chapter. */
