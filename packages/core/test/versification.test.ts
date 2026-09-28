@@ -5,6 +5,7 @@ import {
   assumedScheme,
   VersionMap,
   buildVersionMap,
+  builtinOverrides,
   hasKnownCounts,
   isVerifiedVersion,
   parseRef,
@@ -84,6 +85,116 @@ describe("verse mapping", () => {
     expect(MAPS.LSG.chapters("MAL")).toEqual([1, 2, 3, 4]);
   });
 
+});
+
+describe("shared correction tables", () => {
+  const maps = new Map<number, VersionMap>();
+  const mapOf = (id: number) => maps.get(id) ?? maps.set(id, buildVersionMap(String(id), id).map).get(id)!;
+  const fromNiv = (niv: string, id: number) => mapOf(id).fromCanon.get(MAPS.NIV.toCanon.get(niv)!) ?? [];
+
+  const REV_12_17 = [1, 13, 51, 59, 88, 89, 97, 101, 111, 114, 128, 129, 132, 149, 164, 188, 191, 212, 1588, 1608, 1627, 1628, 1683];
+  const JN3_14 = [1, 51, 97, 114, 132, 191];
+  const SA1_20_43 = [75, 93, 122, 141, 151, 188, 193, 212, 306, 1608, 1840, 1990];
+  const JOB_38_41 = [75, 93, 151, 193, 306, 1990];
+  const DUTCH_INDONESIAN = [306, 1990];
+
+  // Each pair was checked against the verse text on bible.com, Sept 2026:
+  // NIV's verse on the left, the version's on the right.
+  it.each([
+    // Revelation 12:18 is the start of 13:1 (NIV, KJV) or the end of 12:17 (ESV).
+    ...REV_12_17.flatMap((id) => [
+      ["REV.12.17", id, ["REV.12.17"]],
+      ["REV.13.1", id, ["REV.13.1"]],
+    ]),
+    // "Peace be to thee. Our friends salute thee" ends 3 John 14 (KJV).
+    ...JN3_14.flatMap((id) => [
+      ["3JN.1.14", id, ["3JN.1.14"]],
+      ["3JN.1.15", id, []],
+    ]),
+    // "And he arose and departed: and Jonathan went into the city" (KJV) is 20:43.
+    ...SA1_20_43.flatMap((id) => [
+      ["1SA.20.42", id, ["1SA.20.43"]],
+      ["1SA.21.1", id, ["1SA.21.1"]],
+    ]),
+    ...JOB_38_41.flatMap((id) => [
+      ["JOB.38.39", id, ["JOB.39.1"]], // "Wilt thou hunt the prey for the lion?"
+      ["JOB.39.1", id, ["JOB.39.4"]], // the wild goats
+      ["JOB.40.1", id, ["JOB.39.34"]],
+      ["JOB.40.6", id, ["JOB.40.1"]], // "out of the whirlwind"
+      ["JOB.41.9", id, ["JOB.40.28"]],
+      ["JOB.41.10", id, ["JOB.41.1"]], // "None is so fierce that dare stir him up"
+    ]),
+    ...[93, 122, 141].flatMap((id) => [
+      ["ECC.11.9", id, ["ECC.12.1"]], // "Rejoice, O young man, in thy youth"
+      ["ECC.12.1", id, ["ECC.12.3"]], // "Remember now thy Creator"
+    ]),
+    ...[93, 141, 193].map((id) => ["MRK.9.50", id, ["MRK.9.50", "MRK.9.51"]]), // "Have salt in yourselves"
+    ...[93, 193].map((id) => ["MRK.10.52", id, ["MRK.10.52", "MRK.10.53"]]),
+    ...[27, ...DUTCH_INDONESIAN].flatMap((id) => [
+      ["EXO.6.1", id, ["EXO.5.24"]], // "Now shalt thou see what I will do to Pharaoh"
+      ["EXO.6.2", id, ["EXO.6.1"]],
+      ["EXO.6.30", id, ["EXO.6.29"]],
+      ["ROM.7.25", id, ["ROM.7.25", "ROM.7.26"]], // "So then with the mind I myself serve"
+    ]),
+    ...DUTCH_INDONESIAN.flatMap((id) => [
+      ["NEH.7.73", id, ["NEH.7.73", "NEH.8.1"]], // "and when the seventh month came"
+      ["NEH.8.1", id, ["NEH.8.2"]], // "all the people gathered themselves together"
+      ["NEH.8.18", id, ["NEH.8.19"]],
+      ["HAG.1.15", id, ["HAG.2.1"]], // "In the four and twentieth day of the sixth month"
+      ["HAG.2.1", id, ["HAG.2.2"]],
+      ["HAG.2.23", id, ["HAG.2.24"]],
+    ]),
+    ...[75, ...DUTCH_INDONESIAN].flatMap((id) => [
+      ["HOS.1.10", id, ["HOS.1.10"]],
+      ["HOS.2.1", id, ["HOS.1.12"]], // "Say ye unto your brethren, Ammi"
+      ["HOS.2.2", id, ["HOS.2.1"]], // "Plead with your mother"
+      ["HOS.2.23", id, ["HOS.2.22"]],
+    ]),
+    ...[122, 141, 188].flatMap((id) => [
+      ["PSA.13.1", id, ["PSA.13.1"]], // "How long wilt thou forget me"
+      ["PSA.13.5", id, ["PSA.13.5"]], // "But I have trusted in thy mercy"
+      ["PSA.13.6", id, ["PSA.13.5"]], // "I will sing unto the LORD"
+    ]),
+    // Tables of one version each.
+    ["SNG.6.13", 88, ["SNG.6.13", "SNG.6.14"]], // KRV: "Return, return" / "What will ye see"
+    ["SNG.7.1", 88, ["SNG.7.1"]],
+    ["JER.29.30", 132, ["JER.29.30"]], // PBG runs 29:30-31 together
+    ["JER.29.31", 132, []],
+    ["JER.29.32", 132, ["JER.29.31"]], // "Behold, I will punish Shemaiah"
+    ["1KI.6.37", 193, ["1KI.6.37"]], // VIE1925 6:37 has the eleventh year too
+    ["1KI.6.38", 193, []],
+    ["PSA.2.11", 463, ["PSA.2.11"]], // NABRE runs on to "Blessed are all"
+    ["PSA.2.12", 463, []],
+    ["JHN.1.38", 1990, ["JHN.1.38", "JHN.1.39"]], // HSV: "What seek ye?" starts 1:39
+    ["JHN.1.39", 1990, ["JHN.1.40"]], // "Come and see"
+    ["JHN.1.51", 1990, ["JHN.1.52"]],
+  ] as [string, number, string[]][])("NIV %s -> bible %i %j", (niv, id, local) => {
+    expect(fromNiv(niv, id)).toEqual(local);
+  });
+
+  it("map every chapter they touch", () => {
+    for (const id of Object.keys(OVERRIDES).map(Number)) {
+      for (const [local] of builtinOverrides(id)) {
+        const [b, c] = parseRef(local);
+        expect(mapOf(id).schemes[b][c], `${id} ${local}`).toBe("custom");
+      }
+    }
+  });
+
+  it("apply only to the versions that name them", () => {
+    // Revelation 12 in 17 verses, with no table named: nothing says where 12:18 went.
+    const index = { books: [{ id: "REV", chapters: [{ id: "12", verses: Array.from({ length: 17 }, (_, i) => i + 1) }] }] };
+    expect(buildVersionMap("X", 999999, index).map.skippedChapters("REV")).toEqual([12]);
+    expect(buildVersionMap("NIV", 111, index).map.chapters("REV")).toContain(12);
+  });
+
+  it("skip a chapter whose real count isn't the one the table was written for", () => {
+    // NIV's API index, were Revelation 12 ever given 18 verses.
+    const index = { books: [{ id: "REV", chapters: [{ id: "12", verses: Array.from({ length: 18 }, (_, i) => i + 1) }] }] };
+    const m = buildVersionMap("NIV", 111, index).map;
+    expect(m.skippedChapters("REV")).toEqual([12]);
+    expect(m.toCanon.has("REV.12.1")).toBe(false);
+  });
 });
 
 describe("bundled counts", () => {

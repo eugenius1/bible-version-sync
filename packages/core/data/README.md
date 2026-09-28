@@ -17,7 +17,12 @@ are keyed by bible id throughout; abbreviations aren't unique.
 - `labels.json`: YouVersion's numbering label (`vrs`) by bible id, which the
   official API doesn't expose.
 - `overrides/<bible id>.map`: hand-checked corrections for chapters that follow
-  no system. Format: `LOCAL = CANONICAL` (canonical = org numbering).
+  no system. Format: `LOCAL = CANONICAL` (canonical = org numbering), plus
+  `use <name>` lines naming shared tables.
+- `overrides/shared/<name>.map`: corrections several versions share, named
+  after the local verse that gives them away (`rev-12-17`: Revelation 12 ends
+  at 17). A version gets one only through a `use` line, once its text has
+  been read.
 
 `known_counts.json` (for scanned versions) and `labels.json` are written by
 `npm run import-survey -w @bvs/core` from the survey's `counts.json` and

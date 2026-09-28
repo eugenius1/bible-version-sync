@@ -85,6 +85,18 @@ real verse count with each candidate system's count
 - Chapters that follow no system are described by hand in a **correction
   table**, `packages/core/data/overrides/<bible id>.map`, in `.vrs` mapping syntax:
   `LOCAL = CANONICAL`. Every chapter such a table touches uses only the table.
+- A departure several versions share (Revelation 12 in 17 verses, 3 John in
+  14, Job 38–41 as Louis Segond breaks them) is written once, as a **shared
+  table** in `overrides/shared/<name>.map`, and each version that follows it
+  names it with a `use <name>` line in its own table. Nothing is applied by
+  matching counts alone: the same count can hide different text (Het Boek has
+  Haggai 2 in 24 verses like HSV but divides it elsewhere), so a version gets a
+  table only once someone has read its text. `gen-data.mjs` rejects a table
+  whose chapters don't have the counts it was written for (its highest verse
+  per chapter) in the version that uses it, two tables touching one chapter,
+  a shared table nobody uses, and any line it can't parse. At run time a
+  chapter whose real count (from the API index) disagrees with its table is
+  skipped.
 
 The `rso`, `rsc`, `lxx` and `vul` tables are read from
 `packages/core/data/`, with a few corrections checked against the
@@ -120,10 +132,16 @@ the scan. The version then shows "Verse counts known".
 
 **Verifying a version.** Also add an entry to `VERIFIED` in
 `packages/core/scripts/verified.mjs`, and for each chapter that matches neither
-system, write the correction table. The LSG tables were built by aligning the
+system, write the correction table: first check whether a shared table in
+`overrides/shared/` describes it, by reading the verses at its boundaries in
+the version (not just comparing counts), and `use` it if so. The LSG tables were built by aligning the
 text verse by verse with a closely related version whose numbering is known
 (LSG against S21, by word overlap), then against NIV, and reading every
-boundary by eye. Then add test cases to `packages/core/test/versification.test.ts` for
+boundary by eye. The shared tables were checked the same way, version by
+version, against NIV, reading the verses around every boundary (text fetched
+from the API behind bible.com and cached under the survey's gitignored `out/`;
+Bible text isn't committed, and comments quote only the public-domain KJV).
+Then add test cases to `packages/core/test/versification.test.ts` for
 the verses you checked by eye, and run `npm run check`.
 
 ## The sync rules
