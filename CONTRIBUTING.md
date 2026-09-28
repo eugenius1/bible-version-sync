@@ -119,7 +119,7 @@ diff: the app never reads `tools/` itself, so what ships is exactly what's in
 the scan. The version then shows "Verse counts known".
 
 **Verifying a version.** Also add an entry to `VERIFIED` in
-`packages/core/scripts/gen-data.mjs`, and for each chapter that matches neither
+`packages/core/scripts/verified.mjs`, and for each chapter that matches neither
 system, write the correction table. The LSG tables were built by aligning the
 text verse by verse with a closely related version whose numbering is known
 (LSG against S21, by word overlap), then against NIV, and reading every

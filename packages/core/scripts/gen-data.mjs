@@ -5,19 +5,11 @@
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { VERIFIED } from "./verified.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const data = join(root, "data");
 const read = (...path) => readFileSync(join(data, ...path), "utf8");
-
-// Versions whose numbering was checked by hand, chapter by chapter. Every other
-// version in known_counts.json has scanned counts only.
-const VERIFIED = [
-  { abbr: "AMP", bibleId: 1588, language: "en", title: "Amplified Bible" },
-  { abbr: "NIV", bibleId: 111, language: "en", title: "New International Version" },
-  { abbr: "LSG", bibleId: 93, language: "fr", title: "Louis Segond 1910" },
-  { abbr: "S21", bibleId: 152, language: "fr", title: "Segond 21" },
-];
 
 // Everything here is keyed by bible id: abbreviations aren't unique (ARC is
 // both 212 and 3407), and the ones users type are their own.

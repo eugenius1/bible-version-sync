@@ -7,6 +7,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { VERIFIED } from "./verified.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const data = join(root, "data");
@@ -75,10 +76,16 @@ function writeJson(file, obj) {
 }
 
 const scanned = JSON.parse(readFileSync(join(survey, "counts.json"), "utf8"));
-const known = JSON.parse(readFileSync(join(data, "known_counts.json"), "utf8"));
+// Only the verified versions carry over from the old file (the scan, which
+// includes them, then refreshes their counts too). A version dropped from the
+// scan must go: bundled counts stop the app from reading the API index.
+const previous = JSON.parse(readFileSync(join(data, "known_counts.json"), "utf8"));
+const known = {};
+for (const { bibleId } of VERIFIED) if (previous[bibleId]) known[bibleId] = previous[bibleId];
 for (const [id, version] of Object.entries(scanned)) known[id] = exceptions(version);
-writeJson("known_counts.json", known);
 
+// Build and check the labels before writing anything, so a bad label can't
+// leave the two files from different scans.
 const labels = {};
 const addLabel = (id, vrs, from) => {
   if (!vrs) return;
@@ -91,6 +98,7 @@ const candidates = JSON.parse(readFileSync(join(survey, "candidates.json"), "utf
 for (const versions of Object.values(candidates)) {
   for (const v of versions) addLabel(String(v.id), v.vrs, "candidates.json");
 }
+writeJson("known_counts.json", known);
 writeJson("labels.json", labels);
 
 const total = Object.values(known).reduce((n, v) => n + Object.keys(v).length, 0);
