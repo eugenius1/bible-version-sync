@@ -31,16 +31,26 @@ package, runs all tests and builds the app. Run it before every commit.
 **App key and callback.** Create an app at
 <https://platform.youversion.com>. The key goes in `apps/pwa/.env.local` as
 `VITE_YV_APP_KEY` (git ignores that file). The app's callback URL must be
-`<origin>/callback`; the dev server is pinned to port 8001 so that
+`<origin><base>callback`, where the base is `/` except when deployed below a
+domain's root; the dev server is pinned to port 8001 so that
 `http://localhost:8001/callback` stays valid. The key isn't a secret — it's an
 OAuth client id and ends up in the built JavaScript — but keep your real value
 out of the repository anyway.
 
-**Deploying.** `npm run build` writes a static site to `apps/pwa/dist/`. Set
-`VITE_YV_APP_KEY` at build time, register `https://<domain>/callback` in the
-portal, and serve it with a fallback to `index.html` so `/callback` resolves.
-The production build carries a strict Content-Security-Policy (see
-`apps/pwa/vite.config.ts`).
+**Deploying.** Pushes to `main` deploy to GitHub Pages at
+<https://eusebius.tech/bible-version-sync/> (`.github/workflows/deploy.yml`).
+The custom domain belongs to the `eugenius1.github.io` user site, so this
+project is served under `/bible-version-sync/`, and the build is run with
+`--base=/bible-version-sync/`. The app key comes from the `VITE_YV_APP_KEY`
+repository variable (Settings → Secrets and variables → Actions → Variables),
+and `https://eusebius.tech/bible-version-sync/callback` must be registered in
+the portal. Pages has no SPA fallback, so the build copies `index.html` to
+`callback.html`, which Pages serves at `/callback`.
+
+To host it elsewhere, `npm run build` writes a static site to `apps/pwa/dist/`
+(add `-- --base=/path/` below a domain's root). Set `VITE_YV_APP_KEY` at build
+time and register `<origin><base>callback`. The production build carries a
+strict Content-Security-Policy (see `apps/pwa/vite.config.ts`).
 
 ## Layout
 

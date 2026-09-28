@@ -20,7 +20,7 @@ export type RunState =
   | { status: "error"; message: string };
 
 /** Served next to the app (see vite.config.ts), so the link works offline too. */
-const LICENCE_URL = "/LICENSE.txt";
+const LICENCE_URL = `${import.meta.env.BASE_URL}LICENSE.txt`;
 export function App() {
   if (isCallback()) return <Callback />;
   return <Main />;
@@ -92,7 +92,7 @@ function Callback() {
           <div className="space-y-4">
             <p className="font-medium">{t.callback.failed}</p>
             <p className="text-sm text-stone-600 dark:text-stone-400">{message}</p>
-            <a href="/" className="btn-primary">{t.app.back}</a>
+            <a href={import.meta.env.BASE_URL} className="btn-primary">{t.app.back}</a>
           </div>
         ) : (
           <p className="text-sm text-stone-600 dark:text-stone-400">{t.callback.finishing}</p>

@@ -1,6 +1,7 @@
 # Bible Version Sync
 
 [![CI](https://github.com/eugenius1/bible-version-sync/actions/workflows/ci.yml/badge.svg)](https://github.com/eugenius1/bible-version-sync/actions/workflows/ci.yml)
+[![Deploy](https://github.com/eugenius1/bible-version-sync/actions/workflows/deploy.yml/badge.svg)](https://github.com/eugenius1/bible-version-sync/actions/workflows/deploy.yml)
 [![codecov](https://codecov.io/gh/eugenius1/bible-version-sync/graph/badge.svg)](https://codecov.io/gh/eugenius1/bible-version-sync)
 
 Keep your YouVersion highlights in sync across Bible versions. Highlight a verse
@@ -10,7 +11,8 @@ where versions number their verses differently.
 Everything runs in your browser. There is no server: your sign-in and your
 highlights go only between your browser and YouVersion.
 
-Not hosted yet. To run it yourself, see [CONTRIBUTING.md](CONTRIBUTING.md).
+Use it at <https://eusebius.tech/bible-version-sync/>. To run it yourself, see
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## What it does
 

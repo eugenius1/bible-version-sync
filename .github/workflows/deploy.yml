@@ -1,0 +1,57 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time; a newer push supersedes a queued one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Fail without an app key
+        if: vars.VITE_YV_APP_KEY == ''
+        run: |
+          echo "::error::Set the VITE_YV_APP_KEY repository variable (Settings → Secrets and variables → Actions → Variables)."
+          exit 1
+
+      # The user site's custom domain (eusebius.tech) serves this project
+      # repository under /bible-version-sync/. The app key is an OAuth client
+      # id baked into the JavaScript, so a repository variable is enough.
+      - name: Build
+        run: npm run build -- --base=/bible-version-sync/
+        env:
+          VITE_YV_APP_KEY: ${{ vars.VITE_YV_APP_KEY }}
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/pwa/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

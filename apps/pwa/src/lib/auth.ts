@@ -2,8 +2,10 @@ import { authorizeUrl, createPkce, exchangeCode, interpretCallback, randomToken,
 import { tokenStore } from "./db";
 
 export const APP_KEY: string = import.meta.env.VITE_YV_APP_KEY ?? "";
-export const redirectUri = () => `${location.origin}/callback`;
-export const isCallback = () => location.pathname === "/callback";
+// BASE_URL is "/" in dev and the repository path on GitHub Pages.
+const BASE = import.meta.env.BASE_URL;
+export const redirectUri = () => `${location.origin}${BASE}callback`;
+export const isCallback = () => location.pathname === `${BASE}callback`;
 
 // localStorage rather than sessionStorage so the pending sign-in survives the
 // browser handing the redirect to a different tab or window.
@@ -60,7 +62,7 @@ export async function completeSignIn(): Promise<"redirecting" | "done"> {
   const tokens = await exchangeCode({ appKey: APP_KEY, code: step.code, redirectUri: redirectUri(), verifier: pending!.verifier });
   await tokenStore.set(tokens);
   localStorage.removeItem(PENDING);
-  history.replaceState(null, "", "/");
+  history.replaceState(null, "", BASE);
   return "done";
 }
 
