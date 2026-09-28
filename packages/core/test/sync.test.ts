@@ -31,6 +31,8 @@ class FakeApi implements HighlightsApi {
   store: Record<number, Record<string, string>> = Object.fromEntries(Object.values(IDS).map((i) => [i, {}]));
   failReads = new Set<string>();
   rejectWrites = new Set<string>();
+  /** Writes that fail once with a retryable error. */
+  flakyWrites = new Set<string>();
   writes = 0;
 
   hl(abbr: string, ref: string, color: string) {
@@ -50,6 +52,7 @@ class FakeApi implements HighlightsApi {
 
   async setHighlight(bibleId: number, passageId: string, color: string) {
     if (this.rejectWrites.has(`${bibleId}:${passageId}`)) throw new ApiError(422, "verse not in this version", passageId);
+    if (this.flakyWrites.delete(`${bibleId}:${passageId}`)) throw new ApiError(503, "try again", passageId);
     this.writes++;
     this.store[bibleId][passageId] = color;
   }
@@ -190,6 +193,24 @@ describe("sync", () => {
     expect((await sync("JHN")).actions).toEqual([]);
   });
 
+  it("retries a newcomer's fill that failed retryably", async () => {
+    const three = VERSIONS.filter((v) => v.abbr !== "S21");
+    const syncWith = async (versions: SyncVersion[]) => {
+      const plan = planBook("JHN", versions, await readBook(api, versions, "JHN"), state);
+      await applyPlan(api, versions, plan, state);
+      return plan;
+    };
+    api.hl("AMP", "JHN.1.1", "ff9999");
+    await syncWith(three);
+    api.flakyWrites.add(`${IDS.S21}:JHN.1.1`);
+    await syncWith(VERSIONS); // S21 added; its fill fails once
+    expect(api.color("S21", "JHN.1.1")).toBeNull();
+    const retry = await syncWith(VERSIONS);
+    expect(retry.actions.map((a) => [a.version, a.op, a.local])).toEqual([["S21", "set", "JHN.1.1"]]);
+    expect(api.color("S21", "JHN.1.1")).toBe("ff9999");
+    expect((await syncWith(VERSIONS)).actions).toEqual([]);
+  });
+
   it("forgets a removed version so re-adding it fills it again", async () => {
     api.hl("AMP", "JHN.1.1", "ff9999");
     await sync("JHN");
@@ -322,6 +343,17 @@ describe("a version whose mapping changed", () => {
     delete api.store[111]["PSA.92.1"];
     const removal = await run([NIV, synoNew]);
     expect(removal.actions.map((a) => [a.version, a.op, a.local])).toEqual([["SYNO", "remove", "PSA.91.2"]]);
+  });
+
+  it("retries a remapped version's fill that failed retryably", async () => {
+    await run([NIV, synoOld]);
+    api.store[111]["PSA.92.1"] = "a3d9ff";
+    api.flakyWrites.add("400:PSA.91.2");
+    await run([NIV, synoNew]); // the fill of Synodal 91:2 fails once
+    expect(syno("PSA.91.2")).toBeNull();
+    const retry = await run([NIV, synoNew]);
+    expect(retry.actions.map((a) => [a.version, a.op, a.local])).toEqual([["SYNO", "set", "PSA.91.2"]]);
+    expect(syno("PSA.91.2")).toBe("a3d9ff");
   });
 
   it("drops the old snapshot for the whole book, and forgets fingerprints with the version", async () => {

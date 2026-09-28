@@ -408,7 +408,12 @@ export async function applyPlan(
   for (const abbr of plan.remapped) forgetInBook(state, abbr, plan.book, Object.keys(plan.newState));
   state.maps ??= {};
   for (const [abbr, fp] of Object.entries(plan.maps)) (state.maps[abbr] ??= {})[plan.book] = fp;
-  for (const [key, list] of Object.entries(plan.members)) state.members[key] = list;
+  // A chapter with a verse left for retry keeps its old membership. A version
+  // that joined it in this plan (just added, or remapped) would otherwise be
+  // a member next time, and a fill that failed would look settled: no
+  // snapshot, no colour, no change. As a newcomer again it can only be filled.
+  const retryChapters = new Set([...retry].map(chapterKey));
+  for (const [key, list] of Object.entries(plan.members)) if (!retryChapters.has(key)) state.members[key] = list;
   for (const [canon, colors] of Object.entries(plan.newState)) {
     if (retry.has(canon)) continue; // keep the old snapshot so the next run tries again
     const kept = Object.fromEntries(Object.entries(colors).filter(([a]) => !rejected.get(canon)?.has(a)));
