@@ -10,8 +10,9 @@ import {
   isVerifiedVersion,
   parseRef,
   versificationLabel,
+  versionName,
 } from "../src";
-import { KNOWN_COUNTS, OVERRIDES } from "../src/data.generated";
+import { KNOWN_COUNTS, OVERRIDES, VERSION_NAMES } from "../src/data.generated";
 
 const MAPS: Record<string, VersionMap> = {
   NIV: buildVersionMap("NIV", 111).map,
@@ -275,6 +276,36 @@ describe("six numbering systems", () => {
     expect(versificationLabel(186)).toBe("lxx");
     expect(versificationLabel(93)).toBe("org");
     expect(versificationLabel(999999)).toBeUndefined();
+  });
+});
+
+describe("versionName", () => {
+  it("prefers a verified version's own name to YouVersion's", () => {
+    // YouVersion calls these NIV11 and "La Sainte Bible par Louis Segond 1910".
+    expect(VERSION_NAMES[111].abbr).toBe("NIV11");
+    expect(versionName(111)).toEqual({ abbr: "NIV", language: "en", title: "New International Version" });
+    expect(versionName(93)?.title).toBe("Louis Segond 1910");
+  });
+
+  it("names scanned versions in their own script, with a BCP 47 language", () => {
+    expect(versionName(400)).toEqual({ abbr: "SYNO", language: "ru", title: "Синодальный перевод" });
+    expect(versionName(13)?.language).toBe("ar");
+    expect(versionName(46)?.language).toBe("zh-TW"); // zho_tw in the survey
+    expect(versionName(83)).toEqual({ abbr: "JCB", language: "ja", title: "リビングバイブル" });
+  });
+
+  it("names versions surveyed but not scanned", () => {
+    expect(hasKnownCounts(12)).toBe(false);
+    expect(versionName(12)).toEqual({ abbr: "ASV", language: "en", title: "American Standard Version" });
+  });
+
+  it("has no name for a version nobody surveyed", () => {
+    expect(versionName(999999)).toBeUndefined();
+    expect(versionName(0)).toBeUndefined();
+  });
+
+  it("names every version with bundled counts", () => {
+    for (const id of Object.keys(KNOWN_COUNTS)) expect(versionName(Number(id)), id).toBeDefined();
   });
 });
 

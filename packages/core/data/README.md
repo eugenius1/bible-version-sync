@@ -16,6 +16,10 @@ are keyed by bible id throughout; abbreviations aren't unique.
   are listed in `scripts/verified.mjs`; the rest are scanned only.
 - `labels.json`: YouVersion's numbering label (`vrs`) by bible id, which the
   official API doesn't expose.
+- `names.json`: every surveyed version's abbreviation, title (in its own
+  script) and BCP 47 language by bible id, as YouVersion gives them, so the
+  app can name a version added by number. The verified versions' names in
+  `scripts/verified.mjs` take precedence.
 - `overrides/<bible id>.map`: hand-checked corrections for chapters that follow
   no system. Format: `LOCAL = CANONICAL` (canonical = org numbering), plus
   `use <name>` lines naming shared tables.
@@ -24,7 +28,7 @@ are keyed by bible id throughout; abbreviations aren't unique.
   at 17). A version gets one only through a `use` line, once its text has
   been read.
 
-`known_counts.json` (for scanned versions) and `labels.json` are written by
-`npm run import-survey -w @bvs/core` from the survey's `counts.json` and
-`candidates.json`. After editing anything here, run `npm run gen -w @bvs/core`
+`known_counts.json` (for scanned versions), `labels.json` and `names.json`
+are written by `npm run import-survey -w @bvs/core` from the survey's
+`counts.json` and `candidates.json`. After editing anything here, run `npm run gen -w @bvs/core`
 to regenerate `src/data.generated.ts`.

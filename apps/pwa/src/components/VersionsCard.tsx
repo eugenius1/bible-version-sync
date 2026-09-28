@@ -3,7 +3,7 @@ import { ArrowDown, ArrowUp, BadgeCheck, CircleAlert, Hash, Info, Plus, X } from
 import { useState } from "react";
 import { useI18n } from "../i18n";
 import type { VersionSetting } from "../lib/db";
-import { canReadHighlights, parseVersionInput, titleOf, type ResolvedVersion } from "../lib/versions";
+import { canReadHighlights, parseVersionInput, versionName, type ResolvedVersion } from "../lib/versions";
 
 const SOURCE_STYLE: Record<ResolvedVersion["source"], { tone: string; Icon: typeof BadgeCheck }> = {
   verified: { tone: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200", Icon: BadgeCheck },
@@ -34,11 +34,16 @@ export function VersionsCard({ settings, resolved, disabled, onChange }: Props) 
     void onChange(next);
   };
 
+  // What's being added, named as soon as it's recognised. A name the person
+  // types, or one in the link, beats YouVersion's abbreviation.
+  const parsed = parseVersionInput(input);
+  const known = parsed ? versionName(parsed.bibleId) : undefined;
+  const defaultName = (parsed?.abbr ?? known?.abbr)?.toUpperCase();
+
   const add = async () => {
     setError(null);
-    const parsed = parseVersionInput(input);
     if (!parsed) return setError(tv.errors.unparseable);
-    const name = (abbr || parsed.abbr || "").trim().toUpperCase();
+    const name = (abbr || defaultName || "").trim().toUpperCase();
     if (!name) return setError(tv.errors.needName);
     if (settings.some((s) => s.bibleId === parsed.bibleId)) return setError(tv.errors.duplicateVersion);
     if (settings.some((s) => s.abbr === name)) return setError(f(tv.errors.duplicateName, { name }));
@@ -64,14 +69,21 @@ export function VersionsCard({ settings, resolved, disabled, onChange }: Props) 
           const source = r ? tv.source[r.source] : null;
           const src = source && { ...source, hint: f(source.hint, { system: tv.systems[assumedScheme(v.bibleId)] }) };
           const style = r ? SOURCE_STYLE[r.source] : null;
+          const name = versionName(v.bibleId);
           return (
             <li key={v.bibleId} className="flex items-center gap-3 py-2.5">
               <span className="w-5 text-right text-sm tabular-nums text-stone-500 dark:text-stone-400">{i + 1}</span>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                   <span className="font-medium">{v.abbr}</span>
-                  <span className="truncate text-sm text-stone-600 dark:text-stone-400">
-                    {titleOf(v.bibleId) ?? f(tv.unnamed, { id: v.bibleId })}
+                  {/* Titles are in the version's own script; lang picks the right
+                      glyphs (Japanese, not Chinese) and dir lets Arabic run right to left. */}
+                  <span
+                    className="truncate text-sm text-stone-600 dark:text-stone-400"
+                    lang={name?.language}
+                    dir={name ? "auto" : undefined}
+                  >
+                    {name?.title ?? f(tv.unnamed, { id: v.bibleId })}
                   </span>
                 </div>
                 {src && style ? (
@@ -144,7 +156,7 @@ export function VersionsCard({ settings, resolved, disabled, onChange }: Props) 
           />
           <input
             className="input sm:w-24"
-            placeholder={tv.namePlaceholder}
+            placeholder={defaultName ?? tv.namePlaceholder}
             aria-label={tv.nameLabel}
             value={abbr}
             disabled={disabled || adding}
@@ -155,6 +167,11 @@ export function VersionsCard({ settings, resolved, disabled, onChange }: Props) 
             {adding ? tv.adding : tv.add}
           </button>
         </div>
+        {known && (
+          <p className="text-sm text-stone-600 dark:text-stone-400" lang={known.language} dir="auto">
+            {known.title}
+          </p>
+        )}
         <p className="text-xs text-stone-600 dark:text-stone-400">
           {tv.addHelp} <span className="font-mono">bible.com/bible/<b>1</b>/JHN.3.<b>KJV</b></span>
         </p>

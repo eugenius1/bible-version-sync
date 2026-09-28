@@ -1,15 +1,15 @@
 import {
   ApiError,
-  VERIFIED_VERSIONS,
   buildVersionMap,
   hasKnownCounts,
+  versionName,
   type NumberingSource,
   type SyncVersion,
 } from "@bvs/core";
 import { client } from "./auth";
 import { store, type VersionSetting } from "./db";
 
-export { parseVersionInput } from "@bvs/core";
+export { parseVersionInput, versionName } from "@bvs/core";
 
 export type { NumberingSource };
 
@@ -17,8 +17,6 @@ export interface ResolvedVersion extends SyncVersion {
   title?: string;
   source: NumberingSource;
 }
-
-export const titleOf = (bibleId: number) => VERIFIED_VERSIONS.find((v) => v.bibleId === bibleId)?.title;
 
 /**
  * Build verse maps for the configured versions. Versions with bundled counts
@@ -48,7 +46,7 @@ export async function resolveVersions(settings: VersionSetting[]): Promise<Resol
       }
     }
     const { map, source } = buildVersionMap(v.abbr, v.bibleId, index ?? undefined);
-    out.push({ abbr: v.abbr, bibleId: v.bibleId, map, source, title: titleOf(v.bibleId) });
+    out.push({ abbr: v.abbr, bibleId: v.bibleId, map, source, title: versionName(v.bibleId)?.title });
   }
   return out;
 }

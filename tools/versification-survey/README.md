@@ -23,8 +23,8 @@ S21). It doesn't know the `rso`/`rsc`/`lxx`/`vul` support added since;
 and is the measurement to trust.
 
 The app doesn't read this folder. `npm run import-survey -w @bvs/core` copies
-each scanned version's exception counts and every `vrs` label (from
-`counts.json` and `candidates.json`) into `packages/core/data/`, so a new scan
+each scanned version's exception counts, and every `vrs` label and version
+name (from `counts.json` and `candidates.json`), into `packages/core/data/`, so a new scan
 changes the app only through a reviewed diff there.
 
 ## `counts.json`
