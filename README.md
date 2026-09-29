@@ -64,8 +64,10 @@ version in your browser's languages, most used versions first, and offers to
 use the ones it finds. It only reads; "Find my versions" runs it again. A
 version you only highlight in elsewhere won't be found; add it by hand.
 
-You can add any other YouVersion version by pasting its bible.com link. The app
-tells you how sure it is of that version's numbering:
+You can add any other YouVersion version by searching for its name,
+abbreviation or number (versions in your languages come first), or by
+pasting its bible.com link. The app tells you how sure it is of that
+version's numbering:
 
 - **Verified numbering**: checked chapter by chapter.
 - **Verse counts known**: the app comes with the verse count of every chapter

@@ -181,7 +181,11 @@ language, or their number when that's shared too: NVI (es), ARC (212). The
 app shows the title beside it and falls back to "Version {id}" once the
 names are loaded and don't have it. Titles are in the version's own script,
 so they're rendered with `lang` (Japanese glyphs rather than Chinese) and
-`dir="auto"` (Arabic).
+`dir="auto"` (Arabic). The add field searches these names
+(`searchVersions`): every word must appear in the number, abbreviation or
+title, accents and case aside; an exact number comes first, then the
+reader's languages in their order, then exact and leading abbreviation
+matches, then popularity. A number bible.com doesn't name is still offered.
 
 **Finding the person's versions.** There's no "list my highlights", so
 `discoverVersions` (`packages/core/src/discover.ts`) reads three

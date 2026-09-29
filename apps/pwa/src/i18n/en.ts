@@ -91,10 +91,14 @@ export const en = {
     remove: "Remove {abbr}",
     confirmRemove: "Remove {abbr} from syncing? Its highlights stay in YouVersion.",
     addLabel: "Add a version",
-    addPlaceholder: "bible.com link or version number",
+    addPlaceholder: "Search by name, abbreviation or number",
     add: "Add",
     adding: "Checking…",
-    addHelp: "Open the version on bible.com and copy the address, for example:",
+    addHelp: "Your languages come first. You can also paste a link from bible.com, like",
+    alreadyAdded: "Already added",
+    number: "No. {id}",
+    moreResults: "Showing {shown} of {total}. Keep typing to narrow it down.",
+    noResults: "No version matches “{query}”.",
     find: {
       examples: "These are example versions. Let the app find the ones you highlight in, or add your own below.",
       button: "Find my versions",
@@ -114,8 +118,6 @@ export const en = {
       useThese: ["Use this version", "Use these {n} versions instead"],
     },
     errors: {
-      unparseable: "Paste a bible.com link like bible.com/bible/111/JHN.3.NIV, or type the number (111).",
-      duplicateVersion: "That version is already in the list.",
       cantRead: "Couldn't read highlights for version {id}: {problem}",
       unsupported:
         "Version {id} can't be synced: {n} of its chapters match neither English nor Hebrew numbering, and YouVersion doesn't say which system it follows, so highlights would land on the wrong verses.",

@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 
 import { BOOKS, Standard, VersionMap } from "@bvs/core";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../../i18n";
@@ -66,30 +66,86 @@ describe("VersionsCard", () => {
     expect(screen.getByText("Version 999999")).not.toHaveAttribute("lang");
   });
 
-  it("names a version as soon as its number is typed, and adds it by number", async () => {
-    const onChange = renderCard([{ abbr: "NIV", bibleId: 111 }]);
-    await userEvent.type(screen.getByLabelText("Add a version"), "12");
-    // ASV's name is in the chunk of every version's name, which the card loads.
-    expect(await screen.findByText("American Standard Version")).toHaveAttribute("lang", "en");
-    await userEvent.click(screen.getByRole("button", { name: "Add" }));
-    expect(onChange).toHaveBeenCalledWith([111, 12]);
-  });
+  describe("adding a version", () => {
+    const search = async (text: string) => {
+      await userEvent.type(screen.getByRole("combobox", { name: "Add a version" }), text);
+      return screen.findAllByRole("option");
+    };
 
-  it("refuses a version already in the list", async () => {
-    const onChange = renderCard([{ abbr: "NIV", bibleId: 111 }]);
-    await userEvent.type(screen.getByLabelText("Add a version"), "111");
-    await userEvent.click(screen.getByRole("button", { name: "Add" }));
-    expect(screen.getByText("That version is already in the list.")).toBeInTheDocument();
-    expect(onChange).not.toHaveBeenCalled();
-  });
+    it("finds a version by its number and shows its abbreviation, title, language and number", async () => {
+      const onChange = renderCard([{ abbr: "NIV", bibleId: 111 }]);
+      const [asv] = await search("12");
+      expect(asv).toHaveTextContent("ASV");
+      expect(within(asv).getByText("American Standard Version")).toHaveAttribute("lang", "en");
+      expect(asv).toHaveTextContent("English · No. 12");
+      await userEvent.click(asv);
+      await vi.waitFor(() => expect(onChange).toHaveBeenCalledWith([111, 12]));
+      expect(screen.getByRole("combobox")).toHaveValue("");
+    });
 
-  it("refuses to add a version whose numbering it can't map", async () => {
-    getIndex.mockResolvedValue(synodalIndex);
-    const onChange = renderCard([{ abbr: "NIV", bibleId: 111 }]);
-    await userEvent.type(screen.getByLabelText("Add a version"), "999998");
-    await userEvent.click(screen.getByRole("button", { name: "Add" }));
-    expect(await screen.findByText(/Version 999998 can't be synced: 153 of its chapters/)).toBeInTheDocument();
-    expect(onChange).not.toHaveBeenCalled();
+    it("finds versions by abbreviation or title, ignoring accents, the reader's languages first", async () => {
+      renderCard([{ abbr: "NIV", bibleId: 111 }]);
+      const segond = (await search("segond")).map((o) => o.textContent);
+      expect(segond.some((t) => t?.includes("La Sainte Bible par Louis Segond 1910"))).toBe(true);
+      expect(segond.some((t) => t?.includes("La Bible Segond 21"))).toBe(true);
+      await userEvent.clear(screen.getByRole("combobox"));
+      expect((await search("edition de geneve"))[0]).toHaveTextContent("Nouvelle Edition de Genève 1979");
+      // jsdom reads English: the English KJV comes before the Thai one.
+      await userEvent.clear(screen.getByRole("combobox"));
+      const kjv = (await search("kjv")).map((o) => o.textContent ?? "");
+      expect(kjv[0]).toContain("King James Version");
+      expect(kjv.findIndex((t) => t.includes("Thai"))).toBeGreaterThan(kjv.findIndex((t) => t.includes("English")));
+    });
+
+    it("finds the version in a pasted bible.com link", async () => {
+      renderCard([{ abbr: "NIV", bibleId: 111 }]);
+      const options = await search("https://www.bible.com/bible/1/JHN.3.KJV");
+      expect(options).toHaveLength(1);
+      expect(options[0]).toHaveTextContent("King James Version");
+    });
+
+    it("shows a version already in the list as added, and won't add it again", async () => {
+      const onChange = renderCard([{ abbr: "NIV", bibleId: 111 }]);
+      const [niv] = await search("111");
+      expect(niv).toHaveTextContent("Already added");
+      expect(niv).toHaveAttribute("aria-disabled", "true");
+      await userEvent.click(niv);
+      await userEvent.keyboard("{Enter}");
+      expect(getHighlights).not.toHaveBeenCalled();
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it("starts the keyboard on the first result that can be added", async () => {
+      const onChange = renderCard([{ abbr: "NIV", bibleId: 111 }]);
+      const options = await search("niv"); // NIV itself first, already added
+      expect(options[0]).toHaveTextContent("Already added");
+      expect(options[1]).toHaveAttribute("aria-selected", "true");
+      await userEvent.keyboard("{Enter}");
+      await vi.waitFor(() => expect(onChange).toHaveBeenCalledWith([111, 113])); // NIVUK
+    });
+
+    it("adds the highlighted result with the keyboard", async () => {
+      const onChange = renderCard([{ abbr: "NIV", bibleId: 111 }]);
+      await search("king james");
+      await userEvent.keyboard("{Enter}");
+      await vi.waitFor(() => expect(onChange).toHaveBeenCalledWith([111, 1]));
+    });
+
+    it("says when nothing matches", async () => {
+      renderCard([{ abbr: "NIV", bibleId: 111 }]);
+      await userEvent.type(screen.getByRole("combobox"), "no such version anywhere");
+      expect(screen.getByText("No version matches “no such version anywhere”.")).toBeInTheDocument();
+    });
+
+    it("offers a number bible.com doesn't name, and refuses it if its numbering can't be mapped", async () => {
+      getIndex.mockResolvedValue(synodalIndex);
+      const onChange = renderCard([{ abbr: "NIV", bibleId: 111 }]);
+      const [unknown] = await search("999998");
+      expect(unknown).toHaveTextContent("Version 999998");
+      await userEvent.click(unknown);
+      expect(await screen.findByText(/Version 999998 can't be synced: 153 of its chapters/)).toBeInTheDocument();
+      expect(onChange).not.toHaveBeenCalled();
+    });
   });
 
   it("explains a saved version whose numbering it can't map", () => {

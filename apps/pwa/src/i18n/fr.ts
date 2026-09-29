@@ -91,10 +91,14 @@ export const fr: Dictionary = {
     remove: "Retirer {abbr}",
     confirmRemove: "Retirer {abbr} de la synchronisation ? Ses surlignages restent dans YouVersion.",
     addLabel: "Ajouter une version",
-    addPlaceholder: "Lien bible.com ou numéro de version",
+    addPlaceholder: "Rechercher par nom, abréviation ou numéro",
     add: "Ajouter",
     adding: "Vérification…",
-    addHelp: "Ouvrez la version sur bible.com et copiez l'adresse, par exemple :",
+    addHelp: "Vos langues d'abord. Vous pouvez aussi coller un lien de bible.com, comme",
+    alreadyAdded: "Déjà ajoutée",
+    number: "N° {id}",
+    moreResults: "{shown} sur {total} affichées. Continuez à taper pour affiner.",
+    noResults: "Aucune version ne correspond à « {query} ».",
     find: {
       examples: "Ce sont des versions d'exemple. Laissez l'application trouver celles où vous surlignez, ou ajoutez les vôtres ci-dessous.",
       button: "Trouver mes versions",
@@ -114,8 +118,6 @@ export const fr: Dictionary = {
       useThese: ["Utiliser cette version", "Utiliser ces {n} versions à la place"],
     },
     errors: {
-      unparseable: "Collez un lien bible.com comme bible.com/bible/93/JHN.3.LSG, ou tapez le numéro (93).",
-      duplicateVersion: "Cette version est déjà dans la liste.",
       cantRead: "Impossible de lire les surlignages de la version {id} : {problem}",
       unsupported:
         "La version {id} ne peut pas être synchronisée : {n} de ses chapitres ne suivent ni la numérotation anglaise ni l'hébraïque, et YouVersion n'indique pas le système qu'elle suit, donc les surlignages tomberaient sur les mauvais versets.",

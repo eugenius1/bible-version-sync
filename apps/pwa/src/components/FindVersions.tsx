@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useI18n } from "../i18n";
 import { client } from "../lib/auth";
 import type { VersionSetting } from "../lib/db";
-import { problemText, resolveVersion } from "../lib/versions";
+import { problemText, readerLanguages, resolveVersion } from "../lib/versions";
 
 interface Found {
   bibleId: number;
@@ -28,12 +28,6 @@ interface Props {
   fresh: boolean;
   /** The new list, as bible ids. */
   onChange: (next: number[]) => void | Promise<void>;
-}
-
-/** The languages a person reads in, as best the browser can tell. */
-function readerLanguages(appLocale: string): string[] {
-  const nav = typeof navigator === "undefined" ? [] : (navigator.languages ?? [navigator.language]);
-  return [...nav, appLocale].filter(Boolean);
 }
 
 /**

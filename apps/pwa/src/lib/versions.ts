@@ -62,6 +62,12 @@ export async function resolveVersion(v: VersionSetting): Promise<ResolvedVersion
   return { abbr: v.abbr, bibleId: v.bibleId, map, source, unfit };
 }
 
+/** The languages a person reads in, as best the browser can tell, then the app's own. */
+export function readerLanguages(appLocale: string): string[] {
+  const nav = typeof navigator === "undefined" ? [] : (navigator.languages ?? [navigator.language]);
+  return [...nav, appLocale].filter(Boolean);
+}
+
 /** A short description of a failed request, for an error message. */
 export const problemText = (e: unknown) => (e instanceof ApiError ? e.detail || `HTTP ${e.status}` : String(e));
 
