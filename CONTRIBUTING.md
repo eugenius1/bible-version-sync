@@ -6,9 +6,13 @@ of rules that bind coding agents specifically.
 
 ## Running it
 
-Needs Node 24 (or npm 11; `.nvmrc` pins the version CI uses, so `nvm use`) and a YouVersion Platform app key. npm 10 crashes
+Needs Node 22.12 or later (vite and vitest require it; `.npmrc` sets
+`engine-strict`, so `npm install` refuses an unsupported Node, including
+odd-numbered releases such as 23, which vitest doesn't support) and a
+YouVersion Platform app key. `.nvmrc` pins Node 24, the version CI uses, so
+`nvm use` regenerates the bundled data exactly as CI does. npm 10 crashes
 installing this workspace ("Cannot read properties of null (reading
-'edgesOut')"); on an older Node, `npx npm@11 install` works. npm 11 holds back
+'edgesOut')"); on Node 22, `npx npm@11 install` works. npm 11 holds back
 esbuild's install script by default, which the build doesn't need.
 
 ```bash
