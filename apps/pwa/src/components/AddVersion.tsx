@@ -181,20 +181,28 @@ export function AddVersion({ added, disabled, onAdd }: Props) {
         </ul>
       )}
 
-      {open && results.length > MAX_RESULTS && (
-        <p className="text-xs text-stone-600 dark:text-stone-400">
-          {f(tv.moreResults, { shown: num(MAX_RESULTS), total: num(results.length) })}
-        </p>
-      )}
-      {open && results.length === 0 && (
-        <p className="text-sm text-stone-600 dark:text-stone-400">{f(tv.noResults, { query: query.trim() })}</p>
-      )}
+      {/* Focus stays in the field, so counts and empty results are announced
+          from a region that's always there (one inserted with its text may not be). */}
+      <div role="status" aria-live="polite">
+        {open && results.length > MAX_RESULTS && (
+          <p className="text-xs text-stone-600 dark:text-stone-400">
+            {f(tv.moreResults, { shown: num(MAX_RESULTS), total: num(results.length) })}
+          </p>
+        )}
+        {open && results.length === 0 && (
+          <p className="text-sm text-stone-600 dark:text-stone-400">{f(tv.noResults, { query: query.trim() })}</p>
+        )}
+      </div>
       {!open && (
         <p className="text-xs text-stone-600 dark:text-stone-400">
           {tv.addHelp} <span className="font-mono">bible.com/bible/<b>1</b>/JHN.3.<b>KJV</b></span>
         </p>
       )}
-      {error && <p className="text-sm text-red-700 dark:text-red-300">{error}</p>}
+      {error && (
+        <p role="alert" className="text-sm text-red-700 dark:text-red-300">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

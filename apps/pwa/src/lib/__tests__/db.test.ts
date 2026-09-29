@@ -52,9 +52,22 @@ describe("labelVersions", () => {
 });
 
 describe("formerNames", () => {
-  it("takes the names saved with each version", () => {
-    const saved = [{ abbr: "MINE", bibleId: 93 }, { abbr: "NVI-128", bibleId: 128 }, { bibleId: 111 }];
-    expect(formerNames(saved, [])).toEqual(new Map([["MINE", 93], ["NVI-128", 128]]));
+  it("takes the names saved with each version, over the old rule's", async () => {
+    await defaultVersions([]);
+    // 93 was saved as MINE; the old rule would have called 1588 "AMP" too.
+    const saved = [{ abbr: "MINE", bibleId: 93 }, { abbr: "AMP", bibleId: 1 }, { abbr: "NVI-128", bibleId: 128 }];
+    const names = formerNames(saved, []);
+    expect(names.get("MINE")).toBe(93);
+    expect(names.get("NVI-128")).toBe(128);
+    expect(names.get("AMP")).toBe(1);
+  });
+
+  it("names versions saved with ids only by the old rule", async () => {
+    await defaultVersions([]);
+    // Settings changed, and so saved as ids, before an old snapshot was converted.
+    const names = formerNames([{ bibleId: 93 }, { bibleId: 149 }], []);
+    expect(names.get("LSG")).toBe(93);
+    expect(names.get("RVR1960")).toBe(149);
   });
 
   it("names the example versions by the old rule when nothing was saved", async () => {

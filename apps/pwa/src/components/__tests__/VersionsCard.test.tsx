@@ -134,7 +134,8 @@ describe("VersionsCard", () => {
     it("says when nothing matches", async () => {
       renderCard([{ abbr: "NIV", bibleId: 111 }]);
       await userEvent.type(screen.getByRole("combobox"), "no such version anywhere");
-      expect(screen.getByText("No version matches “no such version anywhere”.")).toBeInTheDocument();
+      // Announced: focus stays in the field.
+      expect(screen.getByText("No version matches “no such version anywhere”.").closest("[role=status]")).not.toBeNull();
     });
 
     it("offers a number bible.com doesn't name, and refuses it if its numbering can't be mapped", async () => {
@@ -143,7 +144,7 @@ describe("VersionsCard", () => {
       const [unknown] = await search("999998");
       expect(unknown).toHaveTextContent("Version 999998");
       await userEvent.click(unknown);
-      expect(await screen.findByText(/Version 999998 can't be synced: 153 of its chapters/)).toBeInTheDocument();
+      expect(await screen.findByRole("alert")).toHaveTextContent(/Version 999998 can't be synced: 153 of its chapters/);
       expect(onChange).not.toHaveBeenCalled();
     });
   });

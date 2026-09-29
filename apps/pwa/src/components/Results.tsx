@@ -175,7 +175,8 @@ function BookRow({ result: b }: { result: BookResult }) {
             <ul className="grid gap-1">
               {actions.slice(0, MAX_ROWS).map((a) => (
                 <li key={`${a.version}:${a.local}`} className="flex items-center gap-2">
-                  <span className="w-10 font-medium">{nameOf(names, a.version)}</span>
+                  {/* Names can run longer than an abbreviation: "NVI (es)", "ARC (212)". */}
+                  <span className="min-w-10 shrink-0 whitespace-nowrap font-medium">{nameOf(names, a.version)}</span>
                   <Swatch color={a.color} />
                   <span>{ref(a.local)}</span>
                   <span className="text-stone-600 dark:text-stone-400">{tr.action[a.reason]}</span>

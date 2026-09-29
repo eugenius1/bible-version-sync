@@ -53,25 +53,39 @@ export function labelVersions(ids: readonly number[]): VersionSetting[] {
 
 /**
  * The names the app gave versions before the snapshot was keyed by bible id,
- * so a snapshot from then can be carried over (see migrateState). Saved
- * settings held the names themselves. Without them the example list was in
- * use, named by the old rule: bible.com's abbreviation in capitals, the
- * number after a clash, or the number alone. A name two versions could have
- * had is left out, which leaves that snapshot behind rather than guessing.
+ * so a snapshot from then can be carried over (see migrateState). Settings
+ * saved then hold the names themselves, and they win. Otherwise the old rule
+ * named them: bible.com's abbreviation in capitals, the number after a
+ * clash, or the number alone. That covers the example list, in use when
+ * nothing was saved, and settings saved since with ids only (changed while
+ * the snapshot was still waiting to be converted). A name two versions could
+ * have had is left out, which leaves that snapshot behind rather than
+ * guessing. Needs the names chunk loaded for any name but the saved ones.
  */
 export function formerNames(saved: { abbr?: string; bibleId: number }[] | undefined, examples: readonly number[]): Map<string, number> {
-  if (saved) return new Map(saved.filter((v) => v.abbr).map((v) => [v.abbr!, v.bibleId]));
   const names = new Map<string, number | null>();
   const add = (name: string, id: number) => names.set(name, names.has(name) && names.get(name) !== id ? null : id);
-  for (const id of new Set([...examples, ...DEFAULT_SETTINGS.versions.map((v) => v.bibleId)])) {
+  const ids = [...(saved ?? []).map((v) => v.bibleId), ...examples, ...DEFAULT_SETTINGS.versions.map((v) => v.bibleId)];
+  for (const id of new Set(ids)) {
     const abbr = (versionName(id)?.abbr ?? String(id)).toUpperCase();
     add(abbr, id);
     add(`${abbr}-${id}`, id);
     add(String(id), id);
   }
   for (const v of DEFAULT_SETTINGS.versions) add(v.abbr, v.bibleId);
-  return new Map([...names].filter((e): e is [string, number] => e[1] !== null));
+  const out = new Map([...names].filter((e): e is [string, number] => e[1] !== null));
+  for (const v of saved ?? []) if (v.abbr) out.set(v.abbr, v.bibleId);
+  return out;
 }
+
+/**
+ * Snapshots converted without every name they might need (offline, before
+ * the names chunk was cached, with no names saved to go by). Converting drops
+ * what it can't place, so such a snapshot is never saved: saving it would
+ * lose the rest for good, while the next read online converts it fully.
+ * Tracked by object, because a sync saves the very object it was given.
+ */
+const provisional = new WeakSet<SyncState>();
 
 /**
  * The example list before the person chooses: the most used version of each
@@ -147,17 +161,23 @@ export const store = {
     if (!saved || saved.keys === "bibleId") return migrateState(saved, new Map());
     const settings = await get<SavedSettings>("settings");
     let examples: number[] = [];
+    let named = true;
     try {
       await loadVersionNames();
       if (!settings) examples = await exampleIds(readerLanguages());
     } catch {
-      // Offline before the app was cached: only the built-in examples' names.
+      // Offline before the app was cached: only saved names, and the built-in examples'.
+      named = !!settings?.versions.every((v) => v.abbr);
     }
     const state = migrateState(saved, formerNames(settings?.versions, examples));
-    await put("state", state);
+    if (named) await put("state", state);
+    else provisional.add(state);
     return state;
   },
-  setState: (s: SyncState) => put("state", s),
+  /** Saves the snapshot, unless it's a provisional conversion (see above). */
+  setState: async (s: SyncState) => {
+    if (!provisional.has(s)) await put("state", s);
+  },
 
   /** Cached /v1/bibles/{id}/index, or null when the app key may not read it. */
   getIndex: (bibleId: number) => get<unknown | null>(`index:${bibleId}`),
