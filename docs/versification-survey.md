@@ -25,7 +25,10 @@ one verse on purpose: Synod (167), BTI (313) and CARS (385) keep Nehemiah
 7:67. Held back: 19 that print many merged
 verses (over 100 spans, or a Living Bible paraphrase), until merged-verse
 highlighting is tested (#3, task 5), and GNA2025 (67) and NR2006 (4833),
-which number some chapters `PSA.1_1`, like TUKARA84 below.
+which number some chapters `PSA.1_1`, like TUKARA84 below. BEX2004 (3286, La
+Bible expliquée), scanned later, is held back for the same reason: 190
+merged spans, though its counts fit English or Hebrew numbering in every
+chapter.
 
 **Columns.** *Label*: YouVersion's system for the version. *Fits*: of the ~348
 chapters where the systems disagree, how many match the label / another system
