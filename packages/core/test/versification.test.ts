@@ -13,6 +13,10 @@ import {
   loadVersionNames,
   versionName,
   versionNamesLoaded,
+  versionsInLanguages,
+  versionRank,
+  byPopularity,
+  mostUsedVersions,
 } from "../src";
 import { KNOWN_COUNTS, OVERRIDES, VERIFIED_VERSIONS } from "../src/data.generated";
 
@@ -318,6 +322,36 @@ describe("versionName", () => {
 
     it("names each verified version as the verified list does", () => {
       for (const v of VERIFIED_VERSIONS) expect(versionName(v.bibleId)?.abbr).toBe(v.abbr);
+    });
+
+    it("lists the versions in a language by its primary subtag", () => {
+      const english = versionsInLanguages(["en-GB"]);
+      expect(english).toContain(111);
+      expect(english).not.toContain(93);
+      expect(versionsInLanguages(["fr", "EN"])).toEqual(expect.arrayContaining([93, 152, 111]));
+      expect(versionsInLanguages(["zh"])).toContain(46); // zh-TW
+      expect(versionsInLanguages([])).toEqual([]);
+    });
+
+    it("ranks the most used versions first, and each language's default before the rest", () => {
+      expect(versionRank(111)).toBe(0); // NIV
+      expect(versionRank(1)).toBe(1); // KJV
+      expect(versionRank(4443)).toBe(0); // Arum's only version, its default
+      expect(versionRank(3869)).toBe(5); // romanised Arabic's default, after the Arabic list
+      expect(versionRank(400)).toBe(0); // Synodal
+      expect(versionRank(193)).toBe(0); // Vietnamese 1925
+      expect(versionRank(12)).toBe(Infinity); // ASV
+      // Equal ranks go by the reader's languages, then oldest id first.
+      expect(byPopularity([12, 152, 1, 93, 111, 8], ["en", "fr"])).toEqual([111, 93, 1, 152, 8, 12]);
+      expect(versionsInLanguages(["fr"]).slice(0, 3)).toEqual([93, 152, 21]); // LSG, S21, BDS
+      expect(versionsInLanguages(["en"])).toHaveLength(88);
+    });
+
+    it("picks the most used version of the reader's first three languages", () => {
+      expect(mostUsedVersions(["en-GB", "en", "fr-FR", "es", "de"])).toEqual([111, 93, 149]); // NIV, LSG, RVR1960
+      expect(mostUsedVersions(["pt-BR"])).toEqual([129]); // NVI
+      expect(mostUsedVersions(["xx", "en"])).toEqual([111]);
+      expect(mostUsedVersions([])).toEqual([]);
     });
 
     it("names versions in their own script, with a BCP 47 language", () => {

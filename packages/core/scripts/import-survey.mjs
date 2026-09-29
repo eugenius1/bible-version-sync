@@ -160,13 +160,20 @@ for (const [lang, versions] of Object.entries(candidates)) {
   for (const v of versions) addName(String(v.id), v.local_abbreviation, v.local_title, lang, "candidates.json");
 }
 
+// The version bible.com opens for each language: the one popularity signal
+// YouVersion publishes (see versionRank). Only the ids are kept.
+const defaults = [...new Set(Object.values(JSON.parse(readFileSync(join(survey, "defaults.json"), "utf8"))))].sort(byNumber);
+for (const id of defaults) if (!names[id]) throw new Error(`defaults.json: ${id} isn't a listed version`);
+
 writeJson("known_counts.json", known);
 writeJson("labels.json", labels);
 writeJson("names.json", names, { inline: true });
+writeFileSync(join(data, "defaults.json"), `[\n${defaults.join(",\n")}\n]\n`);
 
 const total = Object.values(known).reduce((n, v) => n + Object.keys(v).length, 0);
 console.log(
   `wrote data/known_counts.json (${Object.keys(known).length} versions, ${total} chapters)` +
     `, data/labels.json (${Object.keys(labels).length} labels)` +
-    ` and data/names.json (${Object.keys(names).length} names)`,
+    `, data/names.json (${Object.keys(names).length} names)` +
+    ` and data/defaults.json (${defaults.length} language defaults)`,
 );

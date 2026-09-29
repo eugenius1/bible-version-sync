@@ -436,6 +436,7 @@ export function isVerifiedVersion(bibleId: number): boolean {
 }
 
 let allNames: Map<number, VersionName> | undefined;
+let ranks: Map<number, number> | undefined;
 let loadingNames: Promise<void> | undefined;
 
 /**
@@ -445,11 +446,21 @@ let loadingNames: Promise<void> | undefined;
  */
 export function loadVersionNames(): Promise<void> {
   loadingNames ??= import("./names.generated").then(
-    ({ NAMES_BY_LANGUAGE }) => {
+    ({ NAMES_BY_LANGUAGE, POPULAR, DEFAULT_VERSION_IDS }) => {
       const map = new Map<number, VersionName>();
       for (const [language, list] of Object.entries(NAMES_BY_LANGUAGE)) {
         for (const [id, abbr, title] of list) map.set(id, { abbr, language, title });
       }
+      // A language's default comes first, unless the language is ranked by
+      // hand: then it goes where the list puts it, or just after the list.
+      const rank = new Map<number, number>();
+      let id = 0;
+      for (const gap of DEFAULT_VERSION_IDS.split(",")) {
+        id += parseInt(gap, 36);
+        rank.set(id, POPULAR[map.get(id)?.language.split("-")[0] ?? ""]?.length ?? 0);
+      }
+      for (const list of Object.values(POPULAR)) list.forEach((id, i) => rank.set(id, i));
+      ranks = rank;
       allNames = map;
     },
     (e: unknown) => {
@@ -467,6 +478,60 @@ export function loadVersionNames(): Promise<void> {
  */
 export function versionName(bibleId: number): VersionName | undefined {
   return allNames?.get(bibleId);
+}
+
+/**
+ * Bible ids of every version in these languages, once loadVersionNames is
+ * done. Matched on the primary subtag, so "en-GB" finds English versions and
+ * "zh" finds both Simplified and Traditional Chinese.
+ */
+export function versionsInLanguages(languages: readonly string[]): number[] {
+  const primary = [...new Set(languages.map((l) => l.split("-")[0].toLowerCase()))];
+  const ids = [...(allNames ?? [])]
+    .filter(([, n]) => primary.includes(n.language.split("-")[0].toLowerCase()))
+    .map(([id]) => id);
+  return byPopularity(ids, languages);
+}
+
+/**
+ * How widely used a version is, lower first, once loadVersionNames is done:
+ * its place in its language's hand-ranked list (scripts/popular.mjs); for
+ * the version bible.com opens for its language, 0, or just after the list
+ * when the language has one; else Infinity. It ranks
+ * versions within a language; across languages, see byPopularity.
+ */
+export function versionRank(bibleId: number): number {
+  return ranks?.get(bibleId) ?? Infinity;
+}
+
+/**
+ * The most used version of each of the reader's first `max` languages, in
+ * their order, once loadVersionNames is done. A language YouVersion has no
+ * version in gives none.
+ */
+export function mostUsedVersions(languages: readonly string[], max = 3): number[] {
+  const primary = [...new Set(languages.map((l) => l.split("-")[0].toLowerCase()))].slice(0, max);
+  const out: number[] = [];
+  for (const l of primary) {
+    const top = versionsInLanguages([l])[0];
+    if (top !== undefined && !out.includes(top)) out.push(top);
+  }
+  return out;
+}
+
+/**
+ * Bible ids, most widely used first. Equal ranks go by the reader's order of
+ * languages (NIV, then LSG, then KJV for an English reader who also reads
+ * French), then by id: YouVersion numbered the versions it carried first
+ * (KJV is 1) lowest, and those are the established ones.
+ */
+export function byPopularity(ids: readonly number[], languages: readonly string[] = []): number[] {
+  const primary = languages.map((l) => l.split("-")[0].toLowerCase());
+  const place = (id: number) => {
+    const i = primary.indexOf(allNames?.get(id)?.language.split("-")[0].toLowerCase() ?? "");
+    return i < 0 ? primary.length : i;
+  };
+  return [...ids].sort((a, b) => versionRank(a) - versionRank(b) || place(a) - place(b) || a - b);
 }
 
 /** Whether loadVersionNames has finished, so a missing name means an unknown version. */

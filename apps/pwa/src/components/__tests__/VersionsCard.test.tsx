@@ -12,15 +12,18 @@ const getIndex = vi.fn();
 vi.mock("../../lib/auth", () => ({
   client: { getHighlights: (...a: unknown[]) => getHighlights(...a), getIndex: (id: number) => getIndex(id) },
 }));
-vi.mock("../../lib/db", () => ({ store: { getIndex: async () => undefined, setIndex: async () => undefined } }));
+vi.mock("../../lib/db", async (actual) => ({
+  ...(await actual<typeof import("../../lib/db")>()),
+  store: { getIndex: async () => undefined, setIndex: async () => undefined },
+}));
 
 const { VersionsCard } = await import("../VersionsCard");
 type Resolved = Parameters<typeof VersionsCard>[0]["resolved"];
 
-function renderCard(settings: VersionSetting[], onChange = vi.fn(), resolved: Resolved = null) {
+function renderCard(settings: VersionSetting[], onChange = vi.fn(), resolved: Resolved = null, fresh = false) {
   render(
     <I18nProvider>
-      <VersionsCard settings={settings} resolved={resolved} disabled={false} onChange={onChange} />
+      <VersionsCard settings={settings} resolved={resolved} disabled={false} fresh={fresh} onChange={onChange} />
     </I18nProvider>,
   );
   return onChange;
@@ -118,5 +121,60 @@ describe("VersionsCard", () => {
     ]);
     expect(screen.getByText("Numbering not supported")).toBeInTheDocument();
     expect(screen.getByText(/^153 chapters of this version match neither/)).toBeInTheDocument();
+  });
+
+  describe("finding the person's versions", () => {
+    // KJV (1) highlighted in John 3, ASV (12) only in Romans 8; nothing elsewhere.
+    beforeEach(() => {
+      getHighlights.mockImplementation(async (id: number, chapter: string) =>
+        (id === 1 && chapter === "JHN.3") ? [{ bible_id: 1, passage_id: "JHN.3.16", color: "fffe00" }]
+        : (id === 12 && chapter === "ROM.8") ? [
+            { bible_id: 12, passage_id: "ROM.8.28", color: "fffe00" },
+            { bible_id: 12, passage_id: "ROM.8.38", color: "5dff79" },
+          ]
+        : [],
+      );
+    });
+
+    it("looks straight away on a first visit, and offers to replace the example versions", async () => {
+      const onChange = renderCard([{ abbr: "LSG", bibleId: 93 }, { abbr: "S21", bibleId: 152 }], vi.fn(), null, true);
+      expect(screen.getByText(/These are example versions/)).toBeInTheDocument();
+      await userEvent.click(await screen.findByRole("button", { name: "Use these 2 versions instead" }));
+      // Most used first (KJV is ranked, ASV isn't), named as bible.com names them.
+      expect(onChange).toHaveBeenCalledWith([
+        { abbr: "KJV", bibleId: 1 },
+        { abbr: "ASV", bibleId: 12 },
+      ]);
+      expect(screen.getByText("2 highlighted verses in the sample")).toBeInTheDocument();
+      expect(screen.getByText("No highlights found in LSG and S21 in the chapters sampled.")).toBeInTheDocument();
+      // Only reads: nothing but highlights and indexes is asked for.
+      expect(getHighlights).toHaveBeenCalledWith(111, "JHN.3");
+      expect(getHighlights).not.toHaveBeenCalledWith(1, "ROM.8"); // KJV already found
+      // The most used versions are asked about first.
+      expect(getHighlights.mock.calls.slice(0, 3).map(([id]) => id)).toEqual([111, 93, 1]); // NIV, LSG (French default-level rank), KJV
+    });
+
+    it("waits to be asked once the person has chosen versions, and adds one at a time", async () => {
+      const onChange = renderCard([{ abbr: "KJV", bibleId: 1 }, { abbr: "NIV", bibleId: 111 }]);
+      expect(getHighlights).not.toHaveBeenCalled();
+      await userEvent.click(screen.getByRole("button", { name: "Find my versions" }));
+      await userEvent.click(await screen.findByRole("button", { name: "Add ASV" }));
+      expect(onChange).toHaveBeenCalledWith([
+        { abbr: "KJV", bibleId: 1 },
+        { abbr: "NIV", bibleId: 111 },
+        { abbr: "ASV", bibleId: 12 },
+      ]);
+      expect(screen.getByText("In your list")).toBeInTheDocument(); // KJV
+      expect(screen.queryByRole("button", { name: /Use these/ })).not.toBeInTheDocument();
+      expect(screen.getByText("No highlights found in NIV in the chapters sampled.")).toBeInTheDocument();
+    });
+
+    it("says so when signed out or offline", async () => {
+      const { ApiError } = await import("@bvs/core");
+      getHighlights.mockRejectedValue(new ApiError(401, "sign-in expired"));
+      renderCard([{ abbr: "KJV", bibleId: 1 }]);
+      await userEvent.click(screen.getByRole("button", { name: "Find my versions" }));
+      expect(await screen.findByText("Couldn't finish looking: sign-in expired")).toBeInTheDocument();
+    });
   });
 });
