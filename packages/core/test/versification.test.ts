@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   BOOKS,
@@ -372,6 +373,27 @@ describe("versionName", () => {
       expect(versionName(2377)?.language).toBe("fuv-Arab"); // fuv_ar
       expect(versionName(1637)?.language).toBe("es-ES"); // spa_es
       expect(versionName(3173)?.language).toBe("gax"); // gax_ars, Arsi Oromo
+    });
+
+    it("keeps YouVersion's tag where CLDR's alias would lose precision", () => {
+      expect(versionName(1866)?.language).toBe("gom"); // Goan Konkani, not the Konkani macrolanguage kok
+      expect(versionName(3208)?.language).toBe("mnk"); // Mandinka, not the Mandingo macrolanguage man
+    });
+
+    // scripts/language-tags.mjs writes every tag out rather than asking Intl
+    // for the canonical form, which changes with Node's ICU. So a tag this
+    // runtime would write differently is either one of the two kept on
+    // purpose or a sign that CLDR changed: look before accepting it.
+    it("bundles only language tags this runtime's Intl.Locale keeps as they are", () => {
+      const names: Record<string, { language: string }> = JSON.parse(
+        readFileSync(new URL("../data/names.json", import.meta.url), "utf8"),
+      );
+      const kept = new Set(["gom", "mnk"]);
+      const drift = [...new Set(Object.values(names).map((n) => n.language))]
+        .filter((t) => !kept.has(t.split("-")[0]))
+        .filter((t) => new Intl.Locale(t).toString() !== t)
+        .map((t) => `${t} -> ${new Intl.Locale(t).toString()}`);
+      expect(drift).toEqual([]);
     });
 
     it("has no name for a version YouVersion doesn't list", () => {

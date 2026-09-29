@@ -8,6 +8,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { bcp47 } from "./language-tags.mjs";
 import { VERIFIED } from "./verified.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -117,21 +118,10 @@ for (const versions of Object.values(candidates)) {
 // 2 KB) and let the add form name any version someone is likely to add. The
 // survey's ISO 639-3 codes become BCP 47 (eng -> en, zho_tw -> zh-TW) for the
 // page's lang attribute, which picks Japanese rather than Chinese glyphs, and
-// the voice a screen reader uses.
+// the voice a screen reader uses, by a fixed table (language-tags.mjs), so
+// the result doesn't depend on the Node version.
 const names = {};
 const BIBLE_ID = /^[1-9]\d*$/;
-// YouVersion's language tags are ISO 639-3, some with a suffix of its own
-// for the script or the country (hin_ro is Hindi in Roman script, fuv_ar
-// Fulfulde in Arabic script, spa_es Spanish of Spain). The clear ones become
-// the BCP 47 script or region; any other suffix (gax_ars, Arsi Oromo) is a
-// variety BCP 47 has no subtag for, and the base language is enough.
-const TAG_SUFFIX = {
-  rom: "Latn", ro: "Latn", lat: "Latn", latn: "Latn", ltr: "Latn",
-  ar: "Arab", arb: "Arab", kur: "Arab",
-  cyr: "Cyrl",
-  dev: "Deva", dv: "Deva",
-  es: "ES", pt: "PT", tw: "TW", mz: "MZ",
-};
 // Control characters, and bidi overrides that would reorder the text around a title.
 const UNPRINTABLE = /[\p{Cc}\u202A-\u202E\u2066-\u2069]/u;
 const addName = (id, abbr, title, lang, from) => {
@@ -143,11 +133,9 @@ const addName = (id, abbr, title, lang, from) => {
   }
   let language;
   try {
-    const [base, suffix] = String(lang).split("_");
-    const extra = suffix === undefined ? undefined : TAG_SUFFIX[suffix];
-    [language] = Intl.getCanonicalLocales(extra ? `${base}-${extra}` : base);
-  } catch {
-    throw new Error(`${from}: ${id}: bad language ${JSON.stringify(lang)}`);
+    language = bcp47(lang);
+  } catch (e) {
+    throw new Error(`${from}: ${id}: bad language ${JSON.stringify(lang)}: ${e.message}`);
   }
   const name = { abbr, language, title };
   if (names[id] && JSON.stringify(names[id]) !== JSON.stringify(name)) {

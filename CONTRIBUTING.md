@@ -6,7 +6,7 @@ of rules that bind coding agents specifically.
 
 ## Running it
 
-Needs Node 24 (or npm 11) and a YouVersion Platform app key. npm 10 crashes
+Needs Node 24 (or npm 11; `.nvmrc` pins the version CI uses, so `nvm use`) and a YouVersion Platform app key. npm 10 crashes
 installing this workspace ("Cannot read properties of null (reading
 'edgesOut')"); on an older Node, `npx npm@11 install` works. npm 11 holds back
 esbuild's install script by default, which the build doesn't need.
@@ -169,7 +169,12 @@ bundle: `gen-data.mjs` writes it to `src/names.generated.ts`, which
 The versions card starts the load when it mounts, and `versionName()`
 returns nothing until it's done. YouVersion's language tags become BCP 47
 (`eng` → `en`, `zho_tw` → `zh-TW`, `hin_ro` → `hi-Latn`; a suffix with no
-BCP 47 equivalent, like `gax_ars` for Arsi Oromo, is dropped). YouVersion has
+BCP 47 equivalent, like `gax_ars` for Arsi Oromo, is dropped), by a fixed
+table in `scripts/language-tags.mjs` rather than `Intl`'s canonical form,
+which changes with Node's ICU (it turned `mnk`, Mandinka, into `man` on one
+Node and `gom`, Goan Konkani, into `kok` on another). Those two keep
+YouVersion's more precise tag; a test flags any other tag the runtime would
+write differently. YouVersion has
 two abbreviations per version, and bible.com shows
 `local_abbreviation` (NIV, НРП), not `abbreviation` (NIV11, NRT); the survey's
 `names.py` records it. The verified versions are named the same way, and

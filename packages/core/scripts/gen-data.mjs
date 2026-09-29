@@ -5,6 +5,7 @@
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { TAG } from "./language-tags.mjs";
 import { POPULAR } from "./popular.mjs";
 import { VERIFIED } from "./verified.mjs";
 
@@ -147,10 +148,9 @@ for (const scheme of SCHEMES) {
 // Each surveyed version's name as YouVersion gives it (see
 // scripts/import-survey.mjs), so a version added by number isn't nameless.
 // A language tag must be well formed and conventionally cased. Which alias is
-// preferred is left to the importer: Node's CLDR data changes it between
-// releases (Node 23 maps mnk to man, Node 24 man to mnk), so demanding the
-// canonical form here would make the build depend on the Node version.
-const TAG = /^[a-z]{2,3}(-[A-Z][a-z]{3})?(-([A-Z]{2}|\d{3}))?$/;
+// preferred is the importer's fixed table (language-tags.mjs): Node's CLDR
+// data changes the canonical form between releases (mnk and man, gom and
+// kok), so demanding it here would make the build depend on the Node version.
 const wellFormed = (tag) => {
   try {
     return TAG.test(tag) && Intl.getCanonicalLocales(tag).length === 1;
