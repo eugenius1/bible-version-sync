@@ -106,7 +106,7 @@ export const fr: Dictionary = {
       progress: "Recherche de vos surlignages · {done} sur {total}",
       stop: "Arrêter",
       failed: "Impossible de terminer la recherche : {problem}",
-      none: "Aucun surlignage trouvé dans les chapitres examinés (Jean 3, Romains 8, Philippiens 4, Jérémie 29). Ajoutez vos versions ci-dessous.",
+      none: "Aucun surlignage trouvé dans les chapitres examinés (Ésaïe 41, Philippiens 4, Jean 3). Ajoutez vos versions ci-dessous.",
       foundTitle: "Vous surlignez dans",
       verses: ["{n} verset surligné dans l'échantillon", "{n} versets surlignés dans l'échantillon"],
       unsupported: "Numérotation non prise en charge, elle ne peut donc pas être synchronisée",

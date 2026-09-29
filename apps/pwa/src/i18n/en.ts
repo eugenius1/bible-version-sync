@@ -106,7 +106,7 @@ export const en = {
       progress: "Looking for your highlights · {done} of {total}",
       stop: "Stop",
       failed: "Couldn't finish looking: {problem}",
-      none: "No highlights found in the chapters sampled (John 3, Romans 8, Philippians 4, Jeremiah 29). Add your versions below.",
+      none: "No highlights found in the chapters sampled (Isaiah 41, Philippians 4, John 3). Add your versions below.",
       foundTitle: "You highlight in",
       verses: ["{n} highlighted verse in the sample", "{n} highlighted verses in the sample"],
       unsupported: "Numbering not supported, so it can't be synced",

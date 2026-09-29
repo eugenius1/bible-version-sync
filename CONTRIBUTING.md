@@ -181,11 +181,14 @@ number. Titles are in the version's own script, so they're rendered with `lang` 
 Chinese) and `dir="auto"` (Arabic).
 
 **Finding the person's versions.** There's no "list my highlights", so
-`discoverVersions` (`packages/core/src/discover.ts`) reads four
-often-highlighted chapters (John 3, Romans 8, Philippians 4, Jeremiah 29, none
-of which moves between numbering systems) in every version in the browser's
-languages, stopping at a version's first hit: about 90 versions and up to 400
-reads for English. It runs by itself only on a first visit (no saved settings,
+`discoverVersions` (`packages/core/src/discover.ts`) reads three
+often-highlighted chapters (Isaiah 41, Philippians 4, John 3, none
+of which moves between numbering systems, most highlighted first by
+YouVersion's yearly figures) in every version in the browser's languages,
+stopping at a version's first hit: about 90 versions and up to 270 reads for
+English, and the progress counts the most it could take (versions × 3). A
+version found is checked for supported numbering straight away, so it can be
+added while the scan goes on. It runs by itself only on a first visit (no saved settings,
 empty sync memory), when the default list is just an example; replacing the
 list is only offered then, since replacing a synced list would drop its
 snapshots. Versions are asked about, and listed, most used first

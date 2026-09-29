@@ -124,13 +124,13 @@ describe("VersionsCard", () => {
   });
 
   describe("finding the person's versions", () => {
-    // KJV (1) highlighted in John 3, ASV (12) only in Romans 8; nothing elsewhere.
+    // KJV (1) highlighted in Isaiah 41, ASV (12) only in John 3; nothing elsewhere.
     beforeEach(() => {
       getHighlights.mockImplementation(async (id: number, chapter: string) =>
-        (id === 1 && chapter === "JHN.3") ? [{ bible_id: 1, passage_id: "JHN.3.16", color: "fffe00" }]
-        : (id === 12 && chapter === "ROM.8") ? [
-            { bible_id: 12, passage_id: "ROM.8.28", color: "fffe00" },
-            { bible_id: 12, passage_id: "ROM.8.38", color: "5dff79" },
+        (id === 1 && chapter === "ISA.41") ? [{ bible_id: 1, passage_id: "ISA.41.10", color: "fffe00" }]
+        : (id === 12 && chapter === "JHN.3") ? [
+            { bible_id: 12, passage_id: "JHN.3.16", color: "fffe00" },
+            { bible_id: 12, passage_id: "JHN.3.17", color: "5dff79" },
           ]
         : [],
       );
@@ -149,7 +149,7 @@ describe("VersionsCard", () => {
       expect(screen.getByText("No highlights found in LSG and S21 in the chapters sampled.")).toBeInTheDocument();
       // Only reads: nothing but highlights and indexes is asked for.
       expect(getHighlights).toHaveBeenCalledWith(111, "JHN.3");
-      expect(getHighlights).not.toHaveBeenCalledWith(1, "ROM.8"); // KJV already found
+      expect(getHighlights).not.toHaveBeenCalledWith(1, "PHP.4"); // KJV already found
       // The most used versions are asked about first.
       expect(getHighlights.mock.calls.slice(0, 3).map(([id]) => id)).toEqual([111, 93, 1]); // NIV, LSG (French default-level rank), KJV
     });
@@ -167,6 +167,24 @@ describe("VersionsCard", () => {
       expect(screen.getByText("In your list")).toBeInTheDocument(); // KJV
       expect(screen.queryByRole("button", { name: /Use these/ })).not.toBeInTheDocument();
       expect(screen.getByText("No highlights found in NIV in the chapters sampled.")).toBeInTheDocument();
+    });
+
+    it("lets a found version be added while the rest are still being looked for", async () => {
+      // ASV's John 3 never answers, so the scan is still running after KJV is found.
+      const pending = new Promise<never>(() => {});
+      const found = getHighlights.getMockImplementation()!;
+      getHighlights.mockImplementation((id: number, chapter: string) => (id === 12 && chapter === "JHN.3" ? pending : found(id, chapter)));
+      const onChange = renderCard([{ abbr: "NIV", bibleId: 111 }, { abbr: "AMP", bibleId: 1588 }]);
+      await userEvent.click(screen.getByRole("button", { name: "Find my versions" }));
+      const add = await screen.findByRole("button", { name: "Add KJV" });
+      await vi.waitFor(() => expect(add).toBeEnabled()); // once its numbering is checked
+      expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
+      await userEvent.click(add);
+      expect(onChange).toHaveBeenCalledWith([
+        { abbr: "NIV", bibleId: 111 },
+        { abbr: "AMP", bibleId: 1588 },
+        { abbr: "KJV", bibleId: 1 },
+      ]);
     });
 
     it("says so when signed out or offline", async () => {
