@@ -5,6 +5,7 @@ from collections import Counter, defaultdict
 HERE = os.path.dirname(__file__)
 sys.path.insert(0, os.path.join(HERE, "..", "python-cli"))
 from yvsync.versification import BOOKS, Standard, VersionMap, load_overrides  # current engine (eng/org)
+from scan import plain_chapters  # MAT.1_1 is Matthew 1 (int("1_1") would be 11)
 
 SCHEMES = ["eng", "org", "rso", "rsc", "lxx", "vul"]
 # The app's copies: one set of .vrs files, the ones that ship.
@@ -62,7 +63,7 @@ def load(vid):
     if os.path.exists(raw):
         d = json.load(open(raw))
         gaps, merged = [], []
-        for usfm, r in d["chapters"].items():
+        for usfm, r in plain_chapters(vid, d["chapters"]).items():
             b, c = usfm.split(".")
             vs = (r or {}).get("verses") or []
             mx = max(vs) if vs else 0
