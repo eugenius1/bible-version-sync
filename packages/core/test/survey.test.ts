@@ -18,11 +18,12 @@ import {
 
 // The real engine over every chapter of the versions scanned for
 // docs/versification-survey.md, so what the survey measured stays true: the
-// 54 widely used versions of the original survey and 54 more from the
-// hand-made ranking (scripts/popular.mjs), all labelled, and 220 that
+// 54 widely used versions of the original survey and 56 more from the
+// hand-made ranking (scripts/popular.mjs), all labelled, and 221 that
 // YouVersion leaves unlabelled, scanned for label coverage: mostly a single
 // Gospel, or Ruth and Jonah, plus 11 in languages where Synodal or Septuagint
-// numbering is common.
+// numbering is common. GNA2025, NR2006 and TUKARA84 id some chapters
+// BOOK.<n>_1; scan.py counts those as chapter <n>.
 interface Scanned {
   abbr: string;
   vrs: StdScheme | null;
@@ -103,6 +104,9 @@ const SKIPPED: Record<number, number> = {
   313: 0, 328: 394, 385: 0, 449: 31, 819: 100, 903: 31, 1276: 449, 1637: 17, 1638: 0, 1755: 108, 1818: 69,
   1819: 0, 1820: 0, 1930: 0, 1980: 0, 1996: 31, 2095: 0, 2195: 0, 2311: 0, 2645: 43, 2692: 17, 3269: 7,
   3368: 318, 3490: 206, 3803: 0, 4369: 17, 4639: 0, 4804: 118, 4869: 0,
+  // GNA2025 (Psalm 13) and NR2006 (the LSG-like 1 Samuel 20, Psalm 13 and
+  // Ecclesiastes 11-12, and 2 Samuel 20), whose Psalms are ided PSA.<n>_1.
+  67: 7, 4833: 97,
 };
 
 // Chapters where the engine deliberately departs from the label's table, each
@@ -209,10 +213,11 @@ describe("unlabelled versions", () => {
     1374: 22, 1604: 88, 1611: 52, 1927: 66, 2056: 27, 2320: 72, 2404: 22, 2532: 213, 2598: 13, 2750: 26,
     3081: 36, 3479: 30, 3800: 116, 3807: 21, 3836: 26, 4175: 4, 4182: 22, 4221: 4, 4446: 22, 4490: 22,
     4720: 36, 4867: 26, 1706: 109, 2301: 150, 3275: 500, 3719: 85,
+    3404: 62, // TUKARA84, Matthew 1 in 24 verses and 15 in 38
   };
 
   it("are refused only when Synodal or Septuagint numbered", () => {
-    expect(UNLABELLED.length).toBe(220);
+    expect(UNLABELLED.length).toBe(221);
     for (const id of UNLABELLED) {
       const { source, unfit } = buildVersionMap(SCAN[id].abbr, id);
       if (id in REFUSED) {

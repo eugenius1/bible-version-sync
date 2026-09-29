@@ -71,6 +71,37 @@ def chapters_per_book():
                 out[parts[0]] = max(out.get(parts[0], 0), len(parts) - 1)
     return out
 
+SUFFIXED = re.compile(r"^([0-9A-Z]{3})\.(\d+)_1$")
+
+def plain_chapters(vid, chapters):
+    """The scan's chapters keyed BOOK.chapter, whatever id YouVersion gave them.
+
+    Some versions id some chapters BOOK.<n>_1 (GNA2025's Psalms and Philemon,
+    NR2006's Psalms and Job, TUKARA84's Matthew), and their verses
+    BOOK.<n>_1.<v>. Each is an ordinary chapter <n>, numbered from verse 1;
+    only the id differs, so the scan requests it as given and counts it as
+    <n>. Only `_1` has been seen: any other suffix is refused, since a `_2`
+    could be the second half of a chapter. A plain id with verses beside a
+    suffixed one would be two chapters claiming one number, so that refuses
+    the version too; an empty plain id (NR2006 lists PSA.1, 73, 90 and 107
+    with no verses beside PSA.1_1 and so on) is no chapter at all.
+    """
+    has_verses = lambda r: bool(r and r["verses"])
+    out = {}
+    for u, r in chapters.items():
+        if u.split(".")[1].isdigit():
+            if u in out and has_verses(out[u]) and has_verses(r): raise ValueError(f"{vid}: {u} twice")
+            if u not in out or has_verses(r): out[u] = r
+            continue
+        m = SUFFIXED.match(u)
+        if not m: raise ValueError(f"{vid}: a chapter id that isn't BOOK.<n> or BOOK.<n>_1: {u}")
+        plain = f"{m[1]}.{m[2]}"
+        if has_verses(chapters.get(plain)) and has_verses(r):
+            raise ValueError(f"{vid}: {u} and {plain} both have verses")
+        if r: r = {**r, "merged": [s.replace(f"{u}.", f"{plain}.") for s in r["merged"]]}
+        if plain not in out or has_verses(r): out[plain] = r
+    return out
+
 def add(vids):
     """Copy scans from out/ into data/counts.json, in its compact form."""
     counts = json.load(open(COUNTS))
@@ -79,12 +110,9 @@ def add(vids):
         d = json.load(open(os.path.join(OUT, f"{vid}.json")))
         entry = {"abbr": d["abbr"], "local_abbr": d["local_abbr"], "title": d["title"], "lang": d["lang"], "vrs": d["vrs"],
                  "counts": {}, "gaps": {}, "merged": []}
-        odd = [u for u in d["chapters"] if not u.split(".")[1].isdigit()]
-        # TUKARA84 (3404) numbers Matthew's chapters 1_1, 2_1...: not USFM, so
-        # nothing the engine could map or the highlights API would take.
-        if odd: raise ValueError(f"{vid}: chapters that aren't numbers, e.g. {odd[0]}")
+        chapters = plain_chapters(vid, d["chapters"])
         for b in d["books"]:
-            chs = sorted((int(u.split(".")[1]), r) for u, r in d["chapters"].items() if u.split(".")[0] == b)
+            chs = sorted((int(u.split(".")[1]), r) for u, r in chapters.items() if u.split(".")[0] == b)
             # By position, to the book's full length: a version may have only
             # some chapters (Luke 15), and a chapter it lacks is 0, as a 404 is.
             by_ch = {c: max(r["verses"], default=0) if r else 0 for c, r in chs}
