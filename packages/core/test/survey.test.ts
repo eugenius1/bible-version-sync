@@ -18,7 +18,8 @@ import {
 
 // The real engine over every chapter of the versions scanned for
 // docs/versification-survey.md, so what the survey measured stays true: the
-// 54 widely used versions of the original survey, all labelled, and 220 that
+// 54 widely used versions of the original survey and 54 more from the
+// hand-made ranking (scripts/popular.mjs), all labelled, and 220 that
 // YouVersion leaves unlabelled, scanned for label coverage: mostly a single
 // Gospel, or Ruth and Jonah, plus 11 in languages where Synodal or Septuagint
 // numbering is common.
@@ -94,6 +95,14 @@ const SKIPPED: Record<number, number> = {
   1990: 0,
   // Were 2,670, 3,052 and 2,329 with eng/org only.
   143: 0, 400: 0, 186: 0,
+  // The rest of the hand-made ranking (scripts/popular.mjs), scanned later
+  // and given no correction tables: what they skip is the chapters that fit
+  // no system, many of them ones a shared table describes in other versions.
+  19: 0, 40: 49, 41: 317, 43: 0, 57: 31, 74: 0, 100: 17, 103: 17, 105: 0, 106: 300, 107: 0, 108: 0, 110: 17,
+  123: 148, 138: 31, 139: 0, 140: 0, 146: 17, 165: 394, 167: 0, 177: 31, 195: 17, 197: 0, 199: 0, 205: 0,
+  313: 0, 328: 394, 385: 0, 449: 31, 819: 100, 903: 31, 1276: 449, 1637: 17, 1638: 0, 1755: 108, 1818: 69,
+  1819: 0, 1820: 0, 1930: 0, 1980: 0, 1996: 31, 2095: 0, 2195: 0, 2311: 0, 2645: 43, 2692: 17, 3269: 7,
+  3368: 318, 3490: 206, 3803: 0, 4369: 17, 4639: 0, 4804: 118, 4869: 0,
 };
 
 // Chapters where the engine deliberately departs from the label's table, each
@@ -104,6 +113,15 @@ const OFF_LABEL: Record<number, Record<string, number>> = {
   // is the same verse.
   143: { "NEH.7": 1 },
   400: { "NEH.7": 1 },
+  // The same verse in the other Synodal-numbered Russian versions: Synod
+  // (167, rso), BTI (313, rsc) and CARS (385, rsc). In each, as in SYNO, NRT
+  // and NIV, 7:67 is the servants and singers, 7:68 the horses and mules
+  // (bracketed in BTI, as absent from the Hebrew), 7:69 the camels and
+  // donkeys and 7:70 the governor's gift, so English numbering is right
+  // verse for verse, and rso/rsc would fold the horses into the singers.
+  167: { "NEH.7": 1 },
+  313: { "NEH.7": 1 },
+  385: { "NEH.7": 1 },
   // UBIO follows Hebrew order here; lxx's counts match by coincidence
   // (lxx Exodus 36:9ff is Hebrew 39:2ff, lxx Jeremiah 34 and 36 are Hebrew
   // 27 and 29). UBIO Jeremiah 36:1 is Jehoiakim's fourth year, the scroll.

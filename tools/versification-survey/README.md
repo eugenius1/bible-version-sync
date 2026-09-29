@@ -14,7 +14,7 @@ handles each.
 | `unlabelled.py` | For the unlabelled, unscanned versions, reads which chapters each has (one cached `version.json` each) and prints the ids to scan, cheapest languages first, to reach a share of languages fully known (`python3 unlabelled.py 0.8`). |
 | `names.py` | Adds the abbreviation bible.com shows (`local_abbreviation`: NIV, where the internal `abbreviation` is NIV11) to `data/counts.json` as `local_abbr`. One cached request per language. |
 | `analyse.py` | Classifies every chapter against six numbering systems and simulates the engine. Reads `out/` if present, else `data/counts.json`; writes `data/analysis.json` and prints a summary. Reads the six SIL [libpalaso](https://github.com/sillsdev/libpalaso) `.vrs` files (MIT) from `packages/core/data/`, the copies the app ships. |
-| `data/counts.json` | The scan (Sept 2026), compact: the survey's 54 widely used versions and 220 unlabelled ones scanned for label coverage. |
+| `data/counts.json` | The scan (Sept 2026), compact: the survey's 54 widely used versions, 54 more from the app's hand-made ranking (`packages/core/scripts/popular.mjs`), and 220 unlabelled ones scanned for label coverage. |
 | `data/analysis.json` | `analyse.py`'s output for that scan. |
 | `data/defaults.json` | The version bible.com opens for each language (Sept 2026), by language tag. |
 | `data/candidates.json` | Every version of every language YouVersion lists (3,864 in 2,462 languages, Sept 2026), by language tag, with its numbering label and name. |
