@@ -16,6 +16,18 @@ languages ([below](#label-coverage)); a version whose counts no available
 system explains is refused ([below](#refusing-what-cant-be-mapped)). The
 tables here are the survey as taken, against the two-system engine.
 
+The rest of the app's hand-made ranking (`packages/core/scripts/popular.mjs`)
+was scanned later the same way and 56 of its versions bundled; none is
+refused, and none has a misplaced verse. Three depart from their label in
+one verse on purpose: Synod (167), BTI (313) and CARS (385) keep Nehemiah
+7:68 (horses and mules) with English 7:68, as SYNO and NRT do, since their
+7:67–7:73 match NIV verse for verse, where `rso`/`rsc` would fold 7:68 into
+7:67. Two of the 56, GNA2025 (67) and NR2006 (4833), id some chapters
+`PSA.1_1`, like TUKARA84 below, and were bundled once `scan.py` counted
+those as ordinary chapters. Held back: 19 that print many merged verses
+(over 100 spans, or a Living Bible paraphrase), until merged-verse
+highlighting is tested (#3, task 5).
+
 **Columns.** *Label*: YouVersion's system for the version. *Fits*: of the ~348
 chapters where the systems disagree, how many match the label / another system
 / none. *Skipped*: verses the engine of the time (eng/org detection plus our
@@ -287,8 +299,8 @@ gzipped app; packed per scheme as base-36 gaps between sorted ids, 1.6 KB.
 Names for every version are 100 KB gzipped (titles in their own scripts
 don't compress well), so they moved out of the main bundle into a chunk the
 app loads when the versions card mounts, and the main bundle names none. The
-220 scanned versions' counts add 6.4 KB (a book a version lacks is stored as
-one `"BOOK": 0`). Built with an app key (without one the UI is tree-shaken
+221 scanned versions' counts add 6.4 KB (a book a version lacks is stored as
+one `"BOOK": 0`; TUKARA84, added since, is 33 bytes of that, gzipped). Built with an app key (without one the UI is tree-shaken
 away and sizes mislead), the main bundle is 166.2 KB gzipped against 166.0 KB
 before, plus the 100.7 KB names chunk.
 
