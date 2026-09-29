@@ -18,7 +18,11 @@ tables here are the survey as taken, against the two-system engine.
 
 The rest of the app's hand-made ranking (`packages/core/scripts/popular.mjs`)
 was scanned later the same way and 54 of its versions bundled; none is
-refused, and none has a misplaced verse. Held back: 19 that print many merged
+refused, and none has a misplaced verse. Three depart from their label in
+one verse on purpose: Synod (167), BTI (313) and CARS (385) keep Nehemiah
+7:68 (horses and mules) with English 7:68, as SYNO and NRT do, since their
+7:67–7:73 match NIV verse for verse, where `rso`/`rsc` would fold 7:68 into
+7:67. Held back: 19 that print many merged
 verses (over 100 spans, or a Living Bible paraphrase), until merged-verse
 highlighting is tested (#3, task 5), and GNA2025 (67) and NR2006 (4833),
 which number some chapters `PSA.1_1`, like TUKARA84 below.

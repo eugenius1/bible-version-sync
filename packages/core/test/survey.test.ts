@@ -114,8 +114,11 @@ const OFF_LABEL: Record<number, Record<string, number>> = {
   143: { "NEH.7": 1 },
   400: { "NEH.7": 1 },
   // The same verse in the other Synodal-numbered Russian versions: Synod
-  // (167, rso), BTI (313, rsc) and CARS (385, rsc). Not read on the text:
-  // the engine treats it as in SYNO and NRT, whose text was.
+  // (167, rso), BTI (313, rsc) and CARS (385, rsc). In each, as in SYNO, NRT
+  // and NIV, 7:67 is the servants and singers, 7:68 the horses and mules
+  // (bracketed in BTI, as absent from the Hebrew), 7:69 the camels and
+  // donkeys and 7:70 the governor's gift, so English numbering is right
+  // verse for verse, and rso/rsc would fold the horses into the singers.
   167: { "NEH.7": 1 },
   313: { "NEH.7": 1 },
   385: { "NEH.7": 1 },
