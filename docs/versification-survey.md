@@ -16,6 +16,13 @@ languages ([below](#label-coverage)); a version whose counts no available
 system explains is refused ([below](#refusing-what-cant-be-mapped)). The
 tables here are the survey as taken, against the two-system engine.
 
+The rest of the app's hand-made ranking (`packages/core/scripts/popular.mjs`)
+was scanned later the same way and 54 of its versions bundled; none is
+refused, and none has a misplaced verse. Held back: 19 that print many merged
+verses (over 100 spans, or a Living Bible paraphrase), until merged-verse
+highlighting is tested (#3, task 5), and GNA2025 (67) and NR2006 (4833),
+which number some chapters `PSA.1_1`, like TUKARA84 below.
+
 **Columns.** *Label*: YouVersion's system for the version. *Fits*: of the ~348
 chapters where the systems disagree, how many match the label / another system
 / none. *Skipped*: verses the engine of the time (eng/org detection plus our
