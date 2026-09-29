@@ -55,6 +55,15 @@ Verse numbering has been checked chapter by chapter, for every chapter, for
 **Amplified Bible (AMP)**, **New International Version (NIV)**,
 **Louis Segond 1910 (LSG)** and **Segond 21 (S21)**.
 
+The app starts with an example list, the most used version in each of your
+browser's first three languages (NIV for English, Louis Segond for French)
+and the Amplified Bible, and, the first time
+you sign in, looks for the versions you actually highlight in: it reads your
+highlights in John 3, Romans 8, Philippians 4 and Jeremiah 29 in every
+version in your browser's languages, most used versions first, and offers to
+use the ones it finds. It only reads; "Find my versions" runs it again. A
+version you only highlight in elsewhere won't be found; add it by hand.
+
 You can add any other YouVersion version by pasting its bible.com link. The app
 tells you how sure it is of that version's numbering:
 

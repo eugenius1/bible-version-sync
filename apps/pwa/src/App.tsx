@@ -109,12 +109,14 @@ function Main() {
   const [versions, setVersions] = useState<ResolvedVersion[] | null>(null);
   const [run, setRun] = useState<RunState>({ status: "idle" });
   const [remembered, setRemembered] = useState(0);
+  const [customised, setCustomised] = useState(true);
   const abort = useRef<AbortController | null>(null);
 
   useEffect(() => {
     void (async () => {
       setAuth((await tokenStore.get()) ? "signed-in" : "signed-out");
       setSettings(await store.getSettings());
+      setCustomised(await store.hasSettings());
       setRemembered(Object.keys((await store.getState()).verses).length);
     })();
   }, []);
@@ -141,6 +143,7 @@ function Main() {
       const s = { ...settings!, versions: next };
       await store.setSettings(s);
       setSettings(s);
+      setCustomised(true);
       setRun({ status: "idle" });
     },
     [settings],
@@ -227,7 +230,13 @@ function Main() {
 
   return (
     <Shell account={account}>
-      <VersionsCard settings={settings.versions} resolved={versions} disabled={running} onChange={saveVersions} />
+      <VersionsCard
+        settings={settings.versions}
+        resolved={versions}
+        disabled={running}
+        fresh={!customised && remembered === 0}
+        onChange={saveVersions}
+      />
       <SyncCard
         versions={versions?.filter((v) => v.source !== "unsupported") ?? null}
         run={run}

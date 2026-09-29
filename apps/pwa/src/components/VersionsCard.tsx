@@ -2,6 +2,7 @@ import { assumedScheme, loadVersionNames, versionNamesLoaded } from "@bvs/core";
 import { ArrowDown, ArrowUp, BadgeCheck, Ban, CircleAlert, Hash, Info, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useI18n } from "../i18n";
+import { FindVersions } from "./FindVersions";
 import type { VersionSetting } from "../lib/db";
 import {
   canReadHighlights,
@@ -25,10 +26,12 @@ interface Props {
   settings: VersionSetting[];
   resolved: ResolvedVersion[] | null;
   disabled: boolean;
+  /** Nothing chosen or synced yet, so the list is the app's example. */
+  fresh?: boolean;
   onChange: (next: VersionSetting[], removedAbbr?: string) => void | Promise<void>;
 }
 
-export function VersionsCard({ settings, resolved, disabled, onChange }: Props) {
+export function VersionsCard({ settings, resolved, disabled, fresh = false, onChange }: Props) {
   const { t, f, num } = useI18n();
   const tv = t.versions;
   const [input, setInput] = useState("");
@@ -168,6 +171,8 @@ export function VersionsCard({ settings, resolved, disabled, onChange }: Props) 
           );
         })}
       </ol>
+
+      <FindVersions settings={settings} disabled={disabled} fresh={fresh} onChange={onChange} />
 
       <form
         className="space-y-2"

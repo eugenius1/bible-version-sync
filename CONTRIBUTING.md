@@ -179,6 +179,25 @@ names are loaded and don't have it, and offers the abbreviation as the name when
 number. Titles are in the version's own script, so they're rendered with `lang` (Japanese glyphs rather than
 Chinese) and `dir="auto"` (Arabic).
 
+**Finding the person's versions.** There's no "list my highlights", so
+`discoverVersions` (`packages/core/src/discover.ts`) reads four
+often-highlighted chapters (John 3, Romans 8, Philippians 4, Jeremiah 29, none
+of which moves between numbering systems) in every version in the browser's
+languages, stopping at a version's first hit: about 90 versions and up to 400
+reads for English. It runs by itself only on a first visit (no saved settings,
+empty sync memory), when the default list is just an example; replacing the
+list is only offered then, since replacing a synced list would drop its
+snapshots. Versions are asked about, and listed, most used first
+(`byPopularity`): YouVersion publishes no ranking, so a few big languages
+have a hand-made one in `packages/core/scripts/popular.mjs`, and every other
+language has only its default version, the one bible.com opens for it
+(`data/defaults.json`, from the survey's `languages.py`), ranked first. Both
+ride in the names chunk. The example list shown before the person chooses
+(`defaultVersions` in `apps/pwa/src/lib/db.ts`) uses the same ranking: the
+most used version of each of the browser's first three languages, then AMP,
+or the most used English version and AMP when none of those languages is
+known, so there are always two to sync.
+
 **Verifying a version.** Also add an entry to `VERIFIED` in
 `packages/core/scripts/verified.mjs`, and for each chapter that matches neither
 system, write the correction table: first check whether a shared table in

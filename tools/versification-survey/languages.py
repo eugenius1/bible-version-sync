@@ -7,8 +7,10 @@ are cached in out/, requests are sequential and paced, and the run stops on
 the first request that still fails after scan.get's retries, so a rate limit
 ends it rather than hammering on. Rerunning resumes from the cache.
 
-Writes data/candidates.json (every version, by language tag) and prints the
-label coverage by languages and by versions.
+Writes data/candidates.json (every version, by language tag) and
+data/defaults.json (the version bible.com opens for each language, which the
+app ranks first among that language's versions), and prints the label
+coverage by languages and by versions.
 
     python3 languages.py
 """
@@ -19,6 +21,7 @@ from scan import OUT, get
 HERE = os.path.dirname(__file__)
 CANDIDATES = os.path.join(HERE, "data", "candidates.json")
 COUNTS = os.path.join(HERE, "data", "counts.json")
+DEFAULTS = os.path.join(HERE, "data", "defaults.json")
 PAUSE = 0.25  # seconds between uncached requests
 FIELDS = ("id", "abbreviation", "local_abbreviation", "local_title", "vrs")
 
@@ -55,6 +58,13 @@ def main():
     body = ",\n".join(f"{json.dumps(tag)}: [\n" + ",\n".join(json.dumps(v, ensure_ascii=False) for v in vs) + "\n]"
                       for tag, vs in candidates.items())
     open(CANDIDATES, "w").write("{\n" + body + "\n}\n")
+
+    # The only popularity signal YouVersion publishes: the version each
+    # language opens on.
+    defaults = {l["language_tag"]: l["id"] for l in languages}
+    for tag, id in defaults.items():
+        if id not in {v["id"] for v in candidates[tag]}: raise RuntimeError(f"{tag}: default {id} isn't listed")
+    open(DEFAULTS, "w").write("{\n" + ",\n".join(f"{json.dumps(t)}: {i}" for t, i in defaults.items()) + "\n}\n")
 
     counts = json.load(open(COUNTS))
     report(config, candidates, counts)
