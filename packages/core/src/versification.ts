@@ -611,7 +611,7 @@ export function assumedScheme(bibleId: number, defaultScheme: "eng" | "org" = "e
  * ones 131 (UBIO), 143 (NRT) and 153 (SYNO), and the four label-only tables
  * themselves 145 (rsc) to 187 (lxx). 80 is over twice the English/Hebrew
  * maximum and 50 chapters below the lowest Synodal or Septuagint version.
- * Of the 220 unlabelled versions scanned since, the four refused reach 132
+ * Of the 221 unlabelled versions scanned since, the four refused reach 132
  * to 187 and the rest at most 23 (see docs/versification-survey.md).
  *
  * Without a label the engine can only use eng and org, and counts alone

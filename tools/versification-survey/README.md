@@ -9,12 +9,12 @@ handles each.
 
 | Path | What |
 |---|---|
-| `scan.py` | Scans every chapter of the given versions. `python3 scan.py <bible ids…>` writes `out/<id>.json` (gitignored); resumable, ~50 s per Bible at 6 concurrent requests. `python3 scan.py --add <bible ids…>` copies those scans into `data/counts.json`. |
+| `scan.py` | Scans every chapter of the given versions. `python3 scan.py <bible ids…>` writes `out/<id>.json` (gitignored); resumable, ~50 s per Bible at 6 concurrent requests. `python3 scan.py --add <bible ids…>` copies those scans into `data/counts.json`, counting a chapter YouVersion ids `PSA.1_1` as Psalm 1 (and refusing any other suffix, or a suffixed chapter beside a plain one with verses). |
 | `languages.py` | Lists every version of every language YouVersion has into `data/candidates.json`, with its label and name, and each language's default version into `data/defaults.json`, and prints the label coverage. One cached request per language, sequential and paced. |
 | `unlabelled.py` | For the unlabelled, unscanned versions, reads which chapters each has (one cached `version.json` each) and prints the ids to scan, cheapest languages first, to reach a share of languages fully known (`python3 unlabelled.py 0.8`). |
 | `names.py` | Adds the abbreviation bible.com shows (`local_abbreviation`: NIV, where the internal `abbreviation` is NIV11) to `data/counts.json` as `local_abbr`. One cached request per language. |
 | `analyse.py` | Classifies every chapter against six numbering systems and simulates the engine. Reads `out/` if present, else `data/counts.json`; writes `data/analysis.json` and prints a summary. Reads the six SIL [libpalaso](https://github.com/sillsdev/libpalaso) `.vrs` files (MIT) from `packages/core/data/`, the copies the app ships. |
-| `data/counts.json` | The scan (Sept 2026), compact: the survey's 54 widely used versions and 220 unlabelled ones scanned for label coverage. |
+| `data/counts.json` | The scan (Sept 2026), compact: the survey's 54 widely used versions, GNA2025 and NR2006, and 221 unlabelled ones scanned for label coverage. |
 | `data/analysis.json` | `analyse.py`'s output for that scan. |
 | `data/defaults.json` | The version bible.com opens for each language (Sept 2026), by language tag. |
 | `data/candidates.json` | Every version of every language YouVersion lists (3,864 in 2,462 languages, Sept 2026), by language tag, with its numbering label and name. |

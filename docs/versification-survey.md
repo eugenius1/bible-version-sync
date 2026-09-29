@@ -250,20 +250,28 @@ engine maps it, or refuses it, from its real counts).
 |---|---:|---:|
 | Before (the 20 surveyed languages' labels) | 282 (7.3%) | 12 (0.5%) |
 | Every label bundled | 3,082 (79.8%) | 1,862 (75.6%) |
-| And 220 unlabelled versions scanned | **3,302 (85.5%)** | **2,069 (84.0%)** |
+| And 221 unlabelled versions scanned | **3,303 (85.5%)** | **2,070 (84.1%)** |
 
 782 versions carry no label. Most are small: a single Gospel, Ruth and Jonah
 read aloud, a psalter. `unlabelled.py` orders the uncovered languages by how
 many chapters their unlabelled versions have; scanning the cheapest 200
-languages' took 4,173 chapter requests and covers all but one of them. They include the Russian oral
+languages' took 4,173 chapter requests and, with TUKARA84 below, covers all of them. They include the Russian oral
 versions CAROS (3830), DROT (3873) and ROT (3764), which are Ruth and Jonah
 only: there Hebrew and Synodal numbering agree, and Jonah 2:1 is the fish
 swallowing Jonah, as mapped. The 11 unlabelled versions in Orthodox and
 Eastern-rite languages (Adyghe, Altai, Bashkir, Buryat, Kabardian,
 Macedonian, Greek, two Arabic) were scanned as well, being the ones an
 English assumption is most likely to get wrong. One, TUKARA84 (3404, the
-Iranian Turkmen language's only version), numbers its chapters `1_1`,
-`2_1`…, which isn't USFM; it was left out.
+Iranian Turkmen language's only version), ids its chapters `MAT.1_1`,
+`MAT.2_1`…, which isn't USFM, and was left out at first. The ids turned out
+to be ordinary chapters with a `_1` suffix (GNA2025 does the same in its
+Psalms and Philemon, NR2006 in its Psalms and Job, where an empty `PSA.1`,
+`PSA.73`, `PSA.90` and `PSA.107` hold only a heading, "Libro primo" and so
+on), so `scan.py` now counts `MAT.1_1` as Matthew 1
+and TUKARA84 is scanned too. Whether YouVersion stores a highlight in such a
+chapter under `MAT.1.5` or `MAT.1_1.5` hasn't been tested; if the latter,
+the app's reads of those chapters find nothing, as for a version assumed
+English.
 
 `survey.test.ts` checks each unlabelled scan against all six systems:
 wherever another system fits a chapter's count, would map it differently,
@@ -284,7 +292,7 @@ one `"BOOK": 0`). Built with an app key (without one the UI is tree-shaken
 away and sizes mislead), the main bundle is 166.2 KB gzipped against 166.0 KB
 before, plus the 100.7 KB names chunk.
 
-**Still unknown:** 562 unlabelled, unscanned versions in 393 languages. When
+**Still unknown:** 561 unlabelled, unscanned versions in 392 languages. When
 the app key can't read their verse counts they're assumed English, as before.
 48 of them are in languages where YouVersion labels some version `rso`, `rsc`,
 `lxx` or `vul`, mostly Welsh, Scottish Gaelic and English psalters and
