@@ -6,13 +6,14 @@ of rules that bind coding agents specifically.
 
 ## Running it
 
-Needs Node 22.12 or later (vite and vitest require it; `.npmrc` sets
-`engine-strict`, so `npm install` refuses an unsupported Node, including
-odd-numbered releases such as 23, which vitest doesn't support) and a
-YouVersion Platform app key. `.nvmrc` pins Node 24, the version CI uses, so
-`nvm use` regenerates the bundled data exactly as CI does. npm 10 crashes
-installing this workspace ("Cannot read properties of null (reading
-'edgesOut')"); on Node 22, `npx npm@11 install` works. npm 11 holds back
+Needs Node and a YouVersion Platform app key. Which Node is set in two
+places: `engines` in [package.json](package.json) is the minimum, which
+`engine-strict` in [.npmrc](.npmrc) enforces (so `npm install` refuses a
+Node the project or a dependency doesn't support), and [.nvmrc](.nvmrc) is
+the version CI uses; `nvm use` picks it, so the bundled data regenerates
+exactly as in CI. npm 10 crashes installing this workspace ("Cannot read
+properties of null (reading 'edgesOut')"); with a Node that ships it,
+`npx npm@11 install` works. npm 11 holds back
 esbuild's install script by default, which the build doesn't need.
 
 ```bash
