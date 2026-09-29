@@ -337,6 +337,9 @@ describe("versionName", () => {
       expect(versionRank(111)).toBe(0); // NIV
       expect(versionRank(1)).toBe(1); // KJV
       expect(versionRank(4443)).toBe(0); // Arum's only version, its default
+      expect(versionRank(3869)).toBe(5); // romanised Arabic's default, after the Arabic list
+      expect(versionRank(400)).toBe(0); // Synodal
+      expect(versionRank(193)).toBe(0); // Vietnamese 1925
       expect(versionRank(12)).toBe(Infinity); // ASV
       // Equal ranks go by the reader's languages, then oldest id first.
       expect(byPopularity([12, 152, 1, 93, 111, 8], ["en", "fr"])).toEqual([111, 93, 1, 152, 8, 12]);

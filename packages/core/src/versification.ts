@@ -451,9 +451,14 @@ export function loadVersionNames(): Promise<void> {
       for (const [language, list] of Object.entries(NAMES_BY_LANGUAGE)) {
         for (const [id, abbr, title] of list) map.set(id, { abbr, language, title });
       }
+      // A language's default comes first, unless the language is ranked by
+      // hand: then it goes where the list puts it, or just after the list.
       const rank = new Map<number, number>();
       let id = 0;
-      for (const gap of DEFAULT_VERSION_IDS.split(",")) rank.set((id += parseInt(gap, 36)), 0);
+      for (const gap of DEFAULT_VERSION_IDS.split(",")) {
+        id += parseInt(gap, 36);
+        rank.set(id, POPULAR[map.get(id)?.language.split("-")[0] ?? ""]?.length ?? 0);
+      }
       for (const list of Object.values(POPULAR)) list.forEach((id, i) => rank.set(id, i));
       ranks = rank;
       allNames = map;
@@ -490,8 +495,9 @@ export function versionsInLanguages(languages: readonly string[]): number[] {
 
 /**
  * How widely used a version is, lower first, once loadVersionNames is done:
- * its place in its language's hand-ranked list (scripts/popular.mjs), else 0
- * for the version bible.com opens for its language, else Infinity. It ranks
+ * its place in its language's hand-ranked list (scripts/popular.mjs); for
+ * the version bible.com opens for its language, 0, or just after the list
+ * when the language has one; else Infinity. It ranks
  * versions within a language; across languages, see byPopularity.
  */
 export function versionRank(bibleId: number): number {

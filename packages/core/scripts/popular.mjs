@@ -1,8 +1,10 @@
-// The most used versions of a few big languages, most used first. YouVersion
+// The most used versions of 20 big languages, most used first. YouVersion
 // publishes no ranking, so this is judgement: English follows the ECPA/Circana
-// bestseller lists, the others what those languages' churches mostly read.
-// Each list starts with, or includes, the version bible.com opens for the
-// language (data/defaults.json). Ranks every version of a language in the
+// bestseller lists, the others what those languages' churches mostly read
+// (Union in Chinese and Swahili, Synodal in Russian, Van Dyck in Arabic,
+// Cornilescu in Romanian…), among the versions YouVersion has. Each list
+// includes the version bible.com opens for the language (data/defaults.json);
+// a default a list leaves out ranks just after it. Ranks every version of a language in the
 // scan for the person's versions (versionRank); gen-data checks each `abbr`
 // against the bundled name, like verified.mjs.
 export const POPULAR = {
@@ -58,5 +60,119 @@ export const POPULAR = {
     { abbr: "Hfa", bibleId: 73 },
     { abbr: "NGU2011", bibleId: 108 },
     { abbr: "ELB", bibleId: 57 },
+  ],
+  zh: [
+    { abbr: "CUNPSS-神", bibleId: 48 },
+    { abbr: "CUNP-神", bibleId: 46 },
+    { abbr: "RCUVSS", bibleId: 140 },
+    { abbr: "RCUV", bibleId: 139 },
+    { abbr: "CCB", bibleId: 36 },
+    { abbr: "CCB", bibleId: 1392 },
+    { abbr: "CNVS", bibleId: 41 },
+    { abbr: "CNV", bibleId: 40 },
+    { abbr: "CSBS", bibleId: 43 },
+    { abbr: "CUVMPS", bibleId: 4804 },
+  ],
+  ko: [
+    { abbr: "KRV", bibleId: 88 },
+    { abbr: "RNKSV", bibleId: 142 },
+    { abbr: "KLB", bibleId: 86 },
+    { abbr: "KOERV", bibleId: 3803 },
+    { abbr: "WB", bibleId: 4639 },
+  ],
+  ja: [
+    { abbr: "新共同訳", bibleId: 1819 },
+    { abbr: "NJB", bibleId: 4869 },
+    { abbr: "口語訳", bibleId: 1820 },
+    { abbr: "JCB", bibleId: 83 },
+    { abbr: "JA1955", bibleId: 81 },
+  ],
+  ru: [
+    { abbr: "SYNO", bibleId: 400 },
+    { abbr: "Синод", bibleId: 167 },
+    { abbr: "НРП", bibleId: 143 },
+    { abbr: "RSP", bibleId: 201 },
+    { abbr: "CARS", bibleId: 385 },
+    { abbr: "BTI", bibleId: 313 },
+  ],
+  uk: [
+    { abbr: "UBIO", bibleId: 186 },
+    { abbr: "НПУ", bibleId: 3269 },
+    { abbr: "UMT", bibleId: 204 },
+    { abbr: "UKRK", bibleId: 188 },
+    { abbr: "УТТ", bibleId: 1755 },
+  ],
+  ar: [
+    { abbr: "AVD", bibleId: 13 },
+    { abbr: "KEH", bibleId: 101 },
+    { abbr: "GNA2025", bibleId: 67 },
+    { abbr: "ت ع م", bibleId: 195 },
+    { abbr: "SAB", bibleId: 153 },
+  ],
+  hi: [
+    { abbr: "HHBD", bibleId: 819 },
+    { abbr: "HCV", bibleId: 1628 },
+    { abbr: "HERV", bibleId: 2562 },
+    { abbr: "IRVHin", bibleId: 1980 },
+    { abbr: "HINOVBSI", bibleId: 1683 },
+  ],
+  id: [
+    { abbr: "TB", bibleId: 306 },
+    { abbr: "BIMK", bibleId: 27 },
+    { abbr: "FAYH", bibleId: 2727 },
+    { abbr: "AMD", bibleId: 199 },
+    { abbr: "TSI", bibleId: 320 },
+  ],
+  fil: [
+    { abbr: "TLAB", bibleId: 177 },
+    { abbr: "ASD", bibleId: 1264 },
+    { abbr: "MBB05", bibleId: 144 },
+    { abbr: "ABTAG01", bibleId: 2195 },
+    { abbr: "RTPV05", bibleId: 399 },
+  ],
+  sw: [
+    { abbr: "SUV", bibleId: 164 },
+    { abbr: "NEN", bibleId: 1627 },
+    { abbr: "BHN", bibleId: 74 },
+    { abbr: "SRUV", bibleId: 1818 },
+    { abbr: "NENO", bibleId: 4369 },
+  ],
+  it: [
+    { abbr: "NR06", bibleId: 122 },
+    { abbr: "NR2006", bibleId: 4833 },
+    { abbr: "NR94", bibleId: 123 },
+    { abbr: "RDV24", bibleId: 141 },
+    { abbr: "ICL00D", bibleId: 1196 },
+    { abbr: "IRB20", bibleId: 3368 },
+  ],
+  pl: [
+    { abbr: "BW1975", bibleId: 3490 },
+    { abbr: "UBG", bibleId: 138 },
+    { abbr: "SNP", bibleId: 2095 },
+    { abbr: "PBG", bibleId: 132 },
+    { abbr: "NBG", bibleId: 319 },
+    { abbr: "PLNT", bibleId: 137 },
+  ],
+  ro: [
+    { abbr: "VDC", bibleId: 191 },
+    { abbr: "NTR", bibleId: 126 },
+    { abbr: "EDCR", bibleId: 2311 },
+    { abbr: "BTF2015", bibleId: 903 },
+    { abbr: "VDCL", bibleId: 1996 },
+  ],
+  nl: [
+    { abbr: "HSV", bibleId: 1990 },
+    { abbr: "NBG51", bibleId: 328 },
+    { abbr: "HTB", bibleId: 75 },
+    { abbr: "BB", bibleId: 1276 },
+    { abbr: "STV", bibleId: 165 },
+  ],
+  vi: [
+    { abbr: "VIE1925", bibleId: 193 },
+    { abbr: "VIE2010", bibleId: 151 },
+    { abbr: "BD2011", bibleId: 19 },
+    { abbr: "KTHD", bibleId: 1638 },
+    { abbr: "NVB", bibleId: 449 },
+    { abbr: "BPT", bibleId: 205 },
   ],
 };

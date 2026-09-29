@@ -268,7 +268,7 @@ writeFileSync(
  */
 export const NAMES_BY_LANGUAGE: Record<string, [number, string, string][]> = ${JSON.stringify(byLanguage)};
 
-/** The most used versions of a few big languages, most used first (scripts/popular.mjs). */
+/** The most used versions of 20 big languages, most used first (scripts/popular.mjs). */
 export const POPULAR: Record<string, number[]> = ${JSON.stringify(popular)};
 
 /**

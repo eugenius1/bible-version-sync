@@ -188,11 +188,13 @@ reads for English. It runs by itself only on a first visit (no saved settings,
 empty sync memory), when the default list is just an example; replacing the
 list is only offered then, since replacing a synced list would drop its
 snapshots. Versions are asked about, and listed, most used first
-(`byPopularity`): YouVersion publishes no ranking, so a few big languages
+(`byPopularity`): YouVersion publishes no ranking, so 20 big languages
 have a hand-made one in `packages/core/scripts/popular.mjs`, and every other
 language has only its default version, the one bible.com opens for it
-(`data/defaults.json`, from the survey's `languages.py`), ranked first. Both
-ride in the names chunk. The example list shown before the person chooses
+(`data/defaults.json`, from the survey's `languages.py`, which reads
+`default_versions` in bible.com's `configuration.json`), ranked first. A
+default that a hand-made list leaves out ranks just after it. Both ride in
+the names chunk. The example list shown before the person chooses
 (`defaultVersions` in `apps/pwa/src/lib/db.ts`) uses the same ranking: the
 most used version of each of the browser's first three languages, then AMP,
 or the most used English version and AMP when none of those languages is
