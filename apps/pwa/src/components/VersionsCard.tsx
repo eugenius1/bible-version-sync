@@ -28,14 +28,14 @@ interface Props {
   disabled: boolean;
   /** Nothing chosen or synced yet, so the list is the app's example. */
   fresh?: boolean;
-  onChange: (next: VersionSetting[], removedAbbr?: string) => void | Promise<void>;
+  /** The new list, as bible ids, and the one removed, if any. */
+  onChange: (next: number[], removed?: number) => void | Promise<void>;
 }
 
 export function VersionsCard({ settings, resolved, disabled, fresh = false, onChange }: Props) {
   const { t, f, num } = useI18n();
   const tv = t.versions;
   const [input, setInput] = useState("");
-  const [abbr, setAbbr] = useState("");
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Names are a chunk of their own (100 KB gzipped); re-render once they're in.
@@ -47,25 +47,22 @@ export function VersionsCard({ settings, resolved, disabled, fresh = false, onCh
     );
   }, []);
 
+  const ids = settings.map((s) => s.bibleId);
   const move = (i: number, d: -1 | 1) => {
-    const next = [...settings];
+    const next = [...ids];
     [next[i], next[i + d]] = [next[i + d], next[i]];
     void onChange(next);
   };
 
-  // What's being added, named as soon as it's recognised. A name the person
-  // types, or one in the link, beats YouVersion's abbreviation.
+  // What's being added, named as soon as it's recognised.
   const parsed = parseVersionInput(input);
   const known = parsed ? versionName(parsed.bibleId) : undefined;
-  const defaultName = (parsed?.abbr ?? known?.abbr)?.toUpperCase();
 
   const add = async () => {
     setError(null);
     if (!parsed) return setError(tv.errors.unparseable);
-    const name = (abbr || defaultName || "").trim().toUpperCase();
-    if (!name) return setError(tv.errors.needName);
-    if (settings.some((s) => s.bibleId === parsed.bibleId)) return setError(tv.errors.duplicateVersion);
-    if (settings.some((s) => s.abbr === name)) return setError(f(tv.errors.duplicateName, { name }));
+    if (ids.includes(parsed.bibleId)) return setError(tv.errors.duplicateVersion);
+    const name = known?.abbr ?? String(parsed.bibleId);
     setAdding(true);
     let problem = await canReadHighlights(parsed.bibleId);
     // A version whose numbering can't be mapped would only ever be left out.
@@ -83,8 +80,7 @@ export function VersionsCard({ settings, resolved, disabled, fresh = false, onCh
       return setError(f(tv.errors.unsupported, { id: parsed.bibleId, n: num(resolved.unfit ?? 0) }));
     }
     setInput("");
-    setAbbr("");
-    await onChange([...settings, { bibleId: parsed.bibleId, abbr: name }]);
+    await onChange([...ids, parsed.bibleId]);
   };
 
   return (
@@ -158,7 +154,7 @@ export function VersionsCard({ settings, resolved, disabled, fresh = false, onCh
                   disabled={disabled || settings.length <= 2}
                   onClick={() => {
                     if (confirm(f(tv.confirmRemove, { abbr: v.abbr }))) {
-                      void onChange(settings.filter((s) => s.bibleId !== v.bibleId), v.abbr);
+                      void onChange(ids.filter((id) => id !== v.bibleId), v.bibleId);
                     }
                   }}
                   aria-label={f(tv.remove, { abbr: v.abbr })}
@@ -190,14 +186,6 @@ export function VersionsCard({ settings, resolved, disabled, fresh = false, onCh
             value={input}
             disabled={disabled || adding}
             onChange={(e) => setInput(e.target.value)}
-          />
-          <input
-            className="input sm:w-24"
-            placeholder={defaultName ?? tv.namePlaceholder}
-            aria-label={tv.nameLabel}
-            value={abbr}
-            disabled={disabled || adding}
-            onChange={(e) => setAbbr(e.target.value)}
           />
           <button className="btn-secondary" disabled={disabled || adding || !input.trim()}>
             <Plus size={16} aria-hidden />

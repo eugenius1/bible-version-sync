@@ -3,7 +3,7 @@ import { Check, Plus, Search, Square } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useI18n } from "../i18n";
 import { client } from "../lib/auth";
-import { settingFor, type VersionSetting } from "../lib/db";
+import type { VersionSetting } from "../lib/db";
 import { problemText, resolveVersion } from "../lib/versions";
 
 interface Found {
@@ -26,7 +26,8 @@ interface Props {
   disabled: boolean;
   /** Nothing chosen or synced yet: the list is the app's example, so look straight away. */
   fresh: boolean;
-  onChange: (next: VersionSetting[]) => void | Promise<void>;
+  /** The new list, as bible ids. */
+  onChange: (next: number[]) => void | Promise<void>;
 }
 
 /** The languages a person reads in, as best the browser can tell. */
@@ -102,12 +103,8 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
   }, [fresh, start]);
   useEffect(() => () => abort.current?.abort(), []);
 
-  const add = (bibleId: number) => void onChange([...settings, settingFor(bibleId, settings)]);
-  const replaceWith = (found: Found[]) => {
-    const next: VersionSetting[] = [];
-    for (const v of found) next.push(settingFor(v.bibleId, next));
-    void onChange(next);
-  };
+  const add = (bibleId: number) => void onChange([...settings.map((s) => s.bibleId), bibleId]);
+  const replaceWith = (found: Found[]) => void onChange(found.map((v) => v.bibleId));
 
   const running = scan.status === "running";
   const found = scan.status === "running" || scan.status === "done" ? scan.found : [];

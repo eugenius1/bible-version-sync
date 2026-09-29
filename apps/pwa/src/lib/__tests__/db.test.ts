@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { defaultVersions, settingFor } from "../db";
+import { defaultVersions, formerNames, labelVersions } from "../db";
 
 describe("defaultVersions", () => {
   it("takes the most used version of the reader's first three languages, then AMP", async () => {
@@ -28,6 +28,48 @@ describe("defaultVersions", () => {
       { abbr: "RVR1960", bibleId: 149 },
       { abbr: "AMP", bibleId: 1588 },
     ]);
-    expect(settingFor(128, [{ abbr: "NVI", bibleId: 129 }])).toEqual({ abbr: "NVI-128", bibleId: 128 });
+  });
+});
+
+describe("labelVersions", () => {
+  it("names versions as bible.com does", async () => {
+    await defaultVersions([]); // loads the names
+    expect(labelVersions([111, 93, 999999])).toEqual([
+      { abbr: "NIV", bibleId: 111 },
+      { abbr: "LSG", bibleId: 93 },
+      { abbr: "999999", bibleId: 999999 },
+    ]);
+  });
+
+  it("tells versions sharing an abbreviation apart by language, else by number", async () => {
+    await defaultVersions([]);
+    // NVI: Spanish (128), Portuguese (129) and Castilian (1637).
+    expect(labelVersions([128, 129, 1637, 111]).map((v) => v.abbr)).toEqual(["NVI (es)", "NVI (pt)", "NVI (es-ES)", "NIV"]);
+    // ARC: 212 and 3407 are both Portuguese.
+    expect(labelVersions([212, 3407]).map((v) => v.abbr)).toEqual(["ARC (212)", "ARC (3407)"]);
+    expect(labelVersions([212]).map((v) => v.abbr)).toEqual(["ARC"]);
+  });
+});
+
+describe("formerNames", () => {
+  it("takes the names saved with each version", () => {
+    const saved = [{ abbr: "MINE", bibleId: 93 }, { abbr: "NVI-128", bibleId: 128 }, { bibleId: 111 }];
+    expect(formerNames(saved, [])).toEqual(new Map([["MINE", 93], ["NVI-128", 128]]));
+  });
+
+  it("names the example versions by the old rule when nothing was saved", async () => {
+    await defaultVersions([]);
+    const names = formerNames(undefined, [111, 93, 1588]);
+    for (const [name, id] of [["NIV", 111], ["LSG", 93], ["AMP", 1588], ["LSG-93", 93], ["93", 93]] as const) {
+      expect(names.get(name), name).toBe(id);
+    }
+  });
+
+  it("leaves out a name two versions could have had", async () => {
+    await defaultVersions([]);
+    const names = formerNames(undefined, [128, 129]); // both NVI
+    expect(names.has("NVI")).toBe(false);
+    expect(names.get("NVI-128")).toBe(128);
+    expect(names.get("NVI-129")).toBe(129);
   });
 });

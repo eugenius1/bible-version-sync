@@ -174,11 +174,14 @@ BCP 47 equivalent, like `gax_ars` for Arsi Oromo, is dropped). YouVersion has
 two abbreviations per version, and bible.com shows
 `local_abbreviation` (NIV, НРП), not `abbreviation` (NIV11, NRT); the survey's
 `names.py` records it. The verified versions are named the same way, and
-`gen-data.mjs` checks that `verified.mjs` agrees. The app shows the title
-beside the name the person chose, falls back to "Version {id}" once the
-names are loaded and don't have it, and offers the abbreviation as the name when the person gives only a
-number. Titles are in the version's own script, so they're rendered with `lang` (Japanese glyphs rather than
-Chinese) and `dir="auto"` (Arabic).
+`gen-data.mjs` checks that `verified.mjs` agrees. A version is named by its
+abbreviation, worked out from its id and never saved (`labelVersions` in
+`apps/pwa/src/lib/db.ts`); two in the list that share one get their
+language, or their number when that's shared too: NVI (es), ARC (212). The
+app shows the title beside it and falls back to "Version {id}" once the
+names are loaded and don't have it. Titles are in the version's own script,
+so they're rendered with `lang` (Japanese glyphs rather than Chinese) and
+`dir="auto"` (Arabic).
 
 **Finding the person's versions.** There's no "list my highlights", so
 `discoverVersions` (`packages/core/src/discover.ts`) reads three
@@ -228,7 +231,11 @@ version had after the last sync, and per canonical chapter which versions took
 part. A version's change is anything different from its own snapshot. That's
 what separates "removed" from "never highlighted", and it's why the snapshot is
 per version: storing one colour per verse turned a version keeping its own
-colour into a phantom change on the next run.
+colour into a phantom change on the next run. Versions are keyed by bible id,
+in the snapshot and in plans. It used to be the name the person gave each
+version, until names stopped being chosen; `migrateState` converts a
+snapshot from then using the names saved with the settings, and drops what
+it can't place, which only makes that version a newcomer.
 
 Safety rules, all tested:
 

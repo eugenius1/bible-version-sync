@@ -30,9 +30,8 @@ export interface ResolvedVersion extends SyncVersion {
  * "unsupported" with an empty map: the add form refuses it, and the sync
  * leaves a saved one out (see buildVersionMap).
  *
- * Everything is looked up by bible id. A setting's `abbr` is the name the
- * person chose, which is also what the sync snapshot is keyed by, so saved
- * settings carry over unchanged whatever they're called.
+ * Everything is looked up by bible id; a setting's `abbr` is only the name
+ * shown for it.
  */
 export async function resolveVersions(settings: VersionSetting[]): Promise<ResolvedVersion[]> {
   const out: ResolvedVersion[] = [];

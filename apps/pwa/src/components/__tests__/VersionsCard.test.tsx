@@ -48,7 +48,7 @@ describe("VersionsCard", () => {
     getIndex.mockResolvedValue(null);
   });
 
-  it("shows each version's bundled title next to the person's own name for it", async () => {
+  it("shows each version's bundled title next to its name", async () => {
     renderCard([
       { abbr: "MINE", bibleId: 93 },
       { abbr: "RUS", bibleId: 400 },
@@ -66,38 +66,20 @@ describe("VersionsCard", () => {
     expect(screen.getByText("Version 999999")).not.toHaveAttribute("lang");
   });
 
-  it("names a version as soon as its number is typed, and uses its abbreviation", async () => {
+  it("names a version as soon as its number is typed, and adds it by number", async () => {
     const onChange = renderCard([{ abbr: "NIV", bibleId: 111 }]);
     await userEvent.type(screen.getByLabelText("Add a version"), "12");
     // ASV's name is in the chunk of every version's name, which the card loads.
     expect(await screen.findByText("American Standard Version")).toHaveAttribute("lang", "en");
-    expect(screen.getByLabelText("Short name")).toHaveAttribute("placeholder", "ASV");
     await userEvent.click(screen.getByRole("button", { name: "Add" }));
-    expect(onChange).toHaveBeenCalledWith([
-      { abbr: "NIV", bibleId: 111 },
-      { abbr: "ASV", bibleId: 12 },
-    ]);
+    expect(onChange).toHaveBeenCalledWith([111, 12]);
   });
 
-  it("keeps the name the person typed, or the one in the link", async () => {
+  it("refuses a version already in the list", async () => {
     const onChange = renderCard([{ abbr: "NIV", bibleId: 111 }]);
-    await userEvent.type(screen.getByLabelText("Add a version"), "1");
-    await userEvent.type(screen.getByLabelText("Short name"), "mine");
+    await userEvent.type(screen.getByLabelText("Add a version"), "111");
     await userEvent.click(screen.getByRole("button", { name: "Add" }));
-    expect(onChange).toHaveBeenLastCalledWith([
-      { abbr: "NIV", bibleId: 111 },
-      { abbr: "MINE", bibleId: 1 },
-    ]);
-
-    await userEvent.type(screen.getByLabelText("Add a version"), "bible.com/bible/1/JHN.3.KJVA");
-    expect(screen.getByLabelText("Short name")).toHaveAttribute("placeholder", "KJVA");
-  });
-
-  it("still asks for a name for a version it can't name", async () => {
-    const onChange = renderCard([{ abbr: "NIV", bibleId: 111 }]);
-    await userEvent.type(screen.getByLabelText("Add a version"), "999999");
-    await userEvent.click(screen.getByRole("button", { name: "Add" }));
-    expect(screen.getByText(/Add a short name/)).toBeInTheDocument();
+    expect(screen.getByText("That version is already in the list.")).toBeInTheDocument();
     expect(onChange).not.toHaveBeenCalled();
   });
 
@@ -105,7 +87,6 @@ describe("VersionsCard", () => {
     getIndex.mockResolvedValue(synodalIndex);
     const onChange = renderCard([{ abbr: "NIV", bibleId: 111 }]);
     await userEvent.type(screen.getByLabelText("Add a version"), "999998");
-    await userEvent.type(screen.getByLabelText("Short name"), "rus");
     await userEvent.click(screen.getByRole("button", { name: "Add" }));
     expect(await screen.findByText(/Version 999998 can't be synced: 153 of its chapters/)).toBeInTheDocument();
     expect(onChange).not.toHaveBeenCalled();
@@ -141,10 +122,7 @@ describe("VersionsCard", () => {
       expect(screen.getByText(/These are example versions/)).toBeInTheDocument();
       await userEvent.click(await screen.findByRole("button", { name: "Use these 2 versions instead" }));
       // Most used first (KJV is ranked, ASV isn't), named as bible.com names them.
-      expect(onChange).toHaveBeenCalledWith([
-        { abbr: "KJV", bibleId: 1 },
-        { abbr: "ASV", bibleId: 12 },
-      ]);
+      expect(onChange).toHaveBeenCalledWith([1, 12]);
       expect(screen.getByText("2 highlighted verses in the sample")).toBeInTheDocument();
       expect(screen.getByText("No highlights found in LSG and S21 in the chapters sampled.")).toBeInTheDocument();
       // Only reads: nothing but highlights and indexes is asked for.
@@ -159,11 +137,7 @@ describe("VersionsCard", () => {
       expect(getHighlights).not.toHaveBeenCalled();
       await userEvent.click(screen.getByRole("button", { name: "Find my versions" }));
       await userEvent.click(await screen.findByRole("button", { name: "Add ASV" }));
-      expect(onChange).toHaveBeenCalledWith([
-        { abbr: "KJV", bibleId: 1 },
-        { abbr: "NIV", bibleId: 111 },
-        { abbr: "ASV", bibleId: 12 },
-      ]);
+      expect(onChange).toHaveBeenCalledWith([1, 111, 12]);
       expect(screen.getByText("In your list")).toBeInTheDocument(); // KJV
       expect(screen.queryByRole("button", { name: /Use these/ })).not.toBeInTheDocument();
       expect(screen.getByText("No highlights found in NIV in the chapters sampled.")).toBeInTheDocument();
@@ -180,11 +154,7 @@ describe("VersionsCard", () => {
       await vi.waitFor(() => expect(add).toBeEnabled()); // once its numbering is checked
       expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
       await userEvent.click(add);
-      expect(onChange).toHaveBeenCalledWith([
-        { abbr: "NIV", bibleId: 111 },
-        { abbr: "AMP", bibleId: 1588 },
-        { abbr: "KJV", bibleId: 1 },
-      ]);
+      expect(onChange).toHaveBeenCalledWith([111, 1588, 1]);
     });
 
     it("says so when signed out or offline", async () => {

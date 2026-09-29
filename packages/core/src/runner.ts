@@ -69,16 +69,16 @@ export interface RunSummary {
    */
   fatal?: { reason: "auth" | "network"; message: string };
   /**
-   * Versions left out because their numbering is unsupported: nothing was
-   * read or written for them, and their snapshot is untouched.
+   * Versions (bible ids) left out because their numbering is unsupported:
+   * nothing was read or written for them, and their snapshot is untouched.
    */
-  refused: string[];
+  refused: number[];
 }
 
 export async function runSync(o: RunOptions): Promise<RunSummary> {
   const books = o.scope.kind === "books" ? o.scope.books : [o.scope.book];
   const versions = supported(o.versions);
-  const refused = o.versions.filter((v) => !versions.includes(v)).map((v) => v.abbr);
+  const refused = o.versions.filter((v) => !versions.includes(v)).map((v) => v.bibleId);
   const summary: RunSummary = {
     books: [], sets: 0, removals: 0, differences: 0, failedBooks: 0, blockedBooks: 0, writeErrors: 0, aborted: false,
     refused,

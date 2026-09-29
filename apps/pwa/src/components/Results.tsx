@@ -1,21 +1,28 @@
 import type { Action, BookResult, Difference } from "@bvs/core";
 import { Check, ChevronRight, CircleAlert, LogIn, TriangleAlert } from "lucide-react";
+import { createContext, useContext } from "react";
 import type { RunState } from "../App";
 import { useI18n } from "../i18n";
+
+/** Bible id -> the name shown for it, in the order of the person's list. */
+type Names = ReadonlyMap<number, string>;
+const NamesContext = createContext<Names>(new Map());
+const nameOf = (names: Names, id: number) => names.get(id) ?? String(id);
 
 const MAX_ROWS = 300;
 
 interface Props {
   run: Extract<RunState, { status: "done" }>;
+  names: Names;
   onApply: () => void;
   onApplyAllowingRemovals: () => void;
   onSignInAgain: () => void;
 }
 
-function tally(actions: Action[], op: Action["op"], num: (n: number) => string): string {
-  const by = new Map<string, number>();
+function tally(actions: Action[], op: Action["op"], num: (n: number) => string, names: Names): string {
+  const by = new Map<number, number>();
   for (const a of actions) if (a.op === op) by.set(a.version, (by.get(a.version) ?? 0) + 1);
-  return [...by].map(([v, n]) => `${v} ${op === "set" ? "+" : "−"}${num(n)}`).join(", ");
+  return [...by].map(([v, n]) => `${nameOf(names, v)} ${op === "set" ? "+" : "−"}${num(n)}`).join(", ");
 }
 
 function Swatch({ color }: { color: string | null }) {
@@ -40,7 +47,7 @@ function Notice({ tone, children }: { tone: "warn" | "error"; children: React.Re
   );
 }
 
-export function Results({ run, onApply, onApplyAllowingRemovals, onSignInAgain }: Props) {
+export function Results({ run, names, onApply, onApplyAllowingRemovals, onSignInAgain }: Props) {
   const { t, f, plural } = useI18n();
   const tr = t.results;
   const s = run.summary;
@@ -52,88 +59,97 @@ export function Results({ run, onApply, onApplyAllowingRemovals, onSignInAgain }
   const inSync = total === 0 && !s.failedBooks;
 
   return (
-    <section className="card space-y-4" aria-labelledby="results-title">
-      <div className="space-y-1">
-        <h2 id="results-title" className="font-semibold">
-          {run.apply ? tr.doneTitle : tr.previewTitle}
-          {s.aborted && ` ${tr.stopped}`}
-        </h2>
-        <p className="flex items-start gap-1.5 text-sm text-stone-600 dark:text-stone-400">
-          {inSync && <Check size={16} className="mt-0.5 shrink-0 text-emerald-700 dark:text-emerald-400" aria-hidden />}
-          <span>
-            {inSync
-              ? run.apply ? tr.inSyncDone : tr.inSyncPreview
-              : run.apply
-                ? `${plural(tr.added, s.sets)}, ${plural(tr.removedCount, s.removals)}.`
-                : `${plural(tr.toAdd, s.sets)}, ${plural(tr.toRemove, s.removals)}.`}
-            {s.differences > 0 && ` ${plural(tr.differences, s.differences)}`}
-          </span>
-        </p>
-      </div>
+    <NamesContext.Provider value={names}>
+      <section className="card space-y-4" aria-labelledby="results-title">
+        <div className="space-y-1">
+          <h2 id="results-title" className="font-semibold">
+            {run.apply ? tr.doneTitle : tr.previewTitle}
+            {s.aborted && ` ${tr.stopped}`}
+          </h2>
+          <p className="flex items-start gap-1.5 text-sm text-stone-600 dark:text-stone-400">
+            {inSync && <Check size={16} className="mt-0.5 shrink-0 text-emerald-700 dark:text-emerald-400" aria-hidden />}
+            <span>
+              {inSync
+                ? run.apply ? tr.inSyncDone : tr.inSyncPreview
+                : run.apply
+                  ? `${plural(tr.added, s.sets)}, ${plural(tr.removedCount, s.removals)}.`
+                  : `${plural(tr.toAdd, s.sets)}, ${plural(tr.toRemove, s.removals)}.`}
+              {s.differences > 0 && ` ${plural(tr.differences, s.differences)}`}
+            </span>
+          </p>
+        </div>
 
-      {s.refused.length > 0 && <Notice tone="warn">{f(tr.refused, { names: s.refused.join(", ") })}</Notice>}
-      {s.failedBooks > 0 && <Notice tone="error">{plural(tr.booksSkipped, s.failedBooks)}</Notice>}
-      {s.writeErrors > 0 && <Notice tone="error">{plural(tr.writeErrors, s.writeErrors)}</Notice>}
+        {s.refused.length > 0 && <Notice tone="warn">{f(tr.refused, { names: s.refused.map((id) => nameOf(names, id)).join(", ") })}</Notice>}
+        {s.failedBooks > 0 && <Notice tone="error">{plural(tr.booksSkipped, s.failedBooks)}</Notice>}
+        {s.writeErrors > 0 && <Notice tone="error">{plural(tr.writeErrors, s.writeErrors)}</Notice>}
 
-      {(authExpired || s.fatal?.reason === "network") && (
-        <Notice tone="warn">
-          <p>{authExpired ? tr.authExpired : tr.network}</p>
-          <button className="btn-secondary" onClick={onSignInAgain}>
-            <LogIn size={16} aria-hidden />
-            {tr.signInAgain}
+        {(authExpired || s.fatal?.reason === "network") && (
+          <Notice tone="warn">
+            <p>{authExpired ? tr.authExpired : tr.network}</p>
+            <button className="btn-secondary" onClick={onSignInAgain}>
+              <LogIn size={16} aria-hidden />
+              {tr.signInAgain}
+            </button>
+          </Notice>
+        )}
+
+        {!run.apply && total > 0 && (
+          <button className="btn-primary w-full sm:w-auto" onClick={onApply}>
+            <Check size={16} aria-hidden />
+            {plural(tr.apply, total)}
           </button>
-        </Notice>
-      )}
+        )}
+        {run.apply && s.blockedBooks > 0 && (
+          <Notice tone="warn">
+            <p>{plural(tr.blocked, s.blockedBooks)}</p>
+            <button className="btn-secondary" onClick={onApplyAllowingRemovals}>{tr.applyWithRemovals}</button>
+          </Notice>
+        )}
 
-      {!run.apply && total > 0 && (
-        <button className="btn-primary w-full sm:w-auto" onClick={onApply}>
-          <Check size={16} aria-hidden />
-          {plural(tr.apply, total)}
-        </button>
-      )}
-      {run.apply && s.blockedBooks > 0 && (
-        <Notice tone="warn">
-          <p>{plural(tr.blocked, s.blockedBooks)}</p>
-          <button className="btn-secondary" onClick={onApplyAllowingRemovals}>{tr.applyWithRemovals}</button>
-        </Notice>
-      )}
-
-      {changed.length > 0 && (
-        <ul className="space-y-2">
-          {changed.map((b) => <BookRow key={b.book} result={b} />)}
-        </ul>
-      )}
-    </section>
+        {changed.length > 0 && (
+          <ul className="space-y-2">
+            {changed.map((b) => <BookRow key={b.book} result={b} />)}
+          </ul>
+        )}
+      </section>
+    </NamesContext.Provider>
   );
 }
 
 function DifferenceRow({ d }: { d: Difference }) {
   const { t, f, ref } = useI18n();
+  const names = useContext(NamesContext);
+  // In the list's order: object keys that are numbers come back sorted.
+  const order = [...names.keys()];
+  const colors = Object.entries(d.colors)
+    .map(([id, color]) => [Number(id), color] as const)
+    .sort(([a], [b]) => order.indexOf(a) - order.indexOf(b));
   return (
     <div className="space-y-1">
       <p>
         <span className="font-medium">{t.results.differentColors}</span> · {ref(d.ref)}
       </p>
       <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        {Object.entries(d.colors).map(([abbr, color]) => (
-          <span key={abbr} className="inline-flex items-center gap-1.5">
+        {colors.map(([id, color]) => (
+          <span key={id} className="inline-flex items-center gap-1.5">
             <Swatch color={color} />
-            {abbr}
+            {nameOf(names, id)}
             {!color && <span className="text-stone-600 dark:text-stone-400">({t.results.removed})</span>}
           </span>
         ))}
       </p>
-      <p className="text-stone-600 dark:text-stone-400">{f(t.results.differenceNote, { winner: d.winner })}</p>
+      <p className="text-stone-600 dark:text-stone-400">{f(t.results.differenceNote, { winner: nameOf(names, d.winner) })}</p>
     </div>
   );
 }
 
 function BookRow({ result: b }: { result: BookResult }) {
   const { t, f, num, book, ref } = useI18n();
+  const names = useContext(NamesContext);
   const tr = t.results;
   const actions = b.plan?.actions ?? [];
-  const adds = tally(actions, "set", num);
-  const rems = tally(actions, "remove", num);
+  const adds = tally(actions, "set", num, names);
+  const rems = tally(actions, "remove", num, names);
   return (
     <li className="rounded-xl border border-stone-200 dark:border-stone-800">
       <details className="group">
@@ -159,7 +175,7 @@ function BookRow({ result: b }: { result: BookResult }) {
             <ul className="grid gap-1">
               {actions.slice(0, MAX_ROWS).map((a) => (
                 <li key={`${a.version}:${a.local}`} className="flex items-center gap-2">
-                  <span className="w-10 font-medium">{a.version}</span>
+                  <span className="w-10 font-medium">{nameOf(names, a.version)}</span>
                   <Swatch color={a.color} />
                   <span>{ref(a.local)}</span>
                   <span className="text-stone-600 dark:text-stone-400">{tr.action[a.reason]}</span>
