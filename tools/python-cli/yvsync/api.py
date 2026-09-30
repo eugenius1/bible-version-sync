@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import threading
 import time
 import urllib.error
@@ -25,6 +26,13 @@ class ApiError(Exception):
     @property
     def retryable(self) -> bool:
         return self.status in (0, 429) or self.status >= 500
+
+
+def token_from(body, path: str = "/auth/token") -> dict:
+    """A token response, checked before it replaces the saved sign-in."""
+    if not isinstance(body, dict) or not body.get("access_token"):
+        raise ApiError(502, "no access token in the response", path)
+    return body
 
 
 def _error_message(raw: bytes) -> str:
@@ -63,7 +71,11 @@ class TokenStore:
             tokens["refresh_token"] = self.data["refresh_token"]
         self.data = tokens
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_text(json.dumps(tokens, indent=2))
+        # Created as 600, so the tokens are never readable by others, even
+        # briefly; chmod covers a file left from before with wider permissions.
+        fd = os.open(self.path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, "w") as f:
+            f.write(json.dumps(tokens, indent=2))
         self.path.chmod(0o600)
 
     @property
@@ -91,7 +103,7 @@ class Client:
     # -- plumbing ---------------------------------------------------------
 
     def _raw(self, method: str, path: str, *, params=None, body=None, form=None,
-             auth: bool = False):
+             auth: bool = False, ignore_body: bool = False):
         url = self.base + path
         if params:
             url += "?" + urllib.parse.urlencode(params, doseq=True)
@@ -112,7 +124,14 @@ class Client:
         try:
             with urllib.request.urlopen(req, timeout=30) as resp:
                 raw = resp.read()
-                return resp.status, (json.loads(raw) if raw.strip() else None), resp.headers
+                if ignore_body or not raw.strip():
+                    return resp.status, None, resp.headers
+                try:
+                    return resp.status, json.loads(raw), resp.headers
+                except ValueError:
+                    # A proxy's or captive portal's page: retried, and if it
+                    # persists, fails this request rather than the whole run.
+                    raise ApiError(502, f"unreadable response (HTTP {resp.status})", path) from None
         except urllib.error.HTTPError as e:
             raw = e.read()
             msg = _error_message(raw)
@@ -160,7 +179,7 @@ class Client:
                 "refresh_token": self.tokens.data["refresh_token"],
                 "client_id": self.app_key,
             })
-            self.tokens.save(tokens)
+            self.tokens.save(token_from(tokens))
 
     # -- endpoints ----------------------------------------------------------
 
@@ -179,11 +198,12 @@ class Client:
         return body.get("data", [])
 
     def set_highlight(self, bible_id: int, passage_id: str, color: str) -> None:
-        self.request("POST", "/v1/highlights", auth=True, body={
+        # Writes don't need the body, so one that can't be parsed is no failure.
+        self.request("POST", "/v1/highlights", auth=True, ignore_body=True, body={
             "request_id": str(uuid.uuid4()),
             "highlight": {"bible_id": bible_id, "passage_id": passage_id, "color": color},
         })
 
     def delete_highlight(self, bible_id: int, passage_id: str) -> None:
         self.request("DELETE", f"/v1/highlights/{urllib.parse.quote(passage_id)}",
-                     auth=True, params={"bible_id": bible_id})
+                     auth=True, ignore_body=True, params={"bible_id": bible_id})

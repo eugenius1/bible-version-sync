@@ -81,6 +81,29 @@ export function errorMessage(text: string): string {
   return text.slice(0, 300);
 }
 
+/**
+ * A successful response's JSON. A body that isn't JSON (a proxy's or captive
+ * portal's page) is reported as a bad gateway, so it's retried and, if it
+ * persists, fails the one request rather than the whole run.
+ */
+export function parseBody(status: number, text: string, path: string): unknown {
+  if (!text.trim()) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new ApiError(502, `unreadable response (HTTP ${status})`, path);
+  }
+}
+
+/** A token response, checked before it replaces the saved sign-in. */
+export function tokenFrom(body: unknown, path: string): Omit<TokenSet, "obtained_at"> {
+  const t = body as Partial<TokenSet> | null;
+  if (!t || typeof t !== "object" || typeof t.access_token !== "string" || !t.access_token) {
+    throw new ApiError(502, "no access token in the response", path);
+  }
+  return t as Omit<TokenSet, "obtained_at">;
+}
+
 export class YouVersionClient implements HighlightsApi {
   readonly appKey: string;
   private readonly tokens?: TokenStore;
@@ -105,6 +128,8 @@ export class YouVersionClient implements HighlightsApi {
     json?: unknown;
     form?: Record<string, string>;
     auth?: boolean;
+    /** Writes don't need the body, so one that can't be parsed is no failure. */
+    ignoreBody?: boolean;
   } = {}): Promise<{ status: number; body: unknown }> {
     let url = this.base + path;
     if (init.params) url += "?" + new URLSearchParams(Object.entries(init.params).map(([k, v]) => [k, String(v)]));
@@ -135,7 +160,7 @@ export class YouVersionClient implements HighlightsApi {
       if (Number.isFinite(ra) && ra > 0) err.retryAfter = ra;
       throw err;
     }
-    return { status: res.status, body: text.trim() ? JSON.parse(text) : null };
+    return { status: res.status, body: init.ignoreBody ? null : parseBody(res.status, text, path) };
   }
 
   private async request(method: string, path: string, init: Parameters<YouVersionClient["raw"]>[2] = {}) {
@@ -202,7 +227,7 @@ export class YouVersionClient implements HighlightsApi {
         const { body } = await this.raw("POST", "/auth/token", {
           form: { grant_type: "refresh_token", refresh_token: t.refresh_token, client_id: this.appKey },
         });
-        const next = body as Omit<TokenSet, "obtained_at">;
+        const next = tokenFrom(body, "/auth/token");
         await this.tokens!.set({ refresh_token: t.refresh_token, ...next, obtained_at: Date.now() });
       })().finally(() => {
         this.refreshing = undefined;
@@ -234,6 +259,7 @@ export class YouVersionClient implements HighlightsApi {
   async setHighlight(bibleId: number, passageId: string, color: string): Promise<void> {
     await this.request("POST", "/v1/highlights", {
       auth: true,
+      ignoreBody: true,
       json: {
         request_id: crypto.randomUUID(),
         highlight: { bible_id: bibleId, passage_id: passageId, color },
@@ -244,6 +270,7 @@ export class YouVersionClient implements HighlightsApi {
   async deleteHighlight(bibleId: number, passageId: string): Promise<void> {
     await this.request("DELETE", `/v1/highlights/${encodeURIComponent(passageId)}`, {
       auth: true,
+      ignoreBody: true,
       params: { bible_id: bibleId },
     });
   }

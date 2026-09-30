@@ -277,6 +277,7 @@ describe("runSync", () => {
       api, versions: VERSIONS, scope: { kind: "books", books: ["RUT"] }, state, apply: true, maxRemovals: 10,
     });
     expect(s.blockedBooks).toBe(1);
+    expect(s.removals).toBe(0); // held back, so not reported as removed
     expect(api.color("AMP", "RUT.1.1")).toBe("ffe066");
   });
 

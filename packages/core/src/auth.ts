@@ -8,7 +8,7 @@
  *   4. That redirects back with ?code=...&state=...; exchangeCode() for tokens.
  */
 
-import { API_BASE, ApiError, errorMessage, type TokenSet } from "./api";
+import { API_BASE, ApiError, errorMessage, parseBody, tokenFrom, type TokenSet } from "./api";
 
 function base64url(bytes: Uint8Array): string {
   let s = "";
@@ -75,7 +75,7 @@ export async function exchangeCode(p: {
   });
   const text = await res.text();
   if (!res.ok) throw new ApiError(res.status, errorMessage(text), "/auth/token");
-  return { ...(JSON.parse(text) as Omit<TokenSet, "obtained_at">), obtained_at: Date.now() };
+  return { ...tokenFrom(parseBody(res.status, text, "/auth/token"), "/auth/token"), obtained_at: Date.now() };
 }
 
 export type CallbackStep =

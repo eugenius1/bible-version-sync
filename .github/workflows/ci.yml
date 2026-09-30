@@ -6,6 +6,11 @@ on:
   # Every PR, including ones stacked on another PR's branch.
   pull_request:
 
+# Checking out and testing needs nothing more; a compromised dependency or
+# action then gets a token that can't push or touch releases.
+permissions:
+  contents: read
+
 jobs:
   check:
     name: Typecheck, test, build
