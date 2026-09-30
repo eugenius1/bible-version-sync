@@ -128,6 +128,16 @@ for (const name of Object.keys(shared)) {
   if (!used.has(name)) throw new Error(`overrides/shared/${name}.map: no version uses it`);
 }
 
+// Versions whose chapters YouVersion ids BOOK.<n>_1 in these books (#25);
+// the engine refuses them until it can read and write those ids.
+const suffixedChapters = JSON.parse(read("suffixed_chapters.json"));
+for (const [id, books] of Object.entries(suffixedChapters)) {
+  if (!(id in knownCounts)) throw new Error(`suffixed_chapters.json: no counts for bible ${id}`);
+  if (!Array.isArray(books) || !books.length || !books.every((b) => typeof b === "string" && /^[0-9A-Z]{3}$/.test(b))) {
+    throw new Error(`suffixed_chapters.json: ${id}: ${JSON.stringify(books)}`);
+  }
+}
+
 // YouVersion's numbering label per bible id, which the official API doesn't
 // expose (see scripts/import-survey.mjs).
 const SCHEMES = ["eng", "org", "rso", "rsc", "lxx", "vul"];
@@ -233,6 +243,12 @@ export const VERIFIED_VERSIONS: VerifiedVersion[] = ${JSON.stringify(VERIFIED, n
  * { bibleId: { "BOOK.chapter": verseCount } }
  */
 export const KNOWN_COUNTS: Record<number, Record<string, number>> = ${JSON.stringify(knownCounts)};
+
+/**
+ * Versions whose chapters YouVersion ids BOOK.<n>_1 (PSA.1_1) in these books,
+ * and whose highlights are stored under those ids: { bibleId: [book] }.
+ */
+export const SUFFIXED_CHAPTERS: Record<number, string[]> = ${JSON.stringify(suffixedChapters)};
 
 /**
  * Hand-checked correction tables shared by several versions

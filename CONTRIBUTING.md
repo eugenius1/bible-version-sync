@@ -137,6 +137,19 @@ add form refuses one, and a saved one shows "Numbering not supported". A
 version with no counts at all can't be checked, and is assumed English as
 before.
 
+**A version whose chapters YouVersion ids `PSA.1_1` is refused too**, with
+the same `unsupported` source and empty map, and `reason: "chapter-ids"`
+where the numbering case has `"numbering"`. NR2006, GNA2025 and TUKARA84 id
+some chapters `BOOK.<n>_1`, and the highlights API uses those ids: a read of
+`PSA.1` is an empty list (not an error, so "a failed read skips the book"
+doesn't fire) and a write to `PSA.1.2` a 502. Synced as `BOOK.<n>`, their
+highlights would be missed and earlier ones would read as removed. The scan
+records the books (`suffixed` in the survey's `counts.json`), the import
+writes them to `data/suffixed_chapters.json`, and `buildVersionMap` refuses
+any version listed there, whatever its counts. The app says "Can't be synced
+yet" rather than blaming the numbering. Reading and writing the real ids
+would lift this (#25).
+
 Verse counts come from, in order: `packages/core/data/known_counts.json`
 (the four verified versions, the other 50 surveyed, 56 more from the
 hand-made ranking in `scripts/popular.mjs` and 221 smaller unlabelled ones
@@ -144,8 +157,8 @@ scanned for coverage, by bible id), then the
 YouVersion API's `/v1/bibles/{id}/index` (only for versions the app key may
 read), then an assumption of the version's label or English numbering. The
 app shows which as a badge: "Verified numbering", "Verse counts known",
-"Numbering from YouVersion", "Numbering assumed" or "Numbering not
-supported". `known_counts.json` holds
+"Numbering from YouVersion", "Numbering assumed", "Numbering not
+supported" or, for the `PSA.1_1` versions above, "Can't be synced yet". `known_counts.json` holds
 only the chapters the engine can't infer: those where a version differs from
 English, and those where its candidate systems disagree (the engine needs
 those to pick each book's system). A chapter the version lacks is stored as

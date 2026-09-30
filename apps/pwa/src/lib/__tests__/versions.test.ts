@@ -63,6 +63,23 @@ describe("resolveVersions", () => {
     expect(v.map.chapters("PSA")).toEqual([]);
   });
 
+  it("refuses a saved version whose chapters YouVersion ids PSA.1_1, whatever its numbering (#25)", async () => {
+    const out = await resolveVersions([
+      { abbr: "NIV", bibleId: 111 },
+      { abbr: "GNA2025", bibleId: 67 },
+      { abbr: "TUKARA84", bibleId: 3404 },
+      { abbr: "NR2006", bibleId: 4833 },
+    ]);
+    expect(out.map((v) => [v.source, v.reason])).toEqual([
+      ["verified", undefined],
+      ["unsupported", "chapter-ids"],
+      ["unsupported", "chapter-ids"],
+      ["unsupported", "chapter-ids"],
+    ]);
+    for (const v of out.slice(1)) expect(v.map.unsupported).toBe(true);
+    expect(getIndex).not.toHaveBeenCalled();
+  });
+
   it("doesn't cache a failure worth retrying, and doesn't assume numbering meanwhile", async () => {
     getIndex.mockRejectedValueOnce(new ApiError(503, "unavailable"));
     await expect(resolveVersions([{ abbr: "X", bibleId: 999997 }])).rejects.toThrow(ApiError);

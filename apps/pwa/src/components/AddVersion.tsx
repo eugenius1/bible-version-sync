@@ -70,6 +70,7 @@ export function AddVersion({ added, disabled, onAdd }: Props) {
     setAdding(null);
     if (problem) return setError(f(tv.errors.cantRead, { id: bibleId, problem }));
     if (resolved?.source === "unsupported") {
+      if (resolved.reason === "chapter-ids") return setError(f(tv.errors.chapterIds, { id: bibleId }));
       return setError(f(tv.errors.unsupported, { id: bibleId, n: num(resolved.unfit ?? 0) }));
     }
     setQuery("");

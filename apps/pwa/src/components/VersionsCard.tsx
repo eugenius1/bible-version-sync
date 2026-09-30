@@ -55,7 +55,7 @@ export function VersionsCard({ settings, resolved, disabled, fresh = false, onCh
       <ol className="divide-y divide-stone-200 dark:divide-stone-800">
         {settings.map((v, i) => {
           const r = resolved?.find((x) => x.bibleId === v.bibleId);
-          const source = r ? tv.source[r.source] : null;
+          const source = r ? (r.reason === "chapter-ids" ? tv.source.chapterIds : tv.source[r.source]) : null;
           const src = source && {
             ...source,
             hint: f(source.hint, { system: tv.systems[assumedScheme(v.bibleId)], n: num(r?.unfit ?? 0) }),

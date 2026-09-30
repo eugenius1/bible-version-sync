@@ -153,7 +153,20 @@ for (const [lang, versions] of Object.entries(candidates)) {
 const defaults = [...new Set(Object.values(JSON.parse(readFileSync(join(survey, "defaults.json"), "utf8"))))].sort(byNumber);
 for (const id of defaults) if (!names[id]) throw new Error(`defaults.json: ${id} isn't a listed version`);
 
+// Versions whose chapters YouVersion ids BOOK.<n>_1 in some books (NR2006's
+// Psalms are PSA.1_1…). Their highlights are stored under those ids, which
+// the engine can't read or write yet, so the app refuses them (#25).
+const suffixed = {};
+for (const [id, v] of Object.entries(scanned)) {
+  if (!v.suffixed) continue;
+  if (!Array.isArray(v.suffixed) || !v.suffixed.length || !v.suffixed.every((b) => BOOKS.includes(b))) {
+    throw new Error(`counts.json: ${id}: bad suffixed books ${JSON.stringify(v.suffixed)}`);
+  }
+  suffixed[id] = v.suffixed;
+}
+
 writeJson("known_counts.json", known);
+writeJson("suffixed_chapters.json", suffixed, { inline: true });
 writeJson("labels.json", labels);
 writeJson("names.json", names, { inline: true });
 writeFileSync(join(data, "defaults.json"), `[\n${defaults.join(",\n")}\n]\n`);
@@ -161,6 +174,7 @@ writeFileSync(join(data, "defaults.json"), `[\n${defaults.join(",\n")}\n]\n`);
 const total = Object.values(known).reduce((n, v) => n + Object.keys(v).length, 0);
 console.log(
   `wrote data/known_counts.json (${Object.keys(known).length} versions, ${total} chapters)` +
+    `, data/suffixed_chapters.json (${Object.keys(suffixed).length} versions)` +
     `, data/labels.json (${Object.keys(labels).length} labels)` +
     `, data/names.json (${Object.keys(names).length} names)` +
     ` and data/defaults.json (${defaults.length} language defaults)`,
