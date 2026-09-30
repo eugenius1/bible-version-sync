@@ -128,15 +128,22 @@ export async function runSync(o: RunOptions): Promise<RunSummary> {
     const plan = result.plan;
     const sets = plan.actions.filter((a) => a.op === "set").length;
     const rems = plan.actions.length - sets;
-    summary.sets += sets;
-    summary.removals += rems;
     summary.differences += plan.differences.length;
+    // A preview counts what it would do; a run that applies counts only what
+    // it went on to write, so a book held back by the limit isn't reported
+    // as removed.
+    const count = () => {
+      summary.sets += sets;
+      summary.removals += rems;
+    };
 
-    if (o.apply && !o.signal?.aborted) {
+    if (!o.apply) count();
+    else if (!o.signal?.aborted) {
       if (rems && removalsSoFar + rems > maxRemovals && !o.allowRemovals) {
         result.blocked = { removals: rems, limit: maxRemovals };
         summary.blockedBooks++;
       } else {
+        count();
         removalsSoFar += rems;
         let done = 0;
         result.writeErrors = await applyPlan(o.api, versions, plan, o.state, () => {

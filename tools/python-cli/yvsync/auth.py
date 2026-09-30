@@ -18,7 +18,7 @@ import threading
 import urllib.parse
 import webbrowser
 
-from .api import API_BASE, ApiError, Client, TokenStore
+from .api import API_BASE, ApiError, Client, TokenStore, token_from
 
 
 def _pkce() -> tuple[str, str]:
@@ -84,13 +84,19 @@ def login(client: Client, tokens: TokenStore, redirect_uri: str, open_browser: b
                     "client_id": client.app_key,
                     "code_verifier": verifier,
                 })
-                tokens.save(tok)
+                tokens.save(token_from(tok))
                 result["ok"] = True
                 self._reply(200, "Signed in to YouVersion. You can close this tab and return to the terminal.")
             except ApiError as e:
                 result["error"] = str(e)
                 self._reply(500, f"Token exchange failed: {e}")
-            done.set()
+            except Exception as e:
+                # Anything else would kill this handler and leave the CLI
+                # waiting ten minutes for a sign-in that's already over.
+                result["error"] = repr(e)
+                raise
+            finally:
+                done.set()
 
     server = http.server.HTTPServer((parsed.hostname, parsed.port or 80), Handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)

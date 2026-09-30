@@ -255,11 +255,11 @@ def cmd_sync(ctx: Ctx, args) -> None:
                 for a in plan.actions:
                     col = f" #{a.color}" if a.color else ""
                     print(f"     {a.version:4} {a.op:6} {ref_str(a.local):11}{col}  ({a.reason})")
-        totals["sets"] += sum(sets.values())
-        totals["removals"] += sum(rems.values())
         totals["conflicts"] += len(plan.conflicts)
-
-        if args.apply:
+        if not args.apply:
+            totals["sets"] += sum(sets.values())
+            totals["removals"] += sum(rems.values())
+        else:
             n_rem = sum(rems.values())
             if n_rem and removals_so_far + n_rem > max_removals and not args.allow_removals:
                 print(f"   NOT APPLIED: would remove {n_rem} highlights (limit {max_removals} per run). "
@@ -267,6 +267,9 @@ def cmd_sync(ctx: Ctx, args) -> None:
                 totals["books_blocked"] += 1
                 continue
             removals_so_far += n_rem
+            # Counted only once applied, so a blocked book isn't reported as removed.
+            totals["sets"] += sum(sets.values())
+            totals["removals"] += n_rem
             errors = apply_plan(client, versions, plan, state)
             for e in errors:
                 print("   error: " + e)
