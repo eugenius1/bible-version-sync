@@ -35,47 +35,94 @@
  * out of reading, planning and writing altogether, and its snapshot is kept
  * as it was: with nothing read for it, anything else would look like every
  * highlight it has being removed.
+ *
+ * Versions are told apart by bible id everywhere, in the snapshot and in
+ * plans. Abbreviations are only names: YouVersion reuses them (NVI is four
+ * versions) and a person may rename one, while the id is what every highlight
+ * is stored under at YouVersion.
  */
 
 import { ApiError, type HighlightsApi } from "./api";
 import { parseRef, ref, type Ref, type VersionMap } from "./versification";
 
 export interface SyncVersion {
+  /** Only for display and messages; the sync goes by bibleId. */
   abbr: string;
   bibleId: number;
   map: VersionMap;
 }
 
 export interface SyncState {
-  /** canonical ref -> {abbr: color} left by the last sync */
-  verses: Record<Ref, Record<string, string>>;
   /**
-   * canonical chapter ("PSA.51") -> versions that took part when it was last
+   * Set once the snapshot is keyed by bible id. Snapshots saved before then
+   * are keyed by the name the person gave each version; see migrateState.
+   */
+  keys?: "bibleId";
+  /** canonical ref -> {bible id: color} left by the last sync */
+  verses: Record<Ref, Record<number, string>>;
+  /**
+   * canonical chapter ("PSA.51") -> bible ids that took part when it was last
    * synced. A version missing here (e.g. added later) has its blanks filled
    * rather than having them read as "highlight removed".
    */
-  members: Record<string, string[]>;
-  /** abbr -> canonical refs the API refused to write for that version */
-  unwritable: Record<string, Ref[]>;
+  members: Record<string, number[]>;
+  /** bible id -> canonical refs the API refused to write for that version */
+  unwritable: Record<number, Ref[]>;
   /**
-   * abbr -> book -> fingerprint of the verse mapping the snapshot was made
-   * with. Missing in snapshots from before it existed, and then treated as
-   * changed wherever the version has snapshot data: which mapping wrote it
+   * bible id -> book -> fingerprint of the verse mapping the snapshot was
+   * made with. Missing in snapshots from before it existed, and then treated
+   * as changed wherever the version has snapshot data: which mapping wrote it
    * can't be known, and a needless reset only costs one run of fills.
    */
-  maps?: Record<string, Record<string, string>>;
+  maps?: Record<number, Record<string, string>>;
 }
 
-export const emptyState = (): SyncState => ({ verses: {}, members: {}, unwritable: {}, maps: {} });
+export const emptyState = (): SyncState => ({ keys: "bibleId", verses: {}, members: {}, unwritable: {}, maps: {} });
+
+/**
+ * A snapshot as saved, keyed by bible id: unchanged if it already is, else
+ * converted from the names the person had given each version (`ids`: name ->
+ * bible id). A name that isn't there, or that two versions shared, is
+ * dropped with everything under it. That's safe: a version with no snapshot
+ * is treated like one just added, so its highlights fill blanks and nothing is
+ * removed or recoloured because of it.
+ */
+export function migrateState(saved: Partial<SyncState> | undefined, ids: ReadonlyMap<string, number>): SyncState {
+  if (!saved) return emptyState();
+  if (saved.keys === "bibleId") return { ...emptyState(), ...saved };
+  const id = (name: string | number) => ids.get(String(name));
+  const rekey = <T>(o: Record<string, T> | undefined) => {
+    const out: Record<number, T> = {};
+    for (const [name, value] of Object.entries(o ?? {})) {
+      const n = id(name);
+      if (n !== undefined) out[n] = value;
+    }
+    return out;
+  };
+  const state = emptyState();
+  for (const [canon, colors] of Object.entries(saved.verses ?? {})) {
+    const kept = rekey(colors);
+    if (Object.keys(kept).length) state.verses[canon] = kept;
+  }
+  for (const [chapter, names] of Object.entries(saved.members ?? {})) {
+    state.members[chapter] = (names as (string | number)[]).map(id).filter((n): n is number => n !== undefined);
+  }
+  state.unwritable = rekey(saved.unwritable);
+  // Absent fingerprints mean "mapping unknown": keep them absent rather than
+  // inventing an empty set, so the version is treated as remapped as before.
+  if (saved.maps) state.maps = rekey(saved.maps);
+  else delete state.maps;
+  return state;
+}
 
 const chapterKey = (canon: Ref) => canon.slice(0, canon.lastIndexOf("."));
 
 /** Forget a version everywhere in the snapshot (call when it's removed from the list). */
-export function forgetVersion(state: SyncState, abbr: string): void {
-  for (const colors of Object.values(state.verses)) delete colors[abbr];
-  for (const [k, list] of Object.entries(state.members)) state.members[k] = list.filter((a) => a !== abbr);
-  delete state.unwritable[abbr];
-  delete state.maps?.[abbr];
+export function forgetVersion(state: SyncState, bibleId: number): void {
+  for (const colors of Object.values(state.verses)) delete colors[bibleId];
+  for (const [k, list] of Object.entries(state.members)) state.members[k] = list.filter((a) => a !== bibleId);
+  delete state.unwritable[bibleId];
+  delete state.maps?.[bibleId];
 }
 
 const fingerprints = new WeakMap<VersionMap, Map<string, string>>();
@@ -110,34 +157,35 @@ export function mapFingerprint(map: VersionMap, book: string): string {
 }
 
 /** Whether the version has anything in the snapshot for canonical refs in `book`. */
-function hasSnapshot(state: SyncState, abbr: string, book: string): boolean {
+function hasSnapshot(state: SyncState, id: number, book: string): boolean {
   const prefix = `${book}.`;
   return (
-    Object.entries(state.members).some(([k, list]) => k.startsWith(prefix) && list.includes(abbr)) ||
-    Object.entries(state.verses).some(([k, colors]) => k.startsWith(prefix) && abbr in colors) ||
-    (state.unwritable[abbr] ?? []).some((r) => r.startsWith(prefix))
+    Object.entries(state.members).some(([k, list]) => k.startsWith(prefix) && list.includes(id)) ||
+    Object.entries(state.verses).some(([k, colors]) => k.startsWith(prefix) && id in colors) ||
+    (state.unwritable[id] ?? []).some((r) => r.startsWith(prefix))
   );
 }
 
 /** Forget a version's snapshot for one book (and `extra` canonical refs, which may lie outside it). */
-function forgetInBook(state: SyncState, abbr: string, book: string, extra: Iterable<Ref>): void {
+function forgetInBook(state: SyncState, id: number, book: string, extra: Iterable<Ref>): void {
   const prefix = `${book}.`;
   const refs = new Set(extra);
   for (const [k, colors] of Object.entries(state.verses)) {
-    if (!(abbr in colors) || !(k.startsWith(prefix) || refs.has(k))) continue;
-    delete colors[abbr];
+    if (!(id in colors) || !(k.startsWith(prefix) || refs.has(k))) continue;
+    delete colors[id];
     if (Object.keys(colors).length === 0) delete state.verses[k];
   }
   for (const [k, list] of Object.entries(state.members)) {
-    if (k.startsWith(prefix)) state.members[k] = list.filter((a) => a !== abbr);
+    if (k.startsWith(prefix)) state.members[k] = list.filter((a) => a !== id);
   }
-  if (state.unwritable[abbr]) {
-    state.unwritable[abbr] = state.unwritable[abbr].filter((r) => !r.startsWith(prefix) && !refs.has(r));
+  if (state.unwritable[id]) {
+    state.unwritable[id] = state.unwritable[id].filter((r) => !r.startsWith(prefix) && !refs.has(r));
   }
 }
 
 export interface Action {
-  version: string;
+  /** Bible id. */
+  version: number;
   op: "set" | "remove";
   local: Ref;
   color: string | null;
@@ -149,10 +197,10 @@ export interface Difference {
   canon: Ref;
   /** The verse as numbered in the first listed version (for display). */
   ref: Ref;
-  /** abbr -> its new color (null = removed) */
-  colors: Record<string, string | null>;
-  /** The version whose color blank versions get. */
-  winner: string;
+  /** bible id -> its new color (null = removed) */
+  colors: Record<number, string | null>;
+  /** The version (bible id) whose color blank versions get. */
+  winner: number;
   color: string | null;
 }
 
@@ -161,23 +209,24 @@ export interface BookPlan {
   actions: Action[];
   /** Verses changed to different colors in different versions (each keeps its own). */
   differences: Difference[];
-  /** canonical ref -> {abbr: color} expected after the actions run */
-  newState: Record<Ref, Record<string, string>>;
-  /** canonical chapter -> versions taking part in this sync */
-  members: Record<string, string[]>;
-  /** Highlights currently present, per version (for display). */
-  counts: Record<string, number>;
-  /** abbr -> fingerprint of its mapping of this book, recorded when applied. */
-  maps: Record<string, string>;
+  /** canonical ref -> {bible id: color} expected after the actions run */
+  newState: Record<Ref, Record<number, string>>;
+  /** canonical chapter -> bible ids taking part in this sync */
+  members: Record<string, number[]>;
+  /** Highlights currently present, per bible id (for display). */
+  counts: Record<number, number>;
+  /** bible id -> fingerprint of its mapping of this book, recorded when applied. */
+  maps: Record<number, string>;
   /**
-   * Versions whose mapping of this book changed since the snapshot; planned
-   * as newcomers, and their old snapshot for the book is dropped when applied.
+   * Versions (bible ids) whose mapping of this book changed since the
+   * snapshot; planned as newcomers, and their old snapshot for the book is
+   * dropped when applied.
    */
-  remapped: string[];
+  remapped: number[];
 }
 
-/** abbr -> local ref -> color */
-export type BookHighlights = Record<string, Map<Ref, string>>;
+/** bible id -> local ref -> color */
+export type BookHighlights = Record<number, Map<Ref, string>>;
 
 const norm = (c: string | null | undefined) => (c ? c.toLowerCase().replace(/^#/, "") : null);
 
@@ -201,7 +250,8 @@ async function pool<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R>): 
  */
 export function chapterScope(versions: SyncVersion[], book: string, chapter: number): {
   canon: Set<Ref>;
-  chapters: Record<string, Set<number>>;
+  /** bible id -> local chapters to read */
+  chapters: Record<number, Set<number>>;
 } {
   const first = versions[0].map;
   const canon = new Set<Ref>();
@@ -210,11 +260,11 @@ export function chapterScope(versions: SyncVersion[], book: string, chapter: num
     const c = first.toCanon.get(ref(book, chapter, v));
     if (c) canon.add(c);
   }
-  const chapters: Record<string, Set<number>> = {};
+  const chapters: Record<number, Set<number>> = {};
   for (const ver of versions) {
     const set = new Set<number>();
     for (const c of canon) for (const l of ver.map.fromCanon.get(c) ?? []) set.add(parseRef(l)[1]);
-    chapters[ver.abbr] = set;
+    chapters[ver.bibleId] = set;
   }
   return { canon, chapters };
 }
@@ -223,9 +273,9 @@ export function chapterScope(versions: SyncVersion[], book: string, chapter: num
 export const supported = (versions: SyncVersion[]) => versions.filter((v) => !v.map.unsupported);
 
 /** Chapters that will be read for `book` (for progress reporting). */
-export function chaptersToRead(versions: SyncVersion[], book: string, only?: Record<string, Set<number>>) {
+export function chaptersToRead(versions: SyncVersion[], book: string, only?: Record<number, Set<number>>) {
   return supported(versions).flatMap((v) =>
-    v.map.chapters(book).filter((c) => !only || only[v.abbr]?.has(c)).map((c) => ({ version: v, chapter: c })),
+    v.map.chapters(book).filter((c) => !only || only[v.bibleId]?.has(c)).map((c) => ({ version: v, chapter: c })),
   );
 }
 
@@ -234,16 +284,16 @@ export async function readBook(
   api: HighlightsApi,
   versions: SyncVersion[],
   book: string,
-  opts: { concurrency?: number; chapters?: Record<string, Set<number>>; onChapter?: () => void } = {},
+  opts: { concurrency?: number; chapters?: Record<number, Set<number>>; onChapter?: () => void } = {},
 ): Promise<BookHighlights> {
   const jobs = chaptersToRead(versions, book, opts.chapters);
-  const out: BookHighlights = Object.fromEntries(versions.map((v) => [v.abbr, new Map()]));
+  const out: BookHighlights = Object.fromEntries(versions.map((v) => [v.bibleId, new Map()]));
   const results = await pool(jobs, opts.concurrency ?? 4, async (job) => {
     const items = await api.getHighlights(job.version.bibleId, `${book}.${job.chapter}`);
     opts.onChapter?.();
-    return { abbr: job.version.abbr, items };
+    return { id: job.version.bibleId, items };
   });
-  for (const { abbr, items } of results) {
+  for (const { id, items } of results) {
     for (const h of items) {
       const color = norm(h.color);
       if (!h.passage_id || !color) continue;
@@ -252,7 +302,7 @@ export async function readBook(
       } catch {
         continue; // unexpected passage format
       }
-      out[abbr].set(h.passage_id, color);
+      out[id].set(h.passage_id, color);
     }
   }
   return out;
@@ -268,35 +318,36 @@ export function planBook(
   const versions = supported(all);
   // A refused version keeps its snapshot, so that once it can be synced
   // again, what it changed meanwhile reads as its own change, as usual.
-  const refused = all.filter((v) => !versions.includes(v)).map((v) => v.abbr);
+  const refused = all.filter((v) => !versions.includes(v)).map((v) => v.bibleId);
   const plan: BookPlan = {
     book, actions: [], differences: [], newState: {}, members: {}, counts: {}, maps: {}, remapped: [],
   };
-  const priority = versions.map((v) => v.abbr);
+  const priority = versions.map((v) => v.bibleId);
   for (const v of versions) {
     const fp = mapFingerprint(v.map, book);
-    plan.maps[v.abbr] = fp;
-    const stored = state.maps?.[v.abbr]?.[book];
-    if (stored ? stored !== fp : hasSnapshot(state, v.abbr, book)) plan.remapped.push(v.abbr);
+    plan.maps[v.bibleId] = fp;
+    const stored = state.maps?.[v.bibleId]?.[book];
+    if (stored ? stored !== fp : hasSnapshot(state, v.bibleId, book)) plan.remapped.push(v.bibleId);
   }
   // The snapshot as it stands for versions whose mapping is unchanged.
+  // (Object keys come back as strings, hence Number.)
   const remapped = new Set(plan.remapped);
-  const without = <T>(o: Record<string, T>) =>
-    remapped.size ? Object.fromEntries(Object.entries(o).filter(([a]) => !remapped.has(a))) : o;
-  const unwritable = (abbr: string) => (remapped.has(abbr) ? [] : (state.unwritable[abbr] ?? []));
+  const without = <T>(o: Record<number, T>): Record<number, T> =>
+    remapped.size ? Object.fromEntries(Object.entries(o).filter(([a]) => !remapped.has(Number(a)))) : o;
+  const unwritable = (id: number) => (remapped.has(id) ? [] : (state.unwritable[id] ?? []));
 
   // Canonical view per version. A canonical verse can cover several local
   // verses (e.g. 2 Cor 13:12-13 in English = 13:12 in French); any
   // highlighted one counts.
-  const canonColors: Record<string, Map<Ref, string>> = {};
+  const canonColors: Record<number, Map<Ref, string>> = {};
   for (const v of versions) {
     const cc = new Map<Ref, string>();
-    for (const [local, color] of current[v.abbr] ?? []) {
+    for (const [local, color] of current[v.bibleId] ?? []) {
       const canon = v.map.toCanon.get(local);
       if (canon && !cc.has(canon)) cc.set(canon, color);
     }
-    canonColors[v.abbr] = cc;
-    plan.counts[v.abbr] = current[v.abbr]?.size ?? 0;
+    canonColors[v.bibleId] = cc;
+    plan.counts[v.bibleId] = current[v.bibleId]?.size ?? 0;
   }
 
   const universe = new Set<Ref>();
@@ -313,33 +364,36 @@ export function planBook(
   for (const canon of sorted) {
     const prev = without(state.verses[canon] ?? {});
     const participants = versions.filter(
-      (v) => (v.map.fromCanon.get(canon)?.length ?? 0) > 0 && !unwritable(v.abbr).includes(canon),
+      (v) => (v.map.fromCanon.get(canon)?.length ?? 0) > 0 && !unwritable(v.bibleId).includes(canon),
     );
     if (participants.length === 0) continue;
     const key = chapterKey(canon);
     const members = state.members[key]?.filter((a) => !remapped.has(a));
-    plan.members[key] = [...new Set([...(plan.members[key] ?? members ?? []), ...participants.map((v) => v.abbr)])];
+    plan.members[key] = [...new Set([...(plan.members[key] ?? members ?? []), ...participants.map((v) => v.bibleId)])];
     // Versions that weren't part of this chapter's last sync (e.g. just added).
-    const newcomers = new Set(members ? participants.map((v) => v.abbr).filter((a) => !members.includes(a)) : []);
+    const newcomers = new Set(members ? participants.map((v) => v.bibleId).filter((a) => !members.includes(a)) : []);
 
-    const cur: Record<string, string | null> = {};
-    for (const v of participants) cur[v.abbr] = canonColors[v.abbr].get(canon) ?? null;
-    const result: Record<string, string> = {};
-    for (const [a, c] of Object.entries(cur)) if (c) result[a] = c;
-    const changed: Record<string, string | null> = {};
-    for (const [a, c] of Object.entries(cur)) if (c !== (prev[a] ?? null)) changed[a] = c;
+    const cur: Record<number, string | null> = {};
+    for (const v of participants) cur[v.bibleId] = canonColors[v.bibleId].get(canon) ?? null;
+    const result: Record<number, string> = {};
+    const changed: Record<number, string | null> = {};
+    for (const v of participants) {
+      const c = cur[v.bibleId];
+      if (c) result[v.bibleId] = c;
+      if (c !== (prev[v.bibleId] ?? null)) changed[v.bibleId] = c;
+    }
 
     const addActions = (v: SyncVersion, op: Action["op"], reason: Action["reason"], color: string | null) => {
       for (const local of v.map.fromCanon.get(canon)!) {
-        const lhave = current[v.abbr]?.get(local) ?? null;
+        const lhave = current[v.bibleId]?.get(local) ?? null;
         if (op === "remove" && lhave !== null) {
-          plan.actions.push({ version: v.abbr, op, local, color: null, canon, reason });
+          plan.actions.push({ version: v.bibleId, op, local, color: null, canon, reason });
         } else if (op === "set" && lhave !== color) {
-          plan.actions.push({ version: v.abbr, op, local, color, canon, reason });
+          plan.actions.push({ version: v.bibleId, op, local, color, canon, reason });
         }
       }
-      if (op === "remove") delete result[v.abbr];
-      else result[v.abbr] = color!;
+      if (op === "remove") delete result[v.bibleId];
+      else result[v.bibleId] = color!;
     };
 
     if (Object.keys(changed).length > 0) {
@@ -356,7 +410,7 @@ export function planBook(
         });
       }
       for (const v of participants) {
-        const a = v.abbr;
+        const a = v.bibleId;
         if (a in changed || newcomers.has(a)) continue; // own changes are never overridden
         const have = cur[a];
         const synced = have !== null && have === (prev[a] ?? null) && have === old;
@@ -372,7 +426,7 @@ export function planBook(
 
     // Newcomers with a blank get the verse's color (first listed version's).
     for (const v of participants) {
-      if (!newcomers.has(v.abbr) || cur[v.abbr] !== null) continue;
+      if (!newcomers.has(v.bibleId) || cur[v.bibleId] !== null) continue;
       const color = priority.map((a) => result[a]).find(Boolean);
       if (color) addActions(v, "set", "fill", color);
     }
@@ -394,18 +448,18 @@ export async function applyPlan(
   state: SyncState,
   onAction?: () => void,
 ): Promise<string[]> {
-  const byAbbr = new Map(versions.map((v) => [v.abbr, v]));
+  const byId = new Map(versions.map((v) => [v.bibleId, v]));
   const retry = new Set<Ref>(); // canonical refs to leave for next run
-  const rejected = new Map<Ref, Set<string>>(); // canonical ref -> versions the API refused
+  const rejected = new Map<Ref, Set<number>>(); // canonical ref -> bible ids the API refused
   const errors: string[] = [];
   for (const a of plan.actions) {
-    const v = byAbbr.get(a.version)!;
+    const v = byId.get(a.version)!;
     try {
       if (a.op === "set") await api.setHighlight(v.bibleId, a.local, a.color!);
       else await api.deleteHighlight(v.bibleId, a.local);
     } catch (e) {
       if (!(e instanceof ApiError)) throw e;
-      errors.push(`${a.version} ${a.op} ${a.local}: ${e.message}`);
+      errors.push(`${v.abbr} ${a.op} ${a.local}: ${e.message}`);
       if (e.retryable) {
         retry.add(a.canon);
       } else {
@@ -421,9 +475,9 @@ export async function applyPlan(
   }
   // Drop remapped versions' old snapshot for the whole book (not just a
   // chapter scope), so none of it is read under the new mapping later.
-  for (const abbr of plan.remapped) forgetInBook(state, abbr, plan.book, Object.keys(plan.newState));
+  for (const id of plan.remapped) forgetInBook(state, id, plan.book, Object.keys(plan.newState));
   state.maps ??= {};
-  for (const [abbr, fp] of Object.entries(plan.maps)) (state.maps[abbr] ??= {})[plan.book] = fp;
+  for (const [id, fp] of Object.entries(plan.maps)) (state.maps[Number(id)] ??= {})[plan.book] = fp;
   // A chapter with a verse left for retry keeps its old membership. A version
   // that joined it in this plan (just added, or remapped) would otherwise be
   // a member next time, and a fill that failed would look settled: no
@@ -432,7 +486,7 @@ export async function applyPlan(
   for (const [key, list] of Object.entries(plan.members)) if (!retryChapters.has(key)) state.members[key] = list;
   for (const [canon, colors] of Object.entries(plan.newState)) {
     if (retry.has(canon)) continue; // keep the old snapshot so the next run tries again
-    const kept = Object.fromEntries(Object.entries(colors).filter(([a]) => !rejected.get(canon)?.has(a)));
+    const kept = Object.fromEntries(Object.entries(colors).filter(([a]) => !rejected.get(canon)?.has(Number(a))));
     if (Object.keys(kept).length) state.verses[canon] = kept;
     else delete state.verses[canon];
   }

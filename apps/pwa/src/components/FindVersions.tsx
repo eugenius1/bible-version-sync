@@ -3,15 +3,17 @@ import { Check, Plus, Search, Square } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useI18n } from "../i18n";
 import { client } from "../lib/auth";
-import { settingFor, type VersionSetting } from "../lib/db";
-import { problemText, resolveVersion } from "../lib/versions";
+import type { VersionSetting } from "../lib/db";
+import { problemText, readerLanguages, resolveVersion } from "../lib/versions";
 
 interface Found {
   bibleId: number;
   /** Highlighted verses in the first sampled chapter that had any. */
   verses: number;
-  unsupported: boolean;
 }
+
+/** Whether the sync could take a found version; "checking" until its numbering is resolved. */
+type Numbering = "checking" | "ok" | "unsupported";
 
 type Scan =
   | { status: "idle" }
@@ -24,13 +26,8 @@ interface Props {
   disabled: boolean;
   /** Nothing chosen or synced yet: the list is the app's example, so look straight away. */
   fresh: boolean;
-  onChange: (next: VersionSetting[]) => void | Promise<void>;
-}
-
-/** The languages a person reads in, as best the browser can tell. */
-function readerLanguages(appLocale: string): string[] {
-  const nav = typeof navigator === "undefined" ? [] : (navigator.languages ?? [navigator.language]);
-  return [...nav, appLocale].filter(Boolean);
+  /** The new list, as bible ids. */
+  onChange: (next: number[]) => void | Promise<void>;
 }
 
 /**
@@ -41,6 +38,8 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
   const { t, f, num, plural } = useI18n();
   const tf = t.versions.find;
   const [scan, setScan] = useState<Scan>({ status: "idle" });
+  const [numbering, setNumbering] = useState<ReadonlyMap<number, Numbering>>(new Map());
+  const checked = useRef(new Set<number>());
   const abort = useRef<AbortController | null>(null);
   const localeTag = t.meta.localeTag;
 
@@ -48,33 +47,38 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
     const controller = new AbortController();
     abort.current = controller;
     setScan({ status: "running", done: 0, total: 0, found: [] });
+    // Each version's numbering is checked as soon as it's found, not after the
+    // scan, so it can be added while the rest are still being asked about.
+    const check = (bibleId: number) => {
+      if (checked.current.has(bibleId)) return;
+      checked.current.add(bibleId);
+      const settle = (n: Numbering) => setNumbering((m) => new Map(m).set(bibleId, n));
+      settle("checking");
+      // Resolving is cheap: bundled counts, or an API index that's cached
+      // afterwards. If it fails, offer the version anyway; adding it goes
+      // through the sync's own refusal.
+      resolveVersion({ bibleId, abbr: String(bibleId) }).then(
+        (r) => settle(r.source === "unsupported" ? "unsupported" : "ok"),
+        () => settle("ok"),
+      );
+    };
     try {
       await loadVersionNames();
       // Most used first, both to ask about them first and to list them in that
       // order, which is also the order "use these" keeps.
       const languages = readerLanguages(localeTag);
       const ids = byPopularity([...new Set([...settings.map((s) => s.bibleId), ...versionsInLanguages(languages)])], languages);
-      const toFound = (m: Map<number, number>) =>
-        ids.filter((id) => m.has(id)).map((bibleId) => ({ bibleId, verses: m.get(bibleId)!, unsupported: false }));
+      const toFound = (m: Map<number, number>) => ids.filter((id) => m.has(id)).map((bibleId) => ({ bibleId, verses: m.get(bibleId)! }));
       const counts = await discoverVersions({
         api: client,
         bibleIds: ids,
         signal: controller.signal,
-        onProgress: (p) => setScan({ status: "running", done: p.done, total: p.total, found: toFound(p.found) }),
+        onProgress: (p) => {
+          for (const id of p.found.keys()) check(id);
+          setScan({ status: "running", done: p.done, total: p.total, found: toFound(p.found) });
+        },
       });
-      // Flag versions the sync would refuse, so they aren't offered. Resolving
-      // is cheap: bundled counts, or an API index that's cached afterwards.
-      const found = toFound(counts);
-      for (const v of found) {
-        if (settings.some((s) => s.bibleId === v.bibleId)) continue;
-        try {
-          const r = await resolveVersion({ bibleId: v.bibleId, abbr: String(v.bibleId) });
-          v.unsupported = r.source === "unsupported";
-        } catch {
-          // Offer it anyway; adding it goes through the sync's own refusal.
-        }
-      }
-      setScan({ status: "done", found });
+      setScan({ status: "done", found: toFound(counts) });
     } catch (e) {
       if (controller.signal.aborted) setScan({ status: "idle" });
       else setScan({ status: "error", message: problemText(e) });
@@ -93,16 +97,13 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
   }, [fresh, start]);
   useEffect(() => () => abort.current?.abort(), []);
 
-  const add = (bibleId: number) => void onChange([...settings, settingFor(bibleId, settings)]);
-  const replaceWith = (found: Found[]) => {
-    const next: VersionSetting[] = [];
-    for (const v of found) next.push(settingFor(v.bibleId, next));
-    void onChange(next);
-  };
+  const add = (bibleId: number) => void onChange([...settings.map((s) => s.bibleId), bibleId]);
+  const replaceWith = (found: Found[]) => void onChange(found.map((v) => v.bibleId));
 
   const running = scan.status === "running";
   const found = scan.status === "running" || scan.status === "done" ? scan.found : [];
-  const usable = found.filter((v) => !v.unsupported);
+  const usable = found.filter((v) => numbering.get(v.bibleId) === "ok");
+  const checking = found.some((v) => numbering.get(v.bibleId) === "checking");
   const missing = scan.status === "done" ? settings.filter((s) => !found.some((v) => v.bibleId === s.bibleId)) : [];
   const pct = scan.status === "running" && scan.total ? Math.round((scan.done / scan.total) * 100) : 0;
 
@@ -147,6 +148,7 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
             {found.map((v) => {
               const name = versionName(v.bibleId);
               const inList = settings.some((s) => s.bibleId === v.bibleId);
+              const unsupported = numbering.get(v.bibleId) === "unsupported";
               return (
                 <li key={v.bibleId} className="flex items-center gap-3 py-2">
                   <div className="min-w-0 flex-1">
@@ -157,7 +159,7 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
                       </span>
                     </div>
                     <p className="text-xs text-stone-600 dark:text-stone-400">
-                      {v.unsupported ? tf.unsupported : plural(tf.verses, v.verses)}
+                      {unsupported ? tf.unsupported : plural(tf.verses, v.verses)}
                     </p>
                   </div>
                   {inList ? (
@@ -166,10 +168,10 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
                       {tf.inList}
                     </span>
                   ) : (
-                    !v.unsupported && (
+                    !unsupported && (
                       <button
                         className="btn-ghost shrink-0"
-                        disabled={disabled || running}
+                        disabled={disabled || numbering.get(v.bibleId) !== "ok"}
                         onClick={() => add(v.bibleId)}
                         aria-label={f(tf.add, { abbr: name?.abbr ?? String(v.bibleId) })}
                       >
@@ -193,7 +195,7 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
 
       {/* Only before the first sync: replacing a synced list would drop its snapshots. */}
       {fresh && scan.status === "done" && usable.length >= 2 && (
-        <button className="btn-primary" disabled={disabled} onClick={() => replaceWith(usable)}>
+        <button className="btn-primary" disabled={disabled || checking} onClick={() => replaceWith(usable)}>
           {plural(tf.useThese, usable.length)}
         </button>
       )}

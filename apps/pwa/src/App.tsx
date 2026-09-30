@@ -8,7 +8,7 @@ import { VersionsCard } from "./components/VersionsCard";
 import { useI18n } from "./i18n";
 import { copyrightYears } from "./lib/copyright";
 import { APP_KEY, client, completeSignIn, isCallback, SignInError, signOut, startSignIn } from "./lib/auth";
-import { store, tokenStore, type Settings, type VersionSetting } from "./lib/db";
+import { labelVersions, store, tokenStore, type Settings } from "./lib/db";
 import { resolveVersions, type ResolvedVersion } from "./lib/versions";
 
 type Auth = "loading" | "signed-out" | "signed-in";
@@ -134,13 +134,13 @@ function Main() {
   }, [settings, auth]);
 
   const saveVersions = useCallback(
-    async (next: VersionSetting[], removed?: string) => {
-      if (removed) {
+    async (next: number[], removed?: number) => {
+      if (removed !== undefined) {
         const state = await store.getState();
         forgetVersion(state, removed);
         await store.setState(state);
       }
-      const s = { ...settings!, versions: next };
+      const s = { ...settings!, versions: labelVersions(next) };
       await store.setSettings(s);
       setSettings(s);
       setCustomised(true);
@@ -246,6 +246,7 @@ function Main() {
       {run.status === "done" && (
         <Results
           run={run}
+          names={new Map((versions ?? []).map((v) => [v.bibleId, v.abbr]))}
           onApply={() => startRun(run.scope, true)}
           onApplyAllowingRemovals={() => startRun(run.scope, true, true)}
           onSignInAgain={async () => {

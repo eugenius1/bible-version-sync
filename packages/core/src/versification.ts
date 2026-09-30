@@ -534,6 +534,50 @@ export function byPopularity(ids: readonly number[], languages: readonly string[
   return [...ids].sort((a, b) => versionRank(a) - versionRank(b) || place(a) - place(b) || a - b);
 }
 
+/** Lower case without accents, so "esaie" finds "Ésaïe" and "segond" finds "Segond". */
+const fold = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+
+let searchIndex: { id: number; abbr: string; text: string }[] | undefined;
+
+/**
+ * Versions matching what the person typed, once loadVersionNames is done:
+ * every word must appear in the version's number, abbreviation or title
+ * (ignoring case and accents). A number matching a version's id exactly
+ * comes first; then versions in the reader's languages, in their order, then
+ * the rest; within a language, an exact abbreviation, then one starting with
+ * the query, then any other match, each most used first.
+ */
+export function searchVersions(query: string, languages: readonly string[] = []): number[] {
+  const words = fold(query).split(/\s+/).filter(Boolean);
+  if (!words.length || !allNames) return [];
+  searchIndex ??= [...allNames].map(([id, n]) => ({
+    id,
+    abbr: fold(n.abbr),
+    text: `${id} ${fold(n.abbr)} ${fold(n.title)}`,
+  }));
+  const primary = languages.map((l) => l.split("-")[0].toLowerCase());
+  const place = (id: number) => {
+    const i = primary.indexOf(allNames!.get(id)!.language.split("-")[0].toLowerCase());
+    return i < 0 ? primary.length : i;
+  };
+  const whole = words.join(" ");
+  const exactId = /^\d+$/.test(whole) ? Number(whole) : undefined;
+  const tier = (v: { id: number; abbr: string }) =>
+    v.id === exactId ? 0 : v.abbr === whole ? 1 : v.abbr.startsWith(whole) ? 2 : 3;
+  return searchIndex
+    .filter((v) => words.every((w) => v.text.includes(w)))
+    .map((v) => ({ id: v.id, tier: tier(v), place: place(v.id) }))
+    .sort(
+      (a, b) =>
+        Number(b.tier === 0) - Number(a.tier === 0) ||
+        a.place - b.place ||
+        a.tier - b.tier ||
+        versionRank(a.id) - versionRank(b.id) ||
+        a.id - b.id,
+    )
+    .map((v) => v.id);
+}
+
 /** Whether loadVersionNames has finished, so a missing name means an unknown version. */
 export function versionNamesLoaded(): boolean {
   return allNames !== undefined;

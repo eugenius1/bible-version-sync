@@ -18,6 +18,7 @@ import {
   versionRank,
   byPopularity,
   mostUsedVersions,
+  searchVersions,
 } from "../src";
 import { KNOWN_COUNTS, OVERRIDES, VERIFIED_VERSIONS } from "../src/data.generated";
 
@@ -332,6 +333,28 @@ describe("versionName", () => {
       expect(versionsInLanguages(["fr", "EN"])).toEqual(expect.arrayContaining([93, 152, 111]));
       expect(versionsInLanguages(["zh"])).toContain(46); // zh-TW
       expect(versionsInLanguages([])).toEqual([]);
+    });
+
+    it("searches versions by number, abbreviation and title, ignoring case and accents", () => {
+      expect(searchVersions("111")[0]).toBe(111); // the id itself first
+      expect(searchVersions("niv")).toContain(111);
+      expect(searchVersions("louis segond").slice(0, 1)).toEqual([93]);
+      expect(searchVersions("SEGOND 21")).toContain(152);
+      expect(searchVersions("синодальный")).toContain(400);
+      expect(searchVersions("amplified classic")).toEqual([8]);
+      expect(searchVersions("  ")).toEqual([]);
+      expect(searchVersions("no such version anywhere")).toEqual([]);
+    });
+
+    it("lists search results in the reader's languages first, in their order", () => {
+      // NVI: Spanish (128, 1637) and Portuguese (129, 4360).
+      const pt = searchVersions("nvi", ["pt", "es"]);
+      const es = searchVersions("nvi", ["es", "pt"]);
+      expect(pt.slice(0, 2).sort()).toEqual([129, 4360]);
+      expect(es.slice(0, 2).sort()).toEqual([128, 1637]);
+      // Within a language: exact abbreviation before one that merely contains it.
+      const fr = searchVersions("lsg", ["fr"]);
+      expect(fr[0]).toBe(93);
     });
 
     it("ranks the most used versions first, and each language's default before the rest", () => {

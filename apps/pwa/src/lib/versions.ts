@@ -30,9 +30,8 @@ export interface ResolvedVersion extends SyncVersion {
  * "unsupported" with an empty map: the add form refuses it, and the sync
  * leaves a saved one out (see buildVersionMap).
  *
- * Everything is looked up by bible id. A setting's `abbr` is the name the
- * person chose, which is also what the sync snapshot is keyed by, so saved
- * settings carry over unchanged whatever they're called.
+ * Everything is looked up by bible id; a setting's `abbr` is only the name
+ * shown for it.
  */
 export async function resolveVersions(settings: VersionSetting[]): Promise<ResolvedVersion[]> {
   const out: ResolvedVersion[] = [];
@@ -61,6 +60,12 @@ export async function resolveVersion(v: VersionSetting): Promise<ResolvedVersion
   }
   const { map, source, unfit } = buildVersionMap(v.abbr, v.bibleId, index ?? undefined);
   return { abbr: v.abbr, bibleId: v.bibleId, map, source, unfit };
+}
+
+/** The languages a person reads in, as best the browser can tell, then the app's own. */
+export function readerLanguages(appLocale: string): string[] {
+  const nav = typeof navigator === "undefined" ? [] : (navigator.languages ?? [navigator.language]);
+  return [...nav, appLocale].filter(Boolean);
 }
 
 /** A short description of a failed request, for an error message. */

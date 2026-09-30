@@ -1,17 +1,11 @@
 import { assumedScheme, loadVersionNames, versionNamesLoaded } from "@bvs/core";
-import { ArrowDown, ArrowUp, BadgeCheck, Ban, CircleAlert, Hash, Info, Plus, X } from "lucide-react";
+import { ArrowDown, ArrowUp, BadgeCheck, Ban, CircleAlert, Hash, Info, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useI18n } from "../i18n";
 import { FindVersions } from "./FindVersions";
 import type { VersionSetting } from "../lib/db";
-import {
-  canReadHighlights,
-  parseVersionInput,
-  problemText,
-  resolveVersion,
-  versionName,
-  type ResolvedVersion,
-} from "../lib/versions";
+import { versionName, type ResolvedVersion } from "../lib/versions";
+import { AddVersion } from "./AddVersion";
 
 const SOURCE_STYLE: Record<ResolvedVersion["source"], { tone: string; Icon: typeof BadgeCheck }> = {
   verified: { tone: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200", Icon: BadgeCheck },
@@ -28,16 +22,13 @@ interface Props {
   disabled: boolean;
   /** Nothing chosen or synced yet, so the list is the app's example. */
   fresh?: boolean;
-  onChange: (next: VersionSetting[], removedAbbr?: string) => void | Promise<void>;
+  /** The new list, as bible ids, and the one removed, if any. */
+  onChange: (next: number[], removed?: number) => void | Promise<void>;
 }
 
 export function VersionsCard({ settings, resolved, disabled, fresh = false, onChange }: Props) {
   const { t, f, num } = useI18n();
   const tv = t.versions;
-  const [input, setInput] = useState("");
-  const [abbr, setAbbr] = useState("");
-  const [adding, setAdding] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   // Names are a chunk of their own (100 KB gzipped); re-render once they're in.
   const [, setNamesLoaded] = useState(false);
   useEffect(() => {
@@ -47,44 +38,11 @@ export function VersionsCard({ settings, resolved, disabled, fresh = false, onCh
     );
   }, []);
 
+  const ids = settings.map((s) => s.bibleId);
   const move = (i: number, d: -1 | 1) => {
-    const next = [...settings];
+    const next = [...ids];
     [next[i], next[i + d]] = [next[i + d], next[i]];
     void onChange(next);
-  };
-
-  // What's being added, named as soon as it's recognised. A name the person
-  // types, or one in the link, beats YouVersion's abbreviation.
-  const parsed = parseVersionInput(input);
-  const known = parsed ? versionName(parsed.bibleId) : undefined;
-  const defaultName = (parsed?.abbr ?? known?.abbr)?.toUpperCase();
-
-  const add = async () => {
-    setError(null);
-    if (!parsed) return setError(tv.errors.unparseable);
-    const name = (abbr || defaultName || "").trim().toUpperCase();
-    if (!name) return setError(tv.errors.needName);
-    if (settings.some((s) => s.bibleId === parsed.bibleId)) return setError(tv.errors.duplicateVersion);
-    if (settings.some((s) => s.abbr === name)) return setError(f(tv.errors.duplicateName, { name }));
-    setAdding(true);
-    let problem = await canReadHighlights(parsed.bibleId);
-    // A version whose numbering can't be mapped would only ever be left out.
-    let resolved = null;
-    if (!problem) {
-      try {
-        resolved = await resolveVersion({ bibleId: parsed.bibleId, abbr: name });
-      } catch (e) {
-        problem = problemText(e); // e.g. rate limited: nothing cached, so adding it again retries
-      }
-    }
-    setAdding(false);
-    if (problem) return setError(f(tv.errors.cantRead, { id: parsed.bibleId, problem }));
-    if (resolved?.source === "unsupported") {
-      return setError(f(tv.errors.unsupported, { id: parsed.bibleId, n: num(resolved.unfit ?? 0) }));
-    }
-    setInput("");
-    setAbbr("");
-    await onChange([...settings, { bibleId: parsed.bibleId, abbr: name }]);
   };
 
   return (
@@ -158,7 +116,7 @@ export function VersionsCard({ settings, resolved, disabled, fresh = false, onCh
                   disabled={disabled || settings.length <= 2}
                   onClick={() => {
                     if (confirm(f(tv.confirmRemove, { abbr: v.abbr }))) {
-                      void onChange(settings.filter((s) => s.bibleId !== v.bibleId), v.abbr);
+                      void onChange(ids.filter((id) => id !== v.bibleId), v.bibleId);
                     }
                   }}
                   aria-label={f(tv.remove, { abbr: v.abbr })}
@@ -174,46 +132,7 @@ export function VersionsCard({ settings, resolved, disabled, fresh = false, onCh
 
       <FindVersions settings={settings} disabled={disabled} fresh={fresh} onChange={onChange} />
 
-      <form
-        className="space-y-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          void add();
-        }}
-      >
-        <label className="label" htmlFor="add-version">{tv.addLabel}</label>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <input
-            id="add-version"
-            className="input flex-1"
-            placeholder={tv.addPlaceholder}
-            value={input}
-            disabled={disabled || adding}
-            onChange={(e) => setInput(e.target.value)}
-          />
-          <input
-            className="input sm:w-24"
-            placeholder={defaultName ?? tv.namePlaceholder}
-            aria-label={tv.nameLabel}
-            value={abbr}
-            disabled={disabled || adding}
-            onChange={(e) => setAbbr(e.target.value)}
-          />
-          <button className="btn-secondary" disabled={disabled || adding || !input.trim()}>
-            <Plus size={16} aria-hidden />
-            {adding ? tv.adding : tv.add}
-          </button>
-        </div>
-        {known && (
-          <p className="text-sm text-stone-600 dark:text-stone-400" lang={known.language} dir="auto">
-            {known.title}
-          </p>
-        )}
-        <p className="text-xs text-stone-600 dark:text-stone-400">
-          {tv.addHelp} <span className="font-mono">bible.com/bible/<b>1</b>/JHN.3.<b>KJV</b></span>
-        </p>
-        {error && <p className="text-sm text-red-700 dark:text-red-300">{error}</p>}
-      </form>
+      <AddVersion added={ids} disabled={disabled} onAdd={(id) => onChange([...ids, id])} />
     </section>
   );
 }

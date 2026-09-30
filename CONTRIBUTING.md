@@ -184,18 +184,28 @@ write differently. YouVersion has
 two abbreviations per version, and bible.com shows
 `local_abbreviation` (NIV, НРП), not `abbreviation` (NIV11, NRT); the survey's
 `names.py` records it. The verified versions are named the same way, and
-`gen-data.mjs` checks that `verified.mjs` agrees. The app shows the title
-beside the name the person chose, falls back to "Version {id}" once the
-names are loaded and don't have it, and offers the abbreviation as the name when the person gives only a
-number. Titles are in the version's own script, so they're rendered with `lang` (Japanese glyphs rather than
-Chinese) and `dir="auto"` (Arabic).
+`gen-data.mjs` checks that `verified.mjs` agrees. A version is named by its
+abbreviation, worked out from its id and never saved (`labelVersions` in
+`apps/pwa/src/lib/db.ts`); two in the list that share one get their
+language, or their number when that's shared too: NVI (es), ARC (212). The
+app shows the title beside it and falls back to "Version {id}" once the
+names are loaded and don't have it. Titles are in the version's own script,
+so they're rendered with `lang` (Japanese glyphs rather than Chinese) and
+`dir="auto"` (Arabic). The add field searches these names
+(`searchVersions`): every word must appear in the number, abbreviation or
+title, accents and case aside; an exact number comes first, then the
+reader's languages in their order, then exact and leading abbreviation
+matches, then popularity. A number bible.com doesn't name is still offered.
 
 **Finding the person's versions.** There's no "list my highlights", so
-`discoverVersions` (`packages/core/src/discover.ts`) reads four
-often-highlighted chapters (John 3, Romans 8, Philippians 4, Jeremiah 29, none
-of which moves between numbering systems) in every version in the browser's
-languages, stopping at a version's first hit: about 90 versions and up to 400
-reads for English. It runs by itself only on a first visit (no saved settings,
+`discoverVersions` (`packages/core/src/discover.ts`) reads three
+often-highlighted chapters (Isaiah 41, Philippians 4, John 3, none
+of which moves between numbering systems, most highlighted first by
+YouVersion's yearly figures) in every version in the browser's languages,
+stopping at a version's first hit: about 90 versions and up to 270 reads for
+English, and the progress counts the most it could take (versions × 3). A
+version found is checked for supported numbering straight away, so it can be
+added while the scan goes on. It runs by itself only on a first visit (no saved settings,
 empty sync memory), when the default list is just an example; replacing the
 list is only offered then, since replacing a synced list would drop its
 snapshots. Versions are asked about, and listed, most used first
@@ -235,7 +245,11 @@ version had after the last sync, and per canonical chapter which versions took
 part. A version's change is anything different from its own snapshot. That's
 what separates "removed" from "never highlighted", and it's why the snapshot is
 per version: storing one colour per verse turned a version keeping its own
-colour into a phantom change on the next run.
+colour into a phantom change on the next run. Versions are keyed by bible id,
+in the snapshot and in plans. It used to be the name the person gave each
+version, until names stopped being chosen; `migrateState` converts a
+snapshot from then using the names saved with the settings, and drops what
+it can't place, which only makes that version a newcomer.
 
 Safety rules, all tested:
 

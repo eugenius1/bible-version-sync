@@ -9,6 +9,7 @@ import {
   chapterScope,
   emptyState,
   forgetVersion,
+  migrateState,
   planBook,
   readBook,
   runSync,
@@ -25,6 +26,12 @@ const VERSIONS: SyncVersion[] = Object.entries(IDS).map(([abbr, id]) => ({
   bibleId: id,
   map: buildVersionMap(abbr, id).map,
 }));
+/** Every version the tests use, by bible id, to read plans and snapshots by name. */
+const NAMES: Record<number, string> = { ...Object.fromEntries(Object.entries(IDS).map(([a, id]) => [id, a])), 400: "SYNO", 73: "HFA" };
+const named = <T>(o: Record<number, T> | undefined) =>
+  o && Object.fromEntries(Object.entries(o).map(([id, v]) => [NAMES[Number(id)], v]));
+const actionsByName = (plan: { actions: { version: number; op: string; local: string }[] }) =>
+  plan.actions.map((a) => [NAMES[a.version], a.op, a.local]);
 
 /** In-memory stand-in for the YouVersion highlights API. */
 class FakeApi implements HighlightsApi {
@@ -107,7 +114,7 @@ describe("sync", () => {
     api.hl("NIV", "ROM.8.28", "ffe066");
     api.hl("AMP", "ROM.8.28", "ff9999");
     const plan = await sync("ROM");
-    expect(plan.differences).toMatchObject([{ canon: "ROM.8.28", ref: "ROM.8.28", winner: "AMP", color: "ff9999" }]);
+    expect(plan.differences).toMatchObject([{ canon: "ROM.8.28", ref: "ROM.8.28", winner: IDS.AMP, color: "ff9999" }]);
     expect(every("ROM.8.28")).toEqual({ AMP: "ff9999", NIV: "ffe066", LSG: "ff9999", S21: "ff9999" });
     expect((await sync("ROM")).actions).toEqual([]);
   });
@@ -116,7 +123,8 @@ describe("sync", () => {
     api.hl("AMP", "PSA.51.1", "ff9999");
     api.hl("S21", "PSA.51.3", "ffe066");
     const plan = await sync("PSA", false);
-    expect(plan.differences).toMatchObject([{ canon: "PSA.51.3", ref: "PSA.51.1", colors: { AMP: "ff9999", S21: "ffe066" } }]);
+    expect(plan.differences).toMatchObject([{ canon: "PSA.51.3", ref: "PSA.51.1" }]);
+    expect(named(plan.differences[0].colors)).toEqual({ AMP: "ff9999", S21: "ffe066" });
   });
 
   it("never recolors an existing highlight on the first sync", async () => {
@@ -165,7 +173,7 @@ describe("sync", () => {
     api.hl("NIV", "JHN.3.16", "ffe066");
     api.rejectWrites.add(`${IDS.S21}:JHN.3.16`);
     await sync("JHN");
-    expect(state.unwritable.S21).toContain("JHN.3.16");
+    expect(state.unwritable[IDS.S21]).toContain("JHN.3.16");
     expect((await sync("JHN")).actions).toEqual([]);
     expect(api.color("AMP", "JHN.3.16")).toBe("ffe066");
   });
@@ -209,7 +217,7 @@ describe("sync", () => {
     await syncWith(VERSIONS); // S21 added; its fill fails once
     expect(api.color("S21", "JHN.1.1")).toBeNull();
     const retry = await syncWith(VERSIONS);
-    expect(retry.actions.map((a) => [a.version, a.op, a.local])).toEqual([["S21", "set", "JHN.1.1"]]);
+    expect(actionsByName(retry)).toEqual([["S21", "set", "JHN.1.1"]]);
     expect(api.color("S21", "JHN.1.1")).toBe("ff9999");
     expect((await syncWith(VERSIONS)).actions).toEqual([]);
   });
@@ -218,7 +226,7 @@ describe("sync", () => {
     api.hl("AMP", "JHN.1.1", "ff9999");
     await sync("JHN");
     delete api.store[IDS.S21]["JHN.1.1"]; // S21 wiped outside the app...
-    forgetVersion(state, "S21"); // ...and was removed from the list and re-added
+    forgetVersion(state, IDS.S21); // ...and was removed from the list and re-added
     await sync("JHN");
     expect(api.color("S21", "JHN.1.1")).toBe("ff9999");
   });
@@ -236,7 +244,7 @@ describe("runSync", () => {
   it("limits a chapter scope to that chapter, reading the right local chapters", async () => {
     api.hl("AMP", "MAL.4.5", "ffe066");
     api.hl("AMP", "MAL.3.1", "ffe066");
-    expect(chapterScope(VERSIONS, "MAL", 4).chapters.S21).toEqual(new Set([3]));
+    expect(chapterScope(VERSIONS, "MAL", 4).chapters[IDS.S21]).toEqual(new Set([3]));
     await runSync({ api, versions: VERSIONS, scope: { kind: "chapter", book: "MAL", chapter: 4 }, state, apply: true });
     expect(api.store[IDS.S21]).toEqual({ "MAL.3.23": "ffe066" }); // 3:1 untouched
   });
@@ -315,7 +323,7 @@ describe("a version whose mapping changed", () => {
     expect(syno("PSA.91.1")).toBe("ffe066"); // the old mapping's fill, on the wrong psalm
 
     const plan = await run([NIV, synoNew]);
-    expect(plan.remapped).toEqual(["SYNO"]);
+    expect(plan.remapped).toEqual([400]);
     expect(plan.actions.filter((a) => a.reason !== "fill")).toEqual([]);
     expect(api.color("NIV", "PSA.91.1")).toBe("ffe066");
     expect(api.color("NIV", "PSA.92.1")).toBe("a3d9ff");
@@ -329,7 +337,7 @@ describe("a version whose mapping changed", () => {
     // A real removal after the remap still propagates.
     delete api.store[400]["PSA.91.2"];
     const removal = await run([NIV, synoNew]);
-    expect(removal.actions.map((a) => [a.version, a.op, a.local])).toEqual([["NIV", "remove", "PSA.92.1"]]);
+    expect(actionsByName(removal)).toEqual([["NIV", "remove", "PSA.92.1"]]);
   });
 
   it("treats a snapshot without fingerprints as possibly remapped, once", async () => {
@@ -337,7 +345,7 @@ describe("a version whose mapping changed", () => {
     delete state.maps; // as saved before fingerprints existed
     api.hl("NIV", "PSA.99.1", "ff0000"); // would otherwise recolour Synodal 98:1
     const plan = await run([NIV, synoNew]);
-    expect(plan.remapped.sort()).toEqual(["NIV", "SYNO"]);
+    expect(plan.remapped.sort((a, b) => a - b)).toEqual([111, 400]);
     expect(plan.actions.filter((a) => a.reason !== "fill")).toEqual([]);
 
     api.hl("NIV", "PSA.99.1", "00ff00");
@@ -345,7 +353,7 @@ describe("a version whose mapping changed", () => {
     expect(next.remapped).toEqual([]);
     delete api.store[111]["PSA.92.1"];
     const removal = await run([NIV, synoNew]);
-    expect(removal.actions.map((a) => [a.version, a.op, a.local])).toEqual([["SYNO", "remove", "PSA.91.2"]]);
+    expect(actionsByName(removal)).toEqual([["SYNO", "remove", "PSA.91.2"]]);
   });
 
   it("retries a remapped version's fill that failed retryably", async () => {
@@ -355,20 +363,20 @@ describe("a version whose mapping changed", () => {
     await run([NIV, synoNew]); // the fill of Synodal 91:2 fails once
     expect(syno("PSA.91.2")).toBeNull();
     const retry = await run([NIV, synoNew]);
-    expect(retry.actions.map((a) => [a.version, a.op, a.local])).toEqual([["SYNO", "set", "PSA.91.2"]]);
+    expect(actionsByName(retry)).toEqual([["SYNO", "set", "PSA.91.2"]]);
     expect(syno("PSA.91.2")).toBe("a3d9ff");
   });
 
   it("drops the old snapshot for the whole book, and forgets fingerprints with the version", async () => {
     await run([NIV, synoOld]);
     await run([NIV, synoNew]);
-    expect(state.maps?.SYNO?.PSA).toBeTruthy();
+    expect(state.maps?.[400]?.PSA).toBeTruthy();
     const stale = Object.entries(state.verses).filter(
-      ([canon, colors]) => colors.SYNO && !synoNew.map.fromCanon.has(canon),
+      ([canon, colors]) => colors[400] && !synoNew.map.fromCanon.has(canon),
     );
     expect(stale).toEqual([]);
-    forgetVersion(state, "SYNO");
-    expect(state.maps?.SYNO).toBeUndefined();
+    forgetVersion(state, 400);
+    expect(state.maps?.[400]).toBeUndefined();
   });
 });
 
@@ -398,7 +406,7 @@ describe("a version moving from assumed numbering to bundled counts", () => {
     expect(api.store[73]["PSA.51.1"]).toBe("ffe066"); // assumed English: a title, the wrong verse
 
     const plan = await run([NIV, counted]);
-    expect(plan.remapped).toEqual(["HFA"]);
+    expect(plan.remapped).toEqual([73]);
     expect(plan.actions.filter((a) => a.op === "remove" || a.reason !== "fill")).toEqual([]);
     expect(api.color("NIV", "PSA.51.1")).toBe("ffe066");
     expect(api.color("NIV", "PSA.51.2")).toBe("ffe066");
@@ -428,7 +436,7 @@ describe("a version whose numbering is unsupported", () => {
     delete api.store[IDS.NIV]["JHN.3.16"];
     delete api.store[IDS.NIV]["JHN.1.1"];
     const summary = await run(withNivRefused);
-    expect(summary.refused).toEqual(["NIV"]);
+    expect(summary.refused).toEqual([IDS.NIV]);
     expect(summary.removals).toBe(0);
     expect(summary.sets).toBe(0);
     expect(api.writes).toBe(0);
@@ -446,9 +454,9 @@ describe("a version whose numbering is unsupported", () => {
     const summary = await run(withNivRefused);
     expect(summary.removals).toBe(2); // LSG's and S21's copies
     expect(api.store[IDS.NIV]).toEqual(niv);
-    expect(state.verses["JHN.3.16"]).toEqual({ NIV: "ffe066" });
-    expect(state.verses["JHN.5.1"]).toEqual({ AMP: "b2f2bb", LSG: "b2f2bb", S21: "b2f2bb" });
-    expect(state.maps?.NIV?.JHN).toBeTruthy();
+    expect(named(state.verses["JHN.3.16"])).toEqual({ NIV: "ffe066" });
+    expect(named(state.verses["JHN.5.1"])).toEqual({ AMP: "b2f2bb", LSG: "b2f2bb", S21: "b2f2bb" });
+    expect(state.maps?.[IDS.NIV]?.JHN).toBeTruthy();
   });
 
   it("takes part again, from its snapshot, once it can be mapped", async () => {
@@ -464,14 +472,14 @@ describe("a version whose numbering is unsupported", () => {
     const current = await readBook(api, withNivRefused, "JHN");
     const plan = planBook("JHN", withNivRefused, current, state);
     expect(plan.actions).toEqual([]);
-    expect(Object.keys(plan.maps)).not.toContain("NIV");
+    expect(Object.keys(plan.maps)).not.toContain(String(IDS.NIV));
     expect(plan.remapped).toEqual([]);
   });
 
   it("does nothing when every version is refused", async () => {
     api.reads = [];
     const summary = await run(VERSIONS.map(refused));
-    expect(summary.refused).toEqual(Object.keys(IDS));
+    expect(summary.refused).toEqual(Object.values(IDS));
     expect(summary.books).toEqual([]);
     expect(api.reads).toEqual([]);
   });
@@ -480,7 +488,64 @@ describe("a version whose numbering is unsupported", () => {
     api.hl("AMP", "JHN.3.17", "ff9999");
     const versions = [refused(VERSIONS[1]), VERSIONS[0], VERSIONS[2], VERSIONS[3]];
     const summary = await runSync({ api, versions, scope: { kind: "chapter", book: "JHN", chapter: 3 }, state, apply: true });
-    expect(summary.refused).toEqual(["NIV"]);
+    expect(summary.refused).toEqual([IDS.NIV]);
     expect(every("JHN.3.17")).toEqual({ AMP: "ff9999", NIV: null, LSG: "ff9999", S21: "ff9999" });
+  });
+});
+
+describe("a snapshot saved when versions were keyed by name", () => {
+  const ids = new Map(Object.entries(IDS));
+  /** The snapshot as the app saved it before bible ids: every key a version's name. */
+  const byName = (s: SyncState) => {
+    const rename = <T>(o: Record<number, T>) => named(o) as Record<string, T>;
+    return {
+      verses: Object.fromEntries(Object.entries(s.verses).map(([k, colors]) => [k, rename(colors)])),
+      members: Object.fromEntries(Object.entries(s.members).map(([k, list]) => [k, list.map((id) => NAMES[id])])),
+      unwritable: rename(s.unwritable),
+      maps: rename(s.maps ?? {}),
+    } as unknown as SyncState;
+  };
+
+  beforeEach(async () => {
+    api.hl("NIV", "JHN.3.16", "ffe066");
+    api.hl("AMP", "JHN.1.1", "a3d9ff");
+    api.rejectWrites.add(`${IDS.S21}:JHN.3.16`);
+    await sync("JHN");
+    delete state.keys;
+  });
+
+  it("carries over unchanged, so the next sync plans exactly as it would have", async () => {
+    const saved = structuredClone(state);
+    const migrated = migrateState(byName(state), ids);
+    expect(migrated).toEqual({ ...saved, keys: "bibleId" });
+
+    delete api.store[IDS.NIV]["JHN.3.16"]; // a real removal still propagates
+    state = migrated;
+    const plan = await sync("JHN", false);
+    expect(actionsByName(plan).sort()).toEqual([["AMP", "remove", "JHN.3.16"], ["LSG", "remove", "JHN.3.16"]]);
+  });
+
+  it("is left alone once keyed by bible id", () => {
+    const current = { ...structuredClone(state), keys: "bibleId" as const };
+    expect(migrateState(current, new Map())).toEqual(current);
+    expect(migrateState(undefined, ids)).toEqual(emptyState());
+  });
+
+  it("drops a version whose name it can't place, which then only has blanks filled", async () => {
+    const withoutAmp = new Map([...ids].filter(([name]) => name !== "AMP"));
+    state = migrateState(byName(state), withoutAmp);
+    expect(Object.values(state.verses).some((colors) => IDS.AMP in colors)).toBe(false);
+    expect(Object.values(state.members).some((list) => list.includes(IDS.AMP))).toBe(false);
+
+    delete api.store[IDS.AMP]["JHN.3.16"]; // would be a removal if AMP's snapshot had carried over
+    const plan = await sync("JHN", false);
+    expect(plan.actions.filter((a) => a.reason !== "fill")).toEqual([]);
+    expect(actionsByName(plan)).toEqual([["AMP", "set", "JHN.3.16"]]);
+  });
+
+  it("keeps fingerprints absent when they were never saved", () => {
+    const old = byName(state);
+    delete old.maps;
+    expect(migrateState(old, ids).maps).toBeUndefined();
   });
 });

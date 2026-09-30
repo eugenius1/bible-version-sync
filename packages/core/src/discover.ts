@@ -1,12 +1,17 @@
 import { ApiError, type HighlightsApi } from "./api";
 
 /**
- * Chapters people highlight most (John 3:16, Romans 8:28, Philippians 4:13,
- * Jeremiah 29:11), in the order they're tried. None is a Psalm or has a
- * chapter number that moves between numbering systems, so the same passage id
- * means the same text in every version.
+ * Chapters people highlight most, in the order they're tried: most likely
+ * first, since a version stops being asked about at its first hit.
+ * YouVersion publishes a yearly most highlighted, shared and bookmarked verse:
+ * Isaiah 41:10 five times since 2018, Philippians 4:6 twice. John 3:16 has
+ * never been it there but is the best known verse of all. Each chapter costs
+ * a request per version without highlights, so the list stays short. None is
+ * a Psalm or has a chapter number or verse count that differs between
+ * numbering systems, so the same passage id means the same text in every
+ * version.
  */
-export const PROBE_CHAPTERS = ["JHN.3", "ROM.8", "PHP.4", "JER.29"] as const;
+export const PROBE_CHAPTERS = ["ISA.41", "PHP.4", "JHN.3"] as const;
 
 export interface DiscoverOptions {
   api: Pick<HighlightsApi, "getHighlights">;
