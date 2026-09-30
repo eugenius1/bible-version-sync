@@ -493,6 +493,52 @@ describe("a version whose numbering is unsupported", () => {
   });
 });
 
+describe("a version whose chapters YouVersion ids PSA.1_1 (#25)", () => {
+  // NR2006's highlights in Psalm 1 are stored as PSA.1_1.5; a read of PSA.1
+  // gives an empty list and a write to PSA.1.2 a 502 (checked on the API,
+  // Sept 2026). So were it synced, its highlights would never be seen, and one
+  // synced earlier would read as removed.
+  const NR2006 = 4833;
+  const nr = (): SyncVersion => ({ abbr: "NR2006", bibleId: NR2006, map: buildVersionMap("NR2006", NR2006).map });
+  const run = (versions: SyncVersion[]) => runSync({ api, versions, scope: { kind: "books", books: ["PSA"] }, state, apply: true });
+
+  beforeEach(() => {
+    api.store[NR2006] = { "PSA.1_1.5": "ff9999" };
+    const set = api.setHighlight.bind(api);
+    api.setHighlight = async (bibleId, passageId, color) => {
+      if (bibleId === NR2006) throw new ApiError(502, "Unexpected response from highlights backend", passageId);
+      return set(bibleId, passageId, color);
+    };
+  });
+
+  it("is refused by buildVersionMap, whatever its numbering", () => {
+    const r = buildVersionMap("NR2006", NR2006);
+    expect(r.source).toBe("unsupported");
+    expect(r.reason).toBe("chapter-ids");
+    expect(r.map.unsupported).toBe(true);
+  });
+
+  it("is left out of a sync, which goes on for the others exactly as without it", async () => {
+    api.hl("NIV", "PSA.1.1", "ffe066");
+    api.hl("LSG", "PSA.23.1", "a3d9ff");
+    api.reads = [];
+    const summary = await run([...VERSIONS, nr()]);
+    expect(summary.refused).toEqual([NR2006]);
+    expect(api.reads).not.toContain(NR2006);
+    expect(api.store[NR2006]).toEqual({ "PSA.1_1.5": "ff9999" });
+    const withIt = { store: structuredClone(api.store), state: structuredClone(state) };
+
+    api = new FakeApi();
+    state = emptyState();
+    api.hl("NIV", "PSA.1.1", "ffe066");
+    api.hl("LSG", "PSA.23.1", "a3d9ff");
+    await run(VERSIONS);
+    for (const id of Object.values(IDS)) expect(withIt.store[id], NAMES[id]).toEqual(api.store[id]);
+    expect(withIt.state).toEqual(state);
+    expect(api.store[IDS.AMP]["PSA.1.1"]).toBe("ffe066");
+  });
+});
+
 describe("a snapshot saved when versions were keyed by name", () => {
   const ids = new Map(Object.entries(IDS));
   /** The snapshot as the app saved it before bible ids: every key a version's name. */

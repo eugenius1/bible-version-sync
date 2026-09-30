@@ -7,6 +7,9 @@ import {
   Standard,
   VersionMap,
   buildVersionMap,
+  builtinCounts,
+  countsFromIndex,
+  suffixedChapterBooks,
   builtinOverrides,
   isVerifiedVersion,
   parseRef,
@@ -59,6 +62,26 @@ const indexOf = (v: Scanned) => ({
     chapters: cs.map((n, i) => ({ id: String(i + 1), verses: Array.from({ length: n }, (_, k) => k + 1) })),
   })),
 });
+
+/**
+ * The versions whose chapters YouVersion ids BOOK.<n>_1 (#25): refused
+ * whatever their numbering, since their highlights can't be read or written
+ * yet. Their numbering is still measured below, through numbering(), for
+ * when that's lifted.
+ */
+const SUFFIXED = [67, 3404, 4833];
+
+/**
+ * buildVersionMap, except that a version refused for its chapter ids gets
+ * the map its numbering alone would give, and "scanned" or "api-index".
+ */
+function numbering(abbr: string, id: number, index?: unknown): ReturnType<typeof buildVersionMap> {
+  if (!suffixedChapterBooks(id)) return buildVersionMap(abbr, id, index);
+  const known = index ? countsFromIndex(index) : builtinCounts(id)!;
+  const opts = { overrides: builtinOverrides(id), label: versificationLabel(id), knownCounts: known };
+  const unfit = unfitChapters(known, opts.overrides);
+  return { map: VersionMap.build(abbr, Standard.load(), opts), source: index ? "api-index" : "scanned", unfit };
+}
 
 /** Verses left unsynced, and verses mapped unlike the version's own label (see the survey's "Misplaced"). */
 function measure(id: number, map: VersionMap) {
@@ -150,7 +173,7 @@ describe("surveyed versions", () => {
 
   it.each(SURVEYED)("bible %i: skipped and off-label verses", (id) => {
     const v = SCAN[id];
-    const { map } = buildVersionMap(v.abbr, id, indexOf(v));
+    const { map } = numbering(v.abbr, id, indexOf(v));
     const { skipped, offLabel } = measure(id, map);
     expect(skipped, v.abbr).toBe(SKIPPED[id]);
     expect(offLabel, v.abbr).toEqual(OFF_LABEL[id] ?? {});
@@ -159,9 +182,10 @@ describe("surveyed versions", () => {
   // What the app uses: the bundled exceptions, with no index to read.
   it.each(Object.keys(SCAN).map(Number))("bible %i: bundled counts map as the full scan does", (id) => {
     const v = SCAN[id];
-    const bundled = buildVersionMap(v.abbr, id);
+    if (SUFFIXED.includes(id)) expect(buildVersionMap(v.abbr, id).reason, v.abbr).toBe("chapter-ids");
+    const bundled = numbering(v.abbr, id);
     expect(bundled.source, v.abbr).toBe(isVerifiedVersion(id) ? "verified" : id in REFUSED ? "unsupported" : "scanned");
-    const full = buildVersionMap(v.abbr, id, indexOf(v)).map;
+    const full = numbering(v.abbr, id, indexOf(v)).map;
     // A book the version lacks (NABRE's Esther is the Greek ESG) is bundled
     // as chapters of 0 verses, so it isn't read. The scan leaves it out,
     // which the engine takes as unknown and fills in with assumed counts.
@@ -219,7 +243,7 @@ describe("unlabelled versions", () => {
   it("are refused only when Synodal or Septuagint numbered", () => {
     expect(UNLABELLED.length).toBe(221);
     for (const id of UNLABELLED) {
-      const { source, unfit } = buildVersionMap(SCAN[id].abbr, id);
+      const { source, unfit } = numbering(SCAN[id].abbr, id);
       if (id in REFUSED) {
         expect(source, SCAN[id].abbr).toBe("unsupported");
         expect(unfit, SCAN[id].abbr).toBe(REFUSED[id]);
@@ -231,7 +255,7 @@ describe("unlabelled versions", () => {
   });
 
   it.each(UNLABELLED)("bible %i: skipped verses", (id) => {
-    expect(measure(id, buildVersionMap(SCAN[id].abbr, id).map).skipped, SCAN[id].abbr).toBe(SKIPPED_UNLABELLED[id] ?? 0);
+    expect(measure(id, numbering(SCAN[id].abbr, id).map).skipped, SCAN[id].abbr).toBe(SKIPPED_UNLABELLED[id] ?? 0);
   });
 
   // With no label, which system a version follows is only known from its
@@ -253,7 +277,7 @@ describe("unlabelled versions", () => {
     const std = Standard.load();
     const ambiguous: string[] = [];
     for (const id of UNLABELLED) {
-      const map = buildVersionMap(SCAN[id].abbr, id).map;
+      const map = numbering(SCAN[id].abbr, id).map;
       for (const b of BOOKS) {
         const chapters = map.chapters(b);
         const fits = (s: StdScheme) => chapters.filter((c) => std.count(s, b, c) === map.counts[b][c]).length;
@@ -283,9 +307,27 @@ describe("unsupported numbering", () => {
   // A bible id with no label, correction table or bundled counts.
   const UNKNOWN = 999_999;
 
-  it.each(ids.filter((id) => !(id in REFUSED)))("bible %i: is never refused", (id) => {
+  it.each(ids.filter((id) => !(id in REFUSED) && !SUFFIXED.includes(id)))("bible %i: is never refused", (id) => {
     expect(buildVersionMap(SCAN[id].abbr, id).source).not.toBe("unsupported");
     expect(buildVersionMap(SCAN[id].abbr, id, indexOf(SCAN[id])).source).not.toBe("unsupported");
+  });
+
+  // Their numbering is known and fine; their chapter ids are the problem.
+  it.each(SUFFIXED)("bible %i: is refused for its chapter ids, bundled or from an index", (id) => {
+    for (const r of [buildVersionMap(SCAN[id].abbr, id), buildVersionMap(SCAN[id].abbr, id, indexOf(SCAN[id]))]) {
+      expect(r.source).toBe("unsupported");
+      expect(r.reason).toBe("chapter-ids");
+      expect(r.map.unsupported).toBe(true);
+      expect(BOOKS.flatMap((b) => r.map.chapters(b))).toEqual([]);
+    }
+    expect(numbering(SCAN[id].abbr, id).unfit).toBeLessThanOrEqual(5);
+  });
+
+  it("bundles the chapter ids as scanned, for exactly those versions", () => {
+    const withSuffix = ids.filter((id) => (SCAN[id] as Scanned & { suffixed?: string[] }).suffixed);
+    expect(withSuffix.sort((a, b) => a - b)).toEqual(SUFFIXED);
+    for (const id of SUFFIXED) expect(suffixedChapterBooks(id)).toEqual((SCAN[id] as Scanned & { suffixed: string[] }).suffixed);
+    expect(suffixedChapterBooks(111)).toBeUndefined();
   });
 
   const engOrg = ids.filter((id) => !LABEL_ONLY.has(SCAN[id].vrs!) && !(id in REFUSED));
@@ -298,7 +340,7 @@ describe("unsupported numbering", () => {
 
   // One test per version: together they take several seconds on CI.
   it.each(engOrg)("bible %i: English or Hebrew numbered, not refused even unlabelled", (id) => {
-    expect(buildVersionMap(SCAN[id].abbr, UNKNOWN, indexOf(SCAN[id])).source, SCAN[id].abbr).toBe("api-index");
+    expect(numbering(SCAN[id].abbr, UNKNOWN, indexOf(SCAN[id])).source, SCAN[id].abbr).toBe("api-index");
   });
 
   it.each(Object.keys(REFUSED).map(Number))("bible %i: is refused, well above the threshold", (id) => {

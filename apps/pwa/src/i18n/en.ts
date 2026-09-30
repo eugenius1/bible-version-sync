@@ -70,6 +70,10 @@ export const en = {
         text: "Numbering assumed",
         hint: "Couldn't read this version's verse counts, so {system} numbering is assumed. Highlights in Psalms and some Old Testament chapters may land on the wrong verse.",
       },
+      chapterIds: {
+        text: "Can't be synced yet",
+        hint: "YouVersion stores this version's highlights under chapter ids of its own (Psalm 1 is PSA.1_1), which the app can't read or write yet, so a sync would miss its highlights and could take ones synced earlier as removed. It's left out of every sync, and its highlights aren't touched.",
+      },
       unsupported: {
         text: "Numbering not supported",
         hint: "{n} chapters of this version match neither English nor Hebrew numbering, and YouVersion doesn't say which system it follows (Russian Synodal, Septuagint…), so highlights would land on the wrong verses. It's left out of every sync, and its highlights aren't touched.",
@@ -112,6 +116,7 @@ export const en = {
       foundTitle: "You highlight in",
       verses: ["{n} highlighted verse in the sample", "{n} highlighted verses in the sample"],
       unsupported: "Numbering not supported, so it can't be synced",
+      chapterIds: "Its chapter ids aren't supported yet, so it can't be synced",
       inList: "In your list",
       add: "Add {abbr}",
       notFound: "No highlights found in {list} in the chapters sampled.",
@@ -119,6 +124,8 @@ export const en = {
     },
     errors: {
       cantRead: "Couldn't read highlights for version {id}: {problem}",
+      chapterIds:
+        "Version {id} can't be synced yet: YouVersion stores its highlights under chapter ids of its own (Psalm 1 is PSA.1_1), which the app can't read or write, so its highlights would be missed.",
       unsupported:
         "Version {id} can't be synced: {n} of its chapters match neither English nor Hebrew numbering, and YouVersion doesn't say which system it follows, so highlights would land on the wrong verses.",
     },

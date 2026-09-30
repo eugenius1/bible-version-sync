@@ -111,6 +111,11 @@ def add(vids):
         entry = {"abbr": d["abbr"], "local_abbr": d["local_abbr"], "title": d["title"], "lang": d["lang"], "vrs": d["vrs"],
                  "counts": {}, "gaps": {}, "merged": []}
         chapters = plain_chapters(vid, d["chapters"])
+        # The books whose chapters YouVersion ids BOOK.<n>_1. Its highlights
+        # there are stored under those ids too (#25), which the app can't
+        # read or write yet, so the app refuses such a version.
+        suffixed = sorted({u.split(".")[0] for u, r in d["chapters"].items() if SUFFIXED.match(u) and r and r["verses"]})
+        if suffixed: entry["suffixed"] = suffixed
         for b in d["books"]:
             chs = sorted((int(u.split(".")[1]), r) for u, r in chapters.items() if u.split(".")[0] == b)
             # By position, to the book's full length: a version may have only

@@ -4,18 +4,21 @@ import {
   hasKnownCounts,
   type NumberingSource,
   type SyncVersion,
+  type UnsupportedReason,
 } from "@bvs/core";
 import { client } from "./auth";
 import { store, type VersionSetting } from "./db";
 
 export { parseVersionInput, versionName } from "@bvs/core";
 
-export type { NumberingSource };
+export type { NumberingSource, UnsupportedReason };
 
 export interface ResolvedVersion extends SyncVersion {
   source: NumberingSource;
   /** Chapters fitting neither English nor Hebrew numbering, when counts are known. */
   unfit?: number;
+  /** Why an "unsupported" version is refused. */
+  reason?: UnsupportedReason;
 }
 
 /**
@@ -28,7 +31,9 @@ export interface ResolvedVersion extends SyncVersion {
  * A version whose counts fit neither English nor Hebrew numbering in too
  * many chapters, with no label naming the system it follows, comes back
  * "unsupported" with an empty map: the add form refuses it, and the sync
- * leaves a saved one out (see buildVersionMap).
+ * leaves a saved one out (see buildVersionMap). So does a version whose
+ * chapters YouVersion ids PSA.1_1, whose highlights can't be read or written
+ * yet (reason "chapter-ids", #25): its counts are bundled, so no request is made.
  *
  * Everything is looked up by bible id; a setting's `abbr` is only the name
  * shown for it.
@@ -58,8 +63,8 @@ export async function resolveVersion(v: VersionSetting): Promise<ResolvedVersion
       await store.setIndex(v.bibleId, index);
     }
   }
-  const { map, source, unfit } = buildVersionMap(v.abbr, v.bibleId, index ?? undefined);
-  return { abbr: v.abbr, bibleId: v.bibleId, map, source, unfit };
+  const { map, source, unfit, reason } = buildVersionMap(v.abbr, v.bibleId, index ?? undefined);
+  return { abbr: v.abbr, bibleId: v.bibleId, map, source, unfit, reason };
 }
 
 /** The languages a person reads in, as best the browser can tell, then the app's own. */

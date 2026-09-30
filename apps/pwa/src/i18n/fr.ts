@@ -71,6 +71,10 @@ export const fr: Dictionary = {
         text: "Numérotation supposée",
         hint: "Impossible de lire le nombre de versets de cette version : la numérotation {system} est supposée. Dans les Psaumes et certains chapitres de l'Ancien Testament, des surlignages pourraient tomber sur le mauvais verset.",
       },
+      chapterIds: {
+        text: "Pas encore synchronisable",
+        hint: "YouVersion range les surlignages de cette version sous ses propres identifiants de chapitre (le Psaume 1 est PSA.1_1), que l'application ne sait pas encore lire ni écrire : une synchronisation manquerait ses surlignages et pourrait prendre pour supprimés ceux déjà synchronisés. Elle est exclue de toute synchronisation et ses surlignages ne sont pas modifiés.",
+      },
       unsupported: {
         text: "Numérotation non prise en charge",
         hint: "{n} chapitres de cette version ne suivent ni la numérotation anglaise ni l'hébraïque, et YouVersion n'indique pas le système qu'elle suit (synodale russe, Septante…) : les surlignages tomberaient sur les mauvais versets. Elle est exclue de toute synchronisation et ses surlignages ne sont pas modifiés.",
@@ -112,12 +116,15 @@ export const fr: Dictionary = {
       foundTitle: "Vous surlignez dans",
       verses: ["{n} verset surligné dans l'échantillon", "{n} versets surlignés dans l'échantillon"],
       unsupported: "Numérotation non prise en charge, elle ne peut donc pas être synchronisée",
+      chapterIds: "Ses identifiants de chapitre ne sont pas encore pris en charge, elle ne peut donc pas être synchronisée",
       inList: "Dans votre liste",
       add: "Ajouter {abbr}",
       notFound: "Aucun surlignage trouvé dans {list} dans les chapitres examinés.",
       useThese: ["Utiliser cette version", "Utiliser ces {n} versions à la place"],
     },
     errors: {
+      chapterIds:
+        "La version {id} ne peut pas encore être synchronisée : YouVersion range ses surlignages sous ses propres identifiants de chapitre (le Psaume 1 est PSA.1_1), que l'application ne sait ni lire ni écrire, donc ses surlignages seraient manqués.",
       cantRead: "Impossible de lire les surlignages de la version {id} : {problem}",
       unsupported:
         "La version {id} ne peut pas être synchronisée : {n} de ses chapitres ne suivent ni la numérotation anglaise ni l'hébraïque, et YouVersion n'indique pas le système qu'elle suit, donc les surlignages tomberaient sur les mauvais versets.",

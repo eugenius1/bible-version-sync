@@ -28,6 +28,7 @@ import {
   RSC_VRS,
   RSO_VRS,
   SHARED_OVERRIDES,
+  SUFFIXED_CHAPTERS,
   VERIFIED_VERSIONS,
   VRS_LABEL_IDS,
   VUL_VRS,
@@ -594,10 +595,28 @@ export function hasKnownCounts(bibleId: number): boolean {
  * - scanned: bundled counts from the versification survey, not checked by hand
  * - api-index: counts from the YouVersion API index
  * - assumed: no counts; the version's label, else English numbering
- * - unsupported: counts that neither English nor Hebrew numbering explains,
- *   and no label saying which other system does; the sync refuses it
+ * - unsupported: the sync refuses it, for an UnsupportedReason
  */
 export type NumberingSource = "verified" | "scanned" | "api-index" | "assumed" | "unsupported";
+
+/**
+ * Why a version is "unsupported":
+ * - numbering: counts that neither English nor Hebrew numbering explains,
+ *   and no label saying which other system does
+ * - chapter-ids: YouVersion ids some of its chapters BOOK.<n>_1 (PSA.1_1),
+ *   and stores its highlights under those ids. The engine reads and writes
+ *   BOOK.<n>, which reads as empty there and can't be written (502), so
+ *   highlights would be missed and earlier ones taken as removed (#25).
+ */
+export type UnsupportedReason = "numbering" | "chapter-ids";
+
+/**
+ * The books in which YouVersion ids a version's chapters BOOK.<n>_1, when it
+ * does (bundled from the survey's scan; NR2006's are JOB and PSA).
+ */
+export function suffixedChapterBooks(bibleId: number): readonly string[] | undefined {
+  return Object.hasOwn(SUFFIXED_CHAPTERS, bibleId) ? SUFFIXED_CHAPTERS[bibleId] : undefined;
+}
 
 /** Convert a /v1/bibles/{id}/index response into {book: {chapter: count}}. */
 export function countsFromIndex(index: unknown): ChapterCounts {
@@ -693,14 +712,19 @@ export function unfitChapters(known: ChapterCounts, overrides: Map<Ref, Ref> = n
  * A version whose known counts leave more than MAX_UNFIT_CHAPTERS chapters
  * unexplained, without a Synodal, Septuagint or Vulgate label, gets an empty
  * map and the source "unsupported", which the sync refuses. `unfit` is that
- * number of chapters, whenever counts are known.
+ * number of chapters, whenever counts are known. So does a version whose
+ * chapters YouVersion ids BOOK.<n>_1, whatever its counts: its numbering is
+ * known, but its highlights can't be read or written yet. `reason` says which.
  */
 export function buildVersionMap(
   abbr: string,
   bibleId: number,
   apiIndex?: unknown,
   defaultScheme: "eng" | "org" = "eng",
-): { map: VersionMap; source: NumberingSource; unfit?: number } {
+): { map: VersionMap; source: NumberingSource; unfit?: number; reason?: UnsupportedReason } {
+  if (suffixedChapterBooks(bibleId)) {
+    return { map: VersionMap.unsupported(abbr), source: "unsupported", reason: "chapter-ids" };
+  }
   const std = Standard.load();
   const label = versificationLabel(bibleId);
   const base = { overrides: builtinOverrides(bibleId), defaultScheme, label };
@@ -708,7 +732,7 @@ export function buildVersionMap(
   if (!known) return { map: VersionMap.build(abbr, std, base), source: "assumed" };
   const unfit = unfitChapters(known, base.overrides);
   if (unfit > MAX_UNFIT_CHAPTERS && !(label && LABEL_ONLY_SCHEMES.includes(label))) {
-    return { map: VersionMap.unsupported(abbr), source: "unsupported", unfit };
+    return { map: VersionMap.unsupported(abbr), source: "unsupported", unfit, reason: "numbering" };
   }
   const map = VersionMap.build(abbr, std, { ...base, knownCounts: known });
   const source = apiIndex ? "api-index" : isVerifiedVersion(bibleId) ? "verified" : "scanned";

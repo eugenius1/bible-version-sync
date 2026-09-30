@@ -87,6 +87,12 @@ version's numbering:
   Septuagint numbering, but YouVersion doesn't say which, so the app can't
   place its verses. It won't add such a version, and one already in your list
   is left out of every sync: nothing is read from it or written to it.
+- **Can't be synced yet**: YouVersion keeps this version's highlights under
+  chapter ids of its own (Psalm 1 is `PSA.1_1`), which the app can't read or
+  write yet. Its numbering is known, but it's refused and left out of every
+  sync in the same way, so none of its highlights are missed or taken as
+  removed. Three versions so far: NR2006 (Italian), GNA2025 (Arabic) and
+  TUKARA84 (Turkmen).
 
 ## Languages and appearance
 

@@ -24,7 +24,8 @@ one verse on purpose: Synod (167), BTI (313) and CARS (385) keep Nehemiah
 7:67–7:73 match NIV verse for verse, where `rso`/`rsc` would fold 7:68 into
 7:67. Two of the 56, GNA2025 (67) and NR2006 (4833), id some chapters
 `PSA.1_1`, like TUKARA84 below, and were bundled once `scan.py` counted
-those as ordinary chapters. Held back: 19 that print many merged verses
+those as ordinary chapters; the app refuses both for now, as their
+highlights are stored under those ids (#25, below). Held back: 19 that print many merged verses
 (over 100 spans, or a Living Bible paraphrase), until merged-verse
 highlighting is tested (#3, task 5).
 
@@ -280,10 +281,16 @@ to be ordinary chapters with a `_1` suffix (GNA2025 does the same in its
 Psalms and Philemon, NR2006 in its Psalms and Job, where an empty `PSA.1`,
 `PSA.73`, `PSA.90` and `PSA.107` hold only a heading, "Libro primo" and so
 on), so `scan.py` now counts `MAT.1_1` as Matthew 1
-and TUKARA84 is scanned too. Whether YouVersion stores a highlight in such a
-chapter under `MAT.1.5` or `MAT.1_1.5` hasn't been tested; if the latter,
-the app's reads of those chapters find nothing, as for a version assumed
-English.
+and TUKARA84 is scanned too.
+
+Their numbering is known, but the highlights API uses the same ids (#25,
+checked on NR2006 in Sept 2026): reading chapter `PSA.1` gives an empty list
+even with Psalm 1:5 highlighted, which `PSA.1_1` returns as `PSA.1_1.5`, and
+writing `PSA.1.2` fails with a 502. An empty read isn't a failed read, so a
+highlight synced earlier would look removed there. So `buildVersionMap`
+refuses the three (source `unsupported`, reason `chapter-ids`) until the
+engine reads and writes the real ids; the app shows "Can't be synced
+yet".
 
 `survey.test.ts` checks each unlabelled scan against all six systems:
 wherever another system fits a chapter's count, would map it differently,

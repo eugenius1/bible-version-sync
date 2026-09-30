@@ -147,6 +147,30 @@ describe("VersionsCard", () => {
       expect(await screen.findByRole("alert")).toHaveTextContent(/Version 999998 can't be synced: 153 of its chapters/);
       expect(onChange).not.toHaveBeenCalled();
     });
+
+    it("refuses a version whose chapters YouVersion ids PSA.1_1, saying why", async () => {
+      const onChange = renderCard([{ abbr: "NIV", bibleId: 111 }]);
+      const [nr2006] = await search("4833");
+      await userEvent.click(nr2006);
+      const alert = await screen.findByRole("alert");
+      expect(alert).toHaveTextContent(/Version 4833 can't be synced yet: .* chapter ids of its own \(Psalm 1 is PSA\.1_1\)/);
+      expect(alert).not.toHaveTextContent(/numbering/);
+      expect(onChange).not.toHaveBeenCalled();
+      expect(getIndex).not.toHaveBeenCalled();
+    });
+  });
+
+  it("explains a saved version whose chapter ids it can't use", () => {
+    const settings = [
+      { abbr: "NIV", bibleId: 111 },
+      { abbr: "NR2006", bibleId: 4833 },
+    ];
+    renderCard(settings, vi.fn(), [
+      { ...settings[1], map: VersionMap.unsupported("NR2006"), source: "unsupported", reason: "chapter-ids" },
+    ]);
+    expect(screen.getByText("Can't be synced yet")).toBeInTheDocument();
+    expect(screen.getByText(/^YouVersion stores this version's highlights under chapter ids of its own/)).toBeInTheDocument();
+    expect(screen.queryByText("Numbering not supported")).not.toBeInTheDocument();
   });
 
   it("explains a saved version whose numbering it can't map", () => {

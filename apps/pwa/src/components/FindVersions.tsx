@@ -13,7 +13,8 @@ interface Found {
 }
 
 /** Whether the sync could take a found version; "checking" until its numbering is resolved. */
-type Numbering = "checking" | "ok" | "unsupported";
+/** "chapter-ids": refused because YouVersion ids its chapters PSA.1_1 (#25). */
+type Numbering = "checking" | "ok" | "unsupported" | "chapter-ids";
 
 type Scan =
   | { status: "idle" }
@@ -58,7 +59,7 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
       // afterwards. If it fails, offer the version anyway; adding it goes
       // through the sync's own refusal.
       resolveVersion({ bibleId, abbr: String(bibleId) }).then(
-        (r) => settle(r.source === "unsupported" ? "unsupported" : "ok"),
+        (r) => settle(r.source !== "unsupported" ? "ok" : r.reason === "chapter-ids" ? "chapter-ids" : "unsupported"),
         () => settle("ok"),
       );
     };
@@ -148,7 +149,8 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
             {found.map((v) => {
               const name = versionName(v.bibleId);
               const inList = settings.some((s) => s.bibleId === v.bibleId);
-              const unsupported = numbering.get(v.bibleId) === "unsupported";
+              const refusal = numbering.get(v.bibleId);
+              const unsupported = refusal === "unsupported" || refusal === "chapter-ids";
               return (
                 <li key={v.bibleId} className="flex items-center gap-3 py-2">
                   <div className="min-w-0 flex-1">
@@ -159,7 +161,7 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
                       </span>
                     </div>
                     <p className="text-xs text-stone-600 dark:text-stone-400">
-                      {unsupported ? tf.unsupported : plural(tf.verses, v.verses)}
+                      {refusal === "chapter-ids" ? tf.chapterIds : unsupported ? tf.unsupported : plural(tf.verses, v.verses)}
                     </p>
                   </div>
                   {inList ? (
