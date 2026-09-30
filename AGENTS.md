@@ -46,7 +46,10 @@ Highlights are a person's years of reading and can't be recovered once removed.
 
 The app key (`apps/pwa/.env.local`, `tools/python-cli/config.json`) and sign-in
 tokens (`tools/python-cli/.yvsync/`, IndexedDB) stay out of the repository.
-They're gitignored; check `git status` before committing anyway.
+They're gitignored; check `git status` before committing anyway. The
+vendored `youversion-platform-api` skill says app keys can go in source code;
+here they don't, and where that skill and CONTRIBUTING.md disagree about the
+API, CONTRIBUTING.md wins.
 
 ## No licence headers
 
