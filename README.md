@@ -51,11 +51,10 @@ next sync simply goes back to only filling in blanks.
 
 ## Versions
 
-Verse numbering has been checked against the text, chapter by chapter, for 46
-versions, including the **Amplified Bible (AMP)**, **New International Version
-(NIV)**, **Louis Segond 1910 (LSG)**, **Segond 21 (S21)**, **King James (KJV)**,
-**Reina-Valera 1960 (RVR1960)**, the Synodal Bible and the most used versions
-of many other languages.
+Verse numbering has been checked against the text, chapter by chapter, for over
+45 versions, including the **New International Version (NIV)**, the **King
+James Version (KJV)** and the **Russian Synodal Bible**, and the most used
+versions of at least 15 other languages.
 
 The app starts with an example list, the most used version in each of your
 browser's first three languages (NIV for English, Louis Segond for French)
