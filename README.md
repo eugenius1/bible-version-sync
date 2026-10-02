@@ -54,7 +54,7 @@ next sync simply goes back to only filling in blanks.
 Verse numbering has been checked against the text, chapter by chapter, for over
 45 versions, including the **New International Version (NIV)**, the **King
 James Version (KJV)** and the **Russian Synodal Bible**, and the most used
-versions of at least 15 other languages.
+versions of over 15 other languages.
 
 The app starts with an example list, the most used version in each of your
 browser's first three languages (NIV for English, Louis Segond for French)
