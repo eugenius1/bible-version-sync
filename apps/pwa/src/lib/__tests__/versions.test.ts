@@ -22,8 +22,8 @@ describe("resolveVersions", () => {
   it("uses bundled counts without asking the API", async () => {
     const out = await resolveVersions([
       { abbr: "NIV", bibleId: 111 },
-      { abbr: "KJV", bibleId: 1 },
-      { abbr: "SYNO", bibleId: 400 },
+      { abbr: "ESV", bibleId: 59 },
+      { abbr: "BTI", bibleId: 313 },
     ]);
     expect(out.map((v) => v.source)).toEqual(["verified", "scanned", "scanned"]);
     expect(getIndex).not.toHaveBeenCalled();

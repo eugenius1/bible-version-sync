@@ -1,2 +1,11 @@
 # NAV: checked against the text on bible.com, Sept 2026.
 use rev-12-17
+use 1ti-6-22
+
+# Judges 3:19-21: 3:19 ends at Ehud's "and said" and 3:20 is his secret
+# errand and the king sending everyone out (both 3:19); 3:21 runs from his
+# message from God through the dagger (3:20-21).
+JDG 3:1-19 = JDG 3:1-19
+JDG 3:20 = JDG 3:19
+JDG 3:21 = JDG 3:20
+JDG 3:22-31 = JDG 3:22-31

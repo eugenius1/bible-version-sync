@@ -101,11 +101,12 @@ describe("shared correction tables", () => {
   const mapOf = (id: number) => maps.get(id) ?? maps.set(id, buildVersionMap(String(id), id).map).get(id)!;
   const fromNiv = (niv: string, id: number) => mapOf(id).fromCanon.get(MAPS.NIV.toCanon.get(niv)!) ?? [];
 
-  const REV_12_17 = [1, 13, 51, 59, 88, 89, 97, 101, 111, 114, 128, 129, 132, 149, 164, 188, 191, 212, 1588, 1608, 1627, 1628, 1683];
-  const JN3_14 = [1, 51, 97, 114, 132, 191];
-  const SA1_20_43 = [75, 93, 122, 141, 151, 188, 193, 212, 306, 1608, 1840, 1990];
-  const JOB_38_41 = [75, 93, 151, 193, 306, 1990];
+  const REV_12_17 = [1, 13, 51, 59, 88, 89, 97, 101, 111, 114, 128, 129, 132, 138, 149, 164, 177, 188, 191, 212, 819, 1588, 1608, 1627, 1628, 1683];
+  const JN3_14 = [1, 42, 51, 55, 97, 114, 132, 138, 177, 191, 819];
+  const SA1_20_43 = [75, 93, 122, 141, 151, 188, 193, 212, 306, 328, 1608, 1840, 1990, 4833];
+  const JOB_38_41 = [75, 93, 151, 306, 328, 1990];
   const DUTCH_INDONESIAN = [306, 1990];
+  const DUTCH = [306, 328, 1990]; // with NBG51, whose Nehemiah is its own
 
   // Each pair was checked against the verse text on bible.com, Sept 2026:
   // NIV's verse on the left, the version's on the right.
@@ -133,13 +134,13 @@ describe("shared correction tables", () => {
       ["JOB.41.9", id, ["JOB.40.28"]],
       ["JOB.41.10", id, ["JOB.41.1"]], // "None is so fierce that dare stir him up"
     ]),
-    ...[93, 122, 141].flatMap((id) => [
+    ...[93, 122, 141, 4833].flatMap((id) => [
       ["ECC.11.9", id, ["ECC.12.1"]], // "Rejoice, O young man, in thy youth"
       ["ECC.12.1", id, ["ECC.12.3"]], // "Remember now thy Creator"
     ]),
     ...[93, 141, 193].map((id) => ["MRK.9.50", id, ["MRK.9.50", "MRK.9.51"]]), // "Have salt in yourselves"
     ...[93, 193].map((id) => ["MRK.10.52", id, ["MRK.10.52", "MRK.10.53"]]),
-    ...[27, ...DUTCH_INDONESIAN].flatMap((id) => [
+    ...[27, ...DUTCH].flatMap((id) => [
       ["EXO.6.1", id, ["EXO.5.24"]], // "Now shalt thou see what I will do to Pharaoh"
       ["EXO.6.2", id, ["EXO.6.1"]],
       ["EXO.6.30", id, ["EXO.6.29"]],
@@ -153,13 +154,13 @@ describe("shared correction tables", () => {
       ["HAG.2.1", id, ["HAG.2.2"]],
       ["HAG.2.23", id, ["HAG.2.24"]],
     ]),
-    ...[75, ...DUTCH_INDONESIAN].flatMap((id) => [
+    ...[75, ...DUTCH].flatMap((id) => [
       ["HOS.1.10", id, ["HOS.1.10"]],
       ["HOS.2.1", id, ["HOS.1.12"]], // "Say ye unto your brethren, Ammi"
       ["HOS.2.2", id, ["HOS.2.1"]], // "Plead with your mother"
       ["HOS.2.23", id, ["HOS.2.22"]],
     ]),
-    ...[122, 141, 188].flatMap((id) => [
+    ...[122, 141, 188, 4833].flatMap((id) => [
       ["PSA.13.1", id, ["PSA.13.1"]], // "How long wilt thou forget me"
       ["PSA.13.5", id, ["PSA.13.5"]], // "But I have trusted in thy mercy"
       ["PSA.13.6", id, ["PSA.13.5"]], // "I will sing unto the LORD"
@@ -174,11 +175,126 @@ describe("shared correction tables", () => {
     ["1KI.6.38", 193, []],
     ["PSA.2.11", 463, ["PSA.2.11"]], // NABRE runs on to "Blessed are all"
     ["PSA.2.12", 463, []],
-    ["JHN.1.38", 1990, ["JHN.1.38", "JHN.1.39"]], // HSV: "What seek ye?" starts 1:39
-    ["JHN.1.39", 1990, ["JHN.1.40"]], // "Come and see"
-    ["JHN.1.51", 1990, ["JHN.1.52"]],
+    ...[328, 1990].flatMap((id) => [
+      ["JHN.1.38", id, ["JHN.1.38", "JHN.1.39"]], // "What seek ye?" starts 1:39
+      ["JHN.1.39", id, ["JHN.1.40"]], // "Come and see"
+      ["JHN.1.51", id, ["JHN.1.52"]],
+    ]),
+    ["HAG.1.15", 328, ["HAG.2.1"]],
+    ["HAG.2.23", 328, ["HAG.2.24"]],
+    // Revelation 20 as the Synodal text divides it.
+    ...[143, 167, 400].flatMap((id) => [
+      ["REV.20.7", id, ["REV.20.7"]], // runs on through Gog and Magog
+      ["REV.20.8", id, []],
+      ["REV.20.9", id, ["REV.20.8", "REV.20.9"]], // "went up" / "fire came down"
+    ]),
+    // "Grace be with thee" a verse of its own.
+    ...[13, 101].map((id) => ["1TI.6.21", id, ["1TI.6.21", "1TI.6.22"]]),
+    // 7:53 opens 8:1.
+    ...[46, 48, 164].flatMap((id) => [
+      ["JHN.7.52", id, ["JHN.7.52"]],
+      ["JHN.7.53", id, []],
+      ["JHN.8.1", id, ["JHN.8.1"]],
+    ]),
+    ...[122, 4833].flatMap((id) => [
+      ["2SA.20.25", id, ["2SA.20.25"]], // runs on through Ira the Jairite
+      ["2SA.20.26", id, []],
+    ]),
+    // Psalm 47 with an unnumbered title in 10 verses, English 9 split in two.
+    ...[149, 4869].flatMap((id) => [
+      ["PSA.47.1", id, ["PSA.47.1"]], // "O clap your hands"
+      ["PSA.47.9", id, ["PSA.47.9", "PSA.47.10"]],
+    ]),
+    ["NEH.7.72", 328, ["NEH.7.71"]], // NBG51: Hebrew Nehemiah 7, no horses and mules
+    ["NEH.7.73", 328, ["NEH.7.72", "NEH.8.1"]], // "and when the seventh month came"
+    ["NEH.8.1", 328, ["NEH.8.2"]],
+    ["JDG.5.31", 212, ["JDG.5.31", "JDG.5.32"]], // ARC: "the land had rest forty years"
+    ["EZK.15.7", 142, ["EZK.15.7"]], // RNKSV 15:7 runs on through 15:8
+    ["EZK.15.8", 142, []],
+    // SYNO: the Synodal text's own divisions, and rso.vrs's Isaiah 3 slip.
+    ["EST.1.6", 400, ["EST.1.6", "EST.1.7"]], // the couches of gold and silver
+    ["EST.1.7", 400, ["EST.1.8"]], // the vessels of gold
+    ["EST.1.8", 400, []],
+    ["ISA.3.21", 400, ["ISA.3.20"]], // the rings and nose jewels
+    ["ISA.3.26", 400, ["ISA.3.25"]],
+    ["PSA.116.10", 400, ["PSA.115.1"]], // "I believed, therefore have I spoken"
+    ["PSA.116.19", 400, ["PSA.115.10"]],
+    ["PSA.87.1", 400, ["PSA.86.1", "PSA.86.2"]], // the title, then "His foundation"
+    ...[143, 201].flatMap((id) => [
+      ["PSA.90.1", id, ["PSA.89.1", "PSA.89.2"]], // "A prayer of Moses", then "Lord, thou hast been"
+      ["PSA.116.10", id, ["PSA.115.1"]],
+      ["PSA.142.1", id, ["PSA.141.1"]],
+    ]),
+    ["2KI.8.5", 186, ["2KI.8.5", "2KI.8.6"]], // UBIO: Gehazi's words are 8:6
+    ["2KI.8.6", 186, []], // the king asking the woman is missing
+    // НПУ numbers three psalms' titles as verse 1.
+    ["PSA.87.1", 3269, ["PSA.86.1", "PSA.86.2"]],
+    ["PSA.90.1", 3269, ["PSA.89.1", "PSA.89.2"]], // "Lord, thou hast been our dwelling place"
+    ["PSA.90.2", 3269, ["PSA.89.3"]],
+    ["PSA.142.1", 3269, ["PSA.141.1"]], // "I cried unto the LORD with my voice"
+    ["PSA.142.2", 3269, ["PSA.141.2"]], // "I poured out my complaint"
+    ["2KI.4.44", 13, []], // AVD 4:43 runs on through 4:44
+    ["PSA.72.20", 13, []], // "The prayers of David ... are ended" ends 72:19
+    ["JDG.3.19", 101, ["JDG.3.19", "JDG.3.20"]], // KEH splits Ehud's errand
+    ["JDG.3.20", 101, ["JDG.3.21"]],
+    ["JDG.3.21", 101, []],
+    ["JDG.10.1", 819, ["JDG.10.1", "JDG.10.19"]], // HHBD prints Judges 10 twice
+    ["JER.29.32", 819, ["JER.29.32", "JER.29.33"]],
+    ["MAT.1.6", 819, ["MAT.1.6", "MAT.1.7"]], // "Jesse begat David" / "David begat Solomon"
+    ["MAT.1.7", 819, ["MAT.1.8"]],
+    ["MAT.1.8", 819, []],
+    ["ISA.38.21", 27, []], // BIMK tells the figs in 38:6
+    ["JON.1.17", 3490, ["JON.2.1"]], // BW1975: the fish, Hebrew 2:1
+    ["JON.2.9", 3490, ["JON.2.10"]],
+    ["JON.2.10", 3490, []], // "the LORD spake unto the fish" ends 2:10
+    ["JOL.3.1", 3490, ["JOL.3.6"]], // "in those days", Hebrew 4:1
+    ["JOL.2.28", 3490, ["JOL.3.1"]],
+    ["ECC.8.1", 3490, ["ECC.8.1", "ECC.8.2"]],
+    ["ECC.8.2", 3490, ["ECC.8.3"]], // "keep the king's commandment"
+    ["2SA.17.28", 3490, []], // 17:27 runs on through the bedding
+    ["2SA.17.29", 3490, ["2SA.17.28"]], // honey and butter
+    ["JOB.38.39", 193, ["JOB.39.2"]], // VIE1925 reverses 38:39-40
+    ["JOB.38.40", 193, ["JOB.39.1"]],
+    ["JOB.40.6", 193, ["JOB.40.1"]],
+    ["EXO.12.51", 193, []],
+    // DRC1752 keeps the Vulgate's own verse divisions.
+    ["EXO.39.22", 55, ["EXO.39.20"]], // "the tunick of the ephod all of violet"
+    ["EXO.39.39", 55, ["EXO.39.39"]],
+    ["NEH.7.44", 55, ["NEH.7.45"]], // "The children of Asaph, a hundred forty-eight"
+    ["NEH.7.68", 55, ["NEH.7.68", "NEH.7.69"]], // horses and mules, camels and asses, as in English
+    ["SNG.1.2", 55, ["SNG.1.1"]], // "Let him kiss me with the kiss of his mouth"
+    ["JON.1.17", 55, ["JON.2.1"]], // "the Lord prepared a great fish"
+    ["JON.2.10", 55, ["JON.2.11"]], // "the Lord spoke to the fish"
+    ["1TH.4.13", 55, ["1TH.4.12"]], // "we will not have you ignorant"
+    ["2TI.4.10", 55, ["2TI.4.9", "2TI.4.10"]], // Demas / Crescens and Titus
+    ["LUK.9.43", 55, ["LUK.9.44"]], // "all were astonished"
+    ["PSA.16.1", 55, ["PSA.15.1"]], // "Preserve me, O Lord"
+    ["PSA.109.17", 55, ["PSA.108.18"]], // "he loved cursing"
+    ["REV.20.9", 55, ["REV.20.8", "REV.20.9"]],
+    // CPDV: Esther in the Greek order, the additions out of the sync.
+    ["EST.1.1", 42, ["EST.3.1"]], // "In the days of Artaxerxes"
+    ["EST.3.14", 42, ["EST.6.8"]],
+    ["EST.4.12", 42, []], // folded into 7:14
+    ["EST.4.17", 42, ["EST.7.19"]], // not Mordecai's prayer after it
+    ["EST.5.1", 42, ["EST.9.17"]], // "on the third day"
+    ["EST.8.13", 42, ["EST.13.25"]],
+    ["EST.10.3", 42, ["EST.15.3"]],
+    ["SNG.6.1", 42, ["SNG.5.19"]], // "Where has your beloved gone"
+    ["SNG.6.2", 42, ["SNG.6.1"]],
+    ["SNG.6.13", 42, ["SNG.6.12", "SNG.7.1"]], // "Return, return, O Sulamitess"
+    ["PSA.72.1", 42, ["PSA.71.1", "PSA.71.2"]], // the title, then "Give the king thy judgments"
+    ["PSA.14.4", 42, ["PSA.13.7"]], // after the Romans 3 lines
+    ["NEH.7.44", 42, ["NEH.7.45"]],
+    ["EXO.39.35", 42, ["EXO.39.34"]],
   ] as [string, number, string[]][])("NIV %s -> bible %i %j", (niv, id, local) => {
     expect(fromNiv(niv, id)).toEqual(local);
+  });
+
+  it("leave no chapter of a verified version unmapped", () => {
+    for (const { abbr, bibleId } of VERIFIED_VERSIONS) {
+      const m = mapOf(bibleId);
+      for (const b of BOOKS) expect(m.skippedChapters(b), `${abbr} (${bibleId}) ${b}`).toEqual([]);
+    }
   });
 
   it("map every chapter they touch", () => {
@@ -208,13 +324,13 @@ describe("shared correction tables", () => {
 
 describe("bundled counts", () => {
   it("rank verified, then scanned, then the API index, then an assumption", () => {
-    for (const id of [1588, 111, 93, 152]) expect(buildVersionMap("X", id).source).toBe("verified");
-    expect(buildVersionMap("KJV", 1).source).toBe("scanned");
-    expect(buildVersionMap("SYNO", 400).source).toBe("scanned");
+    for (const id of [1588, 111, 93, 152, 1, 400]) expect(buildVersionMap("X", id).source).toBe("verified");
+    expect(buildVersionMap("ESV", 59).source).toBe("scanned");
+    expect(buildVersionMap("BTI", 313).source).toBe("scanned");
     expect(buildVersionMap("KJV", 1, { books: [] }).source).toBe("api-index");
     expect(buildVersionMap("X", 999999).source).toBe("assumed");
     expect(isVerifiedVersion(111)).toBe(true);
-    expect(isVerifiedVersion(1)).toBe(false);
+    expect(isVerifiedVersion(59)).toBe(false);
     expect(hasKnownCounts(1)).toBe(true);
     expect(hasKnownCounts(999999)).toBe(false);
   });
@@ -248,6 +364,21 @@ describe("six numbering systems", () => {
     expect(std.toCanon("vul", "PSA.91.2")).toBe("PSA.92.2");
   });
 
+  it("folds a title into the first verse when an uneven range starts at it", () => {
+    // rso: "PSA 115:0-10 = PSA 116:10-19". SYNO 115:1 is "I believed,
+    // therefore have I spoken" (Hebrew 116:10) and 115:10 "In the courts of
+    // the LORD's house" (116:19); pairing from the start put each a verse late.
+    expect(std.toCanon("rso", "PSA.115.1")).toBe("PSA.116.10");
+    expect(std.toCanon("rso", "PSA.115.10")).toBe("PSA.116.19");
+    // "PSA 86:0-1 = PSA 87:1": Synodal 86:1 is Psalm 87's title, not Psalm 86.
+    expect(std.toCanon("rso", "PSA.86.1")).toBe("PSA.87.1");
+    // A range that doesn't start at a title still pairs from the start:
+    // "PSA 89:2-6 = PSA 90:1-6", Synodal 89:2 "Lord, thou hast been our
+    // dwelling place".
+    expect(std.toCanon("rso", "PSA.89.2")).toBe("PSA.90.1");
+    expect(std.toCanon("rso", "PSA.89.6")).toBe("PSA.90.5");
+  });
+
   it("drops mappings to a Psalm title", () => {
     // rso.vrs lists "PSA 9:22 = PSA 10:0" before "PSA 9:22-39 = PSA 10:1-18".
     expect(std.toCanon("rso", "PSA.9.22")).toBe("PSA.10.1");
@@ -267,6 +398,9 @@ describe("six numbering systems", () => {
 
   it("applies the checked corrections to SIL's tables", () => {
     expect(std.toCanon("rso", "DAN.6.1")).toBe("DAN.6.2");
+    expect(std.toCanon("rso", "ISA.3.20")).toBe("ISA.3.21");
+    expect(std.toCanon("rso", "ISA.3.25")).toBe("ISA.3.26");
+    expect(std.toCanon("rsc", "PSA.89.1")).toBe("PSA.90.1");
     expect(std.toCanon("lxx", "DEU.5.17")).toBe("DEU.5.17");
     expect(std.toCanon("lxx", "EXO.20.13")).toBe("EXO.20.13");
   });
@@ -482,7 +616,7 @@ describe("choosing a system per chapter", () => {
     expect(assumed.map.chapters("NEH")).toHaveLength(13);
     expect(assumed.map.toCanon.get("NEH.3.38")).toBe("NEH.3.38");
     const ubio = buildVersionMap("UBIO", 186);
-    expect(ubio.source).toBe("scanned");
+    expect(ubio.source).toBe("verified");
     expect(ubio.map.toCanon.get("NEH.3.38")).toBe("NEH.3.38");
   });
 

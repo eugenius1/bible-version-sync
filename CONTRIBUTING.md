@@ -118,7 +118,7 @@ The `rso`, `rsc`, `lxx` and `vul` tables are read from
 text (`SUPPLEMENTAL` in `versification.ts`), and a mapping into another of the
 66 books is dropped: the sync plans one book at a time, so such a verse would
 look unread, and so removed, when the other book syncs.
-`packages/core/test/survey.test.ts` runs the engine over all 331 scanned
+`packages/core/test/survey.test.ts` runs the engine over all 335 scanned
 versions and pins what each one skips.
 
 **A version no system explains is refused.** Without a label, only `eng`
@@ -138,9 +138,10 @@ version with no counts at all can't be checked, and is assumed English as
 before.
 
 Verse counts come from, in order: `packages/core/data/known_counts.json`
-(the four verified versions, the other 50 surveyed, 56 more from the
-hand-made ranking in `scripts/popular.mjs` and 221 smaller unlabelled ones
-scanned for coverage, by bible id), then the
+(the 46 verified versions in `scripts/verified.mjs` and the rest scanned
+for the survey: 54 widely used, 56 more from the hand-made ranking in
+`scripts/popular.mjs`, four more bundled when they were verified, and 221
+smaller unlabelled ones scanned for coverage, by bible id), then the
 YouVersion API's `/v1/bibles/{id}/index` (only for versions the app key may
 read), then an assumption of the version's label or English numbering. The
 app shows which as a badge: "Verified numbering", "Verse counts known",
@@ -151,7 +152,7 @@ English, and those where its candidate systems disagree (the engine needs
 those to pick each book's system). A chapter the version lacks is stored as
 0 so it isn't read, and a whole book it lacks as one `"BOOK": 0` (many
 versions are a Gospel or two). Everything else would get the same count and
-system anyway, which keeps the 331 versions to about 33,000 entries.
+system anyway, which keeps the 335 versions to about 34,000 entries.
 
 [docs/versification-survey.md](docs/versification-survey.md) records how 54
 widely used versions in 20 languages fared against the two-system engine,
@@ -225,15 +226,19 @@ known, so there are always two to sync.
 `packages/core/scripts/verified.mjs`, and for each chapter that matches neither
 system, write the correction table: first check whether a shared table in
 `overrides/shared/` describes it, by reading the verses at its boundaries in
-the version (not just comparing counts), and `use` it if so. The LSG tables were built by aligning the
-text verse by verse with a closely related version whose numbering is known
-(LSG against S21, by word overlap), then against NIV, and reading every
-boundary by eye. The shared tables were checked the same way, version by
-version, against NIV, reading the verses around every boundary (text fetched
-from the API behind bible.com and cached under the survey's gitignored `out/`;
-Bible text isn't committed, and comments quote only the public-domain KJV).
-Then add test cases to `packages/core/test/versification.test.ts` for
-the verses you checked by eye, and run `npm run check`.
+the version (not just comparing counts), and `use` it if so. Matching counts
+aren't enough: RVR1960 numbers Psalm 47 the English way in Hebrew's 10
+verses, and was mapped a verse off until its text was read. The survey's
+`text.py`, `sheets.ts` and `REVIEW.md` do the reading (see
+[its README](tools/versification-survey/README.md#verifying-a-versions-numbering)):
+every verse where the numbering could go wrong, beside the NIV and LSG
+verses the engine pairs it with, plus the stretches a verse-length aligner
+suspects. The LSG tables were first built by aligning the text verse by verse
+with S21 (by word overlap), then against NIV. Bible text isn't committed,
+and comments quote only public-domain text (KJV, Douay-Rheims). Then add
+test cases to `packages/core/test/versification.test.ts` for the verses you
+checked by eye, and run `npm run check`. A verified version maps every
+chapter it has; a test checks that.
 
 ## The sync rules
 

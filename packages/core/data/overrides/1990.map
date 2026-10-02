@@ -6,10 +6,5 @@ use job-38-41
 use hos-1-12
 use hag-2-24
 use rom-7-26
+use jhn-1-52
 
-# John 1 has 52 verses: 1:38 ends at Jesus turning and seeing them follow,
-# and 1:39 is "What seek ye? ... Rabbi, where dwellest thou?" (KJV 1:38), so
-# 1:40 is "Come and see" (1:39).
-JHN 1:1-38 = JHN 1:1-38
-JHN 1:39 = JHN 1:38
-JHN 1:40-52 = JHN 1:39-51

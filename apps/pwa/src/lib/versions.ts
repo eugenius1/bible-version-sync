@@ -20,7 +20,7 @@ export interface ResolvedVersion extends SyncVersion {
 
 /**
  * Build verse maps for the configured versions. Versions with bundled counts
- * (the four verified ones and the others scanned for the survey) use them
+ * (the verified ones and the others scanned for the survey) use them
  * without asking the API; others use the API index when the app key may read
  * it (cached), else the version's bundled numbering label (Synodal,
  * Septuagint, Vulgate) or English numbering is assumed.

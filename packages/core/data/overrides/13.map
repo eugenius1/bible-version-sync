@@ -1,2 +1,10 @@
 # AVD: checked against the text on bible.com, Sept 2026.
 use rev-12-17
+use 1ti-6-22
+
+# 2 Kings 4 has 43 verses: 4:43 runs on through "and left thereof, according
+# to the word of the LORD" (4:44).
+2KI 4:1-43 = 2KI 4:1-43
+# Psalm 72 has 19 verses: 19 ends with "The prayers of David the son of Jesse
+# are ended" (72:20).
+PSA 72:1-19 = PSA 72:1-19

@@ -1,3 +1,8 @@
 # BIMK: checked against the text on bible.com, Sept 2026.
 use exo-5-24
 use rom-7-26
+
+# Isaiah 38 has 20 verses: the lump of figs and Hezekiah's sign (38:21-22)
+# are told in 38:6, where the story reaches them, so 38:1-20 keep their
+# numbers and 38:21-22 have none of their own.
+ISA 38:1-20 = ISA 38:1-20

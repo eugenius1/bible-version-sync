@@ -13,8 +13,8 @@ are keyed by bible id throughout; abbreviations aren't unique.
   version differs from English numbering or where its candidate systems
   disagree (0 for a chapter it lacks, `"BOOK": 0` for a whole book).
   Collected from bible.com in Sept 2026; LSG matches the YouVersion API index
-  exactly. The four verified versions
-  are listed in `scripts/verified.mjs`; the rest are scanned only.
+  exactly. The verified versions are listed in `scripts/verified.mjs`; the
+  rest are scanned only.
 - `labels.json`: YouVersion's numbering label (`vrs`) by bible id, which the
   official API doesn't expose, for every version YouVersion lists (3,082 of
   3,864 have one). Bundled packed, as gaps between ids.

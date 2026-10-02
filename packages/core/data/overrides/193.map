@@ -1,9 +1,31 @@
 # VIE1925: checked against the text on bible.com, Sept 2026.
 use 1sa-20-43
-use job-38-41
 use mrk-9-51
 use mrk-10-53
 
 # 1 Kings 6 has 37 verses: 6:37 holds both the foundation laid in the fourth
 # year and the house finished in the eleventh (6:37-38).
 1KI 6:1-37 = 1KI 6:1-37
+
+# Job 38-41 with Louis Segond's chapter breaks (shared/job-38-41.map), except
+# that 39:1 is the lions couching in their dens and 39:2 "Wilt thou hunt the
+# prey for the lion?", the order of 38:39-40 reversed.
+JOB 38:1-38 = JOB 38:1-38
+JOB 39:1 = JOB 38:40
+JOB 39:2 = JOB 38:39
+JOB 39:3 = JOB 38:41
+JOB 39:4-33 = JOB 39:1-30
+JOB 39:34-38 = JOB 40:1-5
+JOB 40:1-27 = JOB 40:6-32
+JOB 40:28 = JOB 41:1
+JOB 41:1-25 = JOB 41:2-26
+# Chapters whose last verse runs on through the next: Exodus 12:50 (12:51),
+# 2 Kings 2:24 (Elisha going to Carmel, 2:25), 19:36 (Sennacherib slain,
+# 19:37), 2 Chronicles 35:26 (35:27), Amos 1:14 (their king going into
+# captivity, 1:15), 1 Corinthians 3:22 (3:23).
+EXO 12:1-50 = EXO 12:1-50
+2KI 2:1-24 = 2KI 2:1-24
+2KI 19:1-36 = 2KI 19:1-36
+2CH 35:1-26 = 2CH 35:1-26
+AMO 1:1-14 = AMO 1:1-14
+1CO 3:1-22 = 1CO 3:1-22

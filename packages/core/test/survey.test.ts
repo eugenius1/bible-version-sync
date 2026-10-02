@@ -89,24 +89,27 @@ function measure(id: number, map: VersionMap) {
 // eng/org, and was as in docs/versification-survey.md until the shared
 // correction tables (data/overrides/shared/) mapped these chapters.
 const SKIPPED: Record<number, number> = {
-  1: 0, 13: 84, 21: 0, 27: 20, 46: 52, 48: 52, 51: 0, 59: 0, 73: 0, 75: 88, 81: 0, 83: 35, 88: 0, 89: 0,
-  93: 0, 97: 55, 101: 22, 104: 0, 111: 0, 114: 0, 116: 0, 122: 25, 126: 0, 127: 0, 128: 0, 129: 0, 132: 350,
-  133: 0, 141: 230, 142: 7, 144: 20, 149: 0, 151: 0, 152: 0, 157: 0, 164: 52, 188: 1000, 191: 0, 193: 172,
-  212: 32, 306: 0, 319: 315, 399: 20, 463: 307, 1588: 0, 1608: 0, 1627: 0, 1628: 0, 1683: 0, 1840: 0,
+  1: 0, 13: 0, 21: 0, 27: 0, 46: 0, 48: 0, 51: 0, 59: 0, 73: 0, 75: 88, 81: 0, 83: 35, 88: 0, 89: 0,
+  93: 0, 97: 55, 101: 0, 104: 0, 111: 0, 114: 0, 116: 0, 122: 0, 126: 0, 127: 0, 128: 0, 129: 0, 132: 350,
+  133: 0, 141: 230, 142: 0, 144: 20, 149: 0, 151: 0, 152: 0, 157: 0, 164: 0, 188: 1000, 191: 0, 193: 0,
+  212: 0, 306: 0, 319: 315, 399: 20, 463: 307, 1588: 0, 1608: 0, 1627: 0, 1628: 0, 1683: 0, 1840: 0,
   1990: 0,
   // Were 2,670, 3,052 and 2,329 with eng/org only.
   143: 0, 400: 0, 186: 0,
-  // The rest of the hand-made ranking (scripts/popular.mjs), scanned later
-  // and given no correction tables: what they skip is the chapters that fit
-  // no system, many of them ones a shared table describes in other versions.
+  // The rest of the hand-made ranking (scripts/popular.mjs), scanned later.
+  // Those verified since (scripts/verified.mjs) have correction tables and
+  // skip nothing; the rest skip the chapters that fit no system, many of them
+  // ones a shared table describes in other versions.
   19: 0, 40: 49, 41: 317, 43: 0, 57: 31, 74: 0, 100: 17, 103: 17, 105: 0, 106: 300, 107: 0, 108: 0, 110: 17,
-  123: 148, 138: 31, 139: 0, 140: 0, 146: 17, 165: 394, 167: 0, 177: 31, 195: 17, 197: 0, 199: 0, 205: 0,
-  313: 0, 328: 394, 385: 0, 449: 31, 819: 100, 903: 31, 1276: 449, 1637: 17, 1638: 0, 1755: 108, 1818: 69,
-  1819: 0, 1820: 0, 1930: 0, 1980: 0, 1996: 31, 2095: 0, 2195: 0, 2311: 0, 2645: 43, 2692: 17, 3269: 7,
-  3368: 318, 3490: 206, 3803: 0, 4369: 17, 4639: 0, 4804: 118, 4869: 0,
+  123: 148, 138: 0, 139: 0, 140: 0, 146: 17, 165: 394, 167: 0, 177: 0, 195: 17, 197: 0, 199: 0, 205: 0,
+  313: 0, 328: 0, 385: 0, 449: 31, 819: 0, 903: 31, 1276: 449, 1637: 17, 1638: 0, 1755: 108, 1818: 69,
+  1819: 0, 1820: 0, 1930: 0, 1980: 0, 1996: 31, 2095: 0, 2195: 0, 2311: 0, 2645: 43, 2692: 17, 3269: 0,
+  3368: 318, 3490: 0, 3803: 0, 4369: 17, 4639: 0, 4804: 118, 4869: 0,
   // GNA2025 (Psalm 13) and NR2006 (the LSG-like 1 Samuel 20, Psalm 13 and
   // Ecclesiastes 11-12, and 2 Samuel 20), whose Psalms are ided PSA.<n>_1.
-  67: 7, 4833: 97,
+  67: 7, 4833: 0,
+  // Bundled with the versions verified in Sept 2026 (scripts/verified.mjs).
+  1264: 0, 201: 0, 55: 0, 42: 0,
 };
 
 // Chapters where the engine deliberately departs from the label's table, each
@@ -114,22 +117,47 @@ const SKIPPED: Record<number, number> = {
 const OFF_LABEL: Record<number, Record<string, number>> = {
   // NEH 7:68 (horses and mules) isn't in the Hebrew at all; rso/rsc fold it
   // into 7:67, eng into 7:68. The chapter uses eng, as NIV does, whose 7:68
-  // is the same verse.
-  143: { "NEH.7": 1 },
-  400: { "NEH.7": 1 },
+  // is the same verse. Revelation 20:8-9 split English 20:9, as in SYNO
+  // (shared/rev-20-8.map).
+  143: { "NEH.7": 1, "REV.20": 1 },
+  // SYNO's Esther 1:7-8 hold English 1:6b-8 (overrides/400.map).
+  400: { "NEH.7": 1, "EST.1": 2, "REV.20": 1 },
   // The same verse in the other Synodal-numbered Russian versions: Synod
   // (167, rso), BTI (313, rsc) and CARS (385, rsc). In each, as in SYNO, NRT
   // and NIV, 7:67 is the servants and singers, 7:68 the horses and mules
   // (bracketed in BTI, as absent from the Hebrew), 7:69 the camels and
   // donkeys and 7:70 the governor's gift, so English numbering is right
   // verse for verse, and rso/rsc would fold the horses into the singers.
-  167: { "NEH.7": 1 },
+  // Synod is SYNO's text, Revelation 20 included.
+  167: { "NEH.7": 1, "REV.20": 1 },
   313: { "NEH.7": 1 },
   385: { "NEH.7": 1 },
   // UBIO follows Hebrew order here; lxx's counts match by coincidence
   // (lxx Exodus 36:9ff is Hebrew 39:2ff, lxx Jeremiah 34 and 36 are Hebrew
   // 27 and 29). UBIO Jeremiah 36:1 is Jehoiakim's fourth year, the scroll.
-  186: { "EXO.36": 27, "JER.34": 22, "JER.36": 32 },
+  // Its 2 Kings 8:6 is the end of 8:5 (overrides/186.map).
+  186: { "EXO.36": 27, "JER.34": 22, "JER.36": 32, "2KI.8": 1 },
+  // RSP's Nehemiah 7:68 is the horses and mules, as in the Synodal versions.
+  201: { "NEH.7": 1 },
+  // НПУ numbers the titles of Psalms 86 and 89 (Hebrew 87 and 90) as verse 1
+  // where lxx.vrs has them as verse 0 (overrides/3269.map).
+  3269: { "PSA.86": 1, "PSA.89": 5 },
+  // Correction tables for chapters whose count fits the label but whose
+  // verses are divided differently: KEH's Judges 3:19-21, HHBD's Matthew
+  // 1:6-8, and the Vulgate divisions of DRC1752 and CPDV (overrides/55.map,
+  // 42.map, shared/vulgate-verses.map). Their Isaiah 64:1 is "O that thou
+  // wouldst rend the heavens", which vul.vrs puts at Hebrew 63:19; it's
+  // mapped as English, as NIV's is (see issue #6).
+  101: { "JDG.3": 2 },
+  819: { "MAT.1": 2 },
+  55: {
+    "1CH.11": 2, "2TI.4": 1, "DEU.6": 2, "EXO.39": 19, "ISA.64": 1, "LUK.9": 2, "NEH.7": 6, "NUM.15": 2,
+    "NUM.27": 4, "PSA.108": 2, "REV.20": 1, "SNG.1": 1,
+  },
+  42: {
+    "1CH.11": 2, "2TI.4": 1, "DEU.6": 2, "EXO.39": 20, "ISA.64": 1, "LUK.9": 2, "NEH.7": 6, "NUM.15": 2,
+    "NUM.27": 4, "PSA.108": 2, "PSA.71": 1, "PSA.99": 1, "REV.20": 1,
+  },
 };
 
 describe("bundled labels", () => {
@@ -238,12 +266,11 @@ describe("unlabelled versions", () => {
   // counts. Where a chapter's count also fits another of the six systems that
   // would map it differently, and that system fits the version's chapters of
   // the book as well as the one the engine chose, the counts can't tell them
-  // apart and verses could be misplaced. That happens only in Jonah 2 against
-  // vul, and only because SIL's vul.vrs gives it 11 verses but maps it as
-  // English's 10 (JON 2:1-10 = JON 2:2-11). Jonah 2:1 is the fish swallowing
-  // Jonah in all four versions with Jonah (CAROS, DROT, ROT and Lontomba;
-  // bible.com, Sept 2026): Hebrew numbering, which Synodal shares, as mapped.
-  // (Also BurOTp and KabBBL, not read.) And Nehemiah 7 in KabBBL, which fits
+  // apart and verses could be misplaced. That happened in Jonah 2 against
+  // vul, until the Vulgate table's slip there was corrected (SUPPLEMENTAL in
+  // versification.ts): Jonah 2:1 is the fish swallowing Jonah in CAROS, DROT,
+  // ROT and Lontomba (bible.com, Sept 2026) as in the Vulgate. It happens
+  // now only in Nehemiah 7 in KabBBL, which fits
   // rsc throughout: 7:68 is mapped as English on purpose, as in SYNO and NRT.
   // KabBBL (Kabardian) and AltBBL (Altai) are Synodal numbered as far as their
   // counts show, but in the books they have, Synodal numbers every chapter
@@ -269,10 +296,7 @@ describe("unlabelled versions", () => {
         }
       }
     }
-    expect(ambiguous.sort()).toEqual([
-      "BurOTp vul JON.2", "CAROS vul JON.2", "DROT vul JON.2", "KabBBL rsc NEH.7", "KabBBL rso NEH.7",
-      "KabBBL vul JON.2", "ROT vul JON.2", "nto vul JON.2",
-    ]);
+    expect(ambiguous.sort()).toEqual(["KabBBL rsc NEH.7", "KabBBL rso NEH.7"]);
   });
 });
 

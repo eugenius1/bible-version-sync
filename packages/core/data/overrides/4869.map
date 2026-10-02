@@ -1,6 +1,4 @@
-# RVR1960: checked against the text on bible.com, Sept 2026.
-use rev-12-17
-
+# NJB (新改訳2017): checked against the text on bible.com, Sept 2026.
 # Psalm 47 has 10 verses and an unnumbered title, so its count is Hebrew but
 # its numbering English: 47:1 is "O clap your hands", and 47:9-10 split
 # English 47:9 ("The princes of the people are gathered together" / "for the

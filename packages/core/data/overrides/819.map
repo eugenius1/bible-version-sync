@@ -1,0 +1,18 @@
+# HHBD: checked against the text on bible.com, Sept 2026.
+use 3jn-1-14
+use rev-12-17
+
+# Judges 10 is printed twice: 10:19-36 repeat 10:1-18 word for word.
+JDG 10:1-18 = JDG 10:1-18
+JDG 10:19-36 = JDG 10:1-18
+# Jeremiah 29:32-33 split English 29:32: "Behold, I will punish Shemaiah" and
+# "neither shall he behold the good that I will do for my people".
+JER 29:1-32 = JER 29:1-32
+JER 29:33 = JER 29:32
+# Matthew 1:6-8: 1:6 ends at "Jesse begat David the king" and 1:7 is "David
+# the king begat Solomon" (both 1:6); 1:8 runs from Solomon through Asa and
+# Josaphat (1:7-8).
+MAT 1:1-6 = MAT 1:1-6
+MAT 1:7 = MAT 1:6
+MAT 1:8 = MAT 1:7
+MAT 1:9-25 = MAT 1:9-25
