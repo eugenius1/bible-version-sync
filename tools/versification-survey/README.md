@@ -14,7 +14,10 @@ handles each.
 | `unlabelled.py` | For the unlabelled, unscanned versions, reads which chapters each has (one cached `version.json` each) and prints the ids to scan, cheapest languages first, to reach a share of languages fully known (`python3 unlabelled.py 0.8`). |
 | `names.py` | Adds the abbreviation bible.com shows (`local_abbreviation`: NIV, where the internal `abbreviation` is NIV11) to `data/counts.json` as `local_abbr`. One cached request per language. |
 | `analyse.py` | Classifies every chapter against six numbering systems and simulates the engine. Reads `out/` if present, else `data/counts.json`; writes `data/analysis.json` and prints a summary. Reads the six SIL [libpalaso](https://github.com/sillsdev/libpalaso) `.vrs` files (MIT) from `packages/core/data/`, the copies the app ships. |
-| `data/counts.json` | The scan (Sept 2026), compact: the survey's 54 widely used versions, 56 more from the app's hand-made ranking (`packages/core/scripts/popular.mjs`), and 221 unlabelled ones scanned for label coverage. |
+| `text.py` | Fetches whole versions' text, verse by verse, into `out/text/<id>.json` (gitignored; Bible text isn't committed). Same API and pace as `scan.py`; about three minutes per Bible. |
+| `align.ts`, `sheets.ts` | Review sheets for checking a version's numbering on the text; see below. |
+| `REVIEW.md` | How to read a review sheet, for a person or an agent. |
+| `data/counts.json` | The scan (Sept 2026), compact: the survey's 54 widely used versions, 56 more from the app's hand-made ranking (`packages/core/scripts/popular.mjs`), four more bundled when they were verified (ASD, RSP, DRC1752, CPDV), and 221 unlabelled ones scanned for label coverage. |
 | `data/analysis.json` | `analyse.py`'s output for that scan. |
 | `data/defaults.json` | The version bible.com opens for each language (Sept 2026), by language tag. |
 | `data/candidates.json` | Every version of every language YouVersion lists (3,864 in 2,462 languages, Sept 2026), by language tag, with its numbering label and name. |
@@ -95,3 +98,32 @@ line. Psalm titles are verse 0, sometimes on both sides (`rso`:
 `PSA 10:0-7 = PSA 11:0-7`); a verse 0 can't be highlighted, so drop pairs where
 either side is 0. Uneven ranges and lettered splits (`ESG 1:1a`) only occur
 outside the 66-book canon or at titles, and the parsers skip them.
+
+## Verifying a version's numbering
+
+Counts say which system a chapter fits, not that its text is divided that
+way. To check a version (and its correction tables) on the text:
+
+```bash
+python3 text.py <bible id> 111 93
+npx esbuild sheets.ts --bundle --platform=node --format=esm --outfile=out/sheets.mjs
+node out/sheets.mjs <bible id>
+```
+
+`out/sheets/<bible id>.md` then lists, for every chapter whose numbering
+isn't plain (its count differs from English, English and Hebrew differ there,
+or its mapping isn't the identity), the version's verses at each point where
+the mapping could go wrong, each beside the NIV (111) and LSG (93) verse the
+engine pairs it with; the chapters the engine skips, in full; and the
+stretches `align.ts` suspects. The aligner compares verse lengths (and names
+and numbers, which survive translation) against NIV and LSG with a
+Gale-Church dynamic programme, and flags a stretch where both references
+find a clearly better alignment than the engine's. Its false alarms are
+mostly lists and paraphrase; it found RVR1960's and NJB's Psalm 47, BW1975's
+Jonah 2 and VIE1925's Job 39:1-2 mapped a verse off, and SYNO's Psalm 115,
+which led to a parser fix. A chapter that's misnumbered only in the middle
+(НПУ's Psalm 89:2-6) shows up only there, not among the boundaries.
+
+`REVIEW.md` says how to read a sheet and write the findings; the 42 versions
+verified in Sept 2026 were read that way, a sheet per reviewer, and every
+reported problem was then checked on the text before a table was written.

@@ -240,6 +240,18 @@ describe("sync", () => {
   });
 });
 
+describe("a verse outside the synced books", () => {
+  // CPDV's Esther additions map to Greek Esther (ESG), which no other version
+  // reaches from Esther: a highlight there stays in CPDV.
+  it("pairs with nothing", () => {
+    const versions: SyncVersion[] = [111, 42].map((id) => ({ abbr: String(id), bibleId: id, map: buildVersionMap(String(id), id).map }));
+    const current = { 111: new Map<string, string>(), 42: new Map([["EST.1.1", "ffe066"], ["EST.3.1", "ffe066"]]) };
+    const plan = planBook("EST", versions, current, emptyState());
+    // Mordecai's dream (CPDV 1:1) goes nowhere; Hebrew 1:1 (CPDV 3:1) reaches NIV.
+    expect(plan.actions.map((a) => [a.version, a.op, a.local])).toEqual([[111, "set", "EST.1.1"]]);
+  });
+});
+
 describe("runSync", () => {
   it("limits a chapter scope to that chapter, reading the right local chapters", async () => {
     api.hl("AMP", "MAL.4.5", "ffe066");

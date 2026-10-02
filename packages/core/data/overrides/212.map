@@ -1,3 +1,8 @@
 # ARC: checked against the text on bible.com, Sept 2026.
 use 1sa-20-43
 use rev-12-17
+
+# Judges 5 has 32 verses: 5:32 is "And the land had rest forty years", the
+# end of 5:31.
+JDG 5:1-31 = JDG 5:1-31
+JDG 5:32 = JDG 5:31

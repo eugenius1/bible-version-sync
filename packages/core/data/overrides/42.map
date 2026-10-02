@@ -1,0 +1,146 @@
+# CPDV: checked against the text on bible.com, Sept 2026. The Catholic
+# Public Domain Version is in the public domain, so its words are quoted.
+use 3jn-1-14
+use rev-20-8
+use vulgate-verses
+
+# Chapters whose last verse runs on through the next.
+GEN 5:1-31 = GEN 5:1-31
+2SA 13:1-38 = 2SA 13:1-38
+
+# Exodus 39 gives the breastplate's fastenings in three verses, Hebrew
+# 39:17-21, so it runs two behind, as DRC1752's does; 39:34 is "the veil, the
+# ark, the bars, the propitiatory", mostly 39:35.
+EXO 39:1-17 = EXO 39:1-17
+EXO 39:18 = EXO 39:19
+EXO 39:19 = EXO 39:21
+EXO 39:20-25 = EXO 39:22-27
+EXO 39:26 = EXO 39:28
+EXO 39:27 = EXO 39:28
+EXO 39:28-32 = EXO 39:29-33
+EXO 39:33 = EXO 39:34
+EXO 39:34 = EXO 39:35
+EXO 39:35-36 = EXO 39:36-37
+EXO 39:37 = EXO 39:38
+EXO 39:38 = EXO 39:38
+EXO 39:39-43 = EXO 39:39-43
+
+# Esther in the Greek order: the Hebrew text in 3-5, 6:8-7:19, 9:17-12:12,
+# 13:25-15:3. The Greek additions (Mordecai's dream, 1-2; the king's letters,
+# 6:1-7 and 13:1-24; the prayers of Mordecai and Esther, 7:20-8:19; Esther
+# before the king, 9:1-16; the dream explained, 15:4-14; and three lines
+# inside 7) have no Hebrew verse. They go to Greek Esther (ESG), outside the
+# synced books, so that, like Daniel 13-14 in vul.vrs, they pair with no
+# other version's verse. Hebrew 4:12 has no verse: 7:14 opens with it.
+EST 1:1-11 = ESG 1:1-11
+EST 2:1-6 = ESG 2:1-6
+EST 3:1-22 = EST 1:1-22
+EST 4:1-23 = EST 2:1-23
+EST 5:1-13 = EST 3:1-13
+EST 6:1-7 = ESG 6:1-7
+EST 6:8-9 = EST 3:14-15
+EST 7:1-9 = EST 4:1-9
+EST 7:10-11 = ESG 7:10-11
+EST 7:12-13 = EST 4:10-11
+EST 7:14-15 = EST 4:13-14
+EST 7:16 = ESG 7:16
+EST 7:17-19 = EST 4:15-17
+EST 7:20-30 = ESG 7:20-30
+EST 8:1-19 = ESG 8:1-19
+EST 9:1-16 = ESG 9:1-16
+EST 9:17-30 = EST 5:1-14
+EST 10:1-14 = EST 6:1-14
+EST 11:1-10 = EST 7:1-10
+EST 12:1-12 = EST 8:1-12
+EST 13:1-24 = ESG 13:1-24
+EST 13:25-29 = EST 8:13-17
+EST 14:1-32 = EST 9:1-32
+EST 15:1-3 = EST 10:1-3
+EST 15:4-14 = ESG 15:4-14
+
+# The Canticle, divided more finely and without a title verse.
+# 1:1 "Let him kiss me" and 1:2 split 1:2; 1:4-7 are the four clauses of
+# "Draw me, we will run after thee"; 1:9-10 split 1:6.
+SNG 1:1 = SNG 1:2
+SNG 1:2 = SNG 1:2
+SNG 1:3-4 = SNG 1:3-4
+SNG 1:5 = SNG 1:4
+SNG 1:6 = SNG 1:4
+SNG 1:7 = SNG 1:4
+SNG 1:8-9 = SNG 1:5-6
+SNG 1:10 = SNG 1:6
+SNG 1:11-21 = SNG 1:7-17
+# 2:9-10 split "My beloved is like a roe" / "he standeth behind our wall",
+# and 2:11-12 split "My beloved spake" / "Rise up, my love".
+SNG 2:1-9 = SNG 2:1-9
+SNG 2:10 = SNG 2:9
+SNG 2:11 = SNG 2:10
+SNG 2:12 = SNG 2:10
+SNG 2:13-19 = SNG 2:11-17
+# 5:1 "Let my beloved come into his garden" ends 4:16, and 5:19 "Where has
+# your beloved gone" begins chapter 6, which runs one behind until 6:12
+# "Return, return, O Sulamitess", the first half of Hebrew 7:1. Chapters 4
+# and 7 are listed so that they and 5:1 and 6:12 map under one system.
+SNG 4:1-16 = SNG 4:1-16
+SNG 5:1 = SNG 4:16
+SNG 5:2-3 = SNG 5:1-2
+SNG 5:4 = SNG 5:2
+SNG 5:5-18 = SNG 5:3-16
+SNG 5:19 = SNG 6:1
+SNG 6:1-11 = SNG 6:2-12
+SNG 6:12 = SNG 7:1
+SNG 7:1-14 = SNG 7:1-14
+# 8:5-6 split "Who is this that cometh up from the wilderness" / "I raised
+# thee up under the apple tree".
+SNG 8:1-5 = SNG 8:1-5
+SNG 8:6 = SNG 8:5
+SNG 8:7-15 = SNG 8:6-14
+
+# Isaiah 45:23-24 split "I have sworn by myself" / "every knee shall bow".
+ISA 45:1-23 = ISA 45:1-23
+ISA 45:24 = ISA 45:23
+ISA 45:25-26 = ISA 45:24-25
+# 2 Thessalonians 2:10 runs on through "God shall send them strong delusion"
+# (2:10-11).
+2TH 2:1-10 = 2TH 2:1-10
+2TH 2:11-16 = 2TH 2:12-17
+# Bel and the Dragon: 13:65, Astyages laid to rest, is already Bel 1:1, so
+# 14:1 "Daniel was living with the king" is 1:2 and the chapter runs one
+# ahead; 14:42, "Let all the inhabitants of the whole earth fear the God of
+# Daniel", closes the last verse.
+DAN 14:1-41 = BEL 1:2-42
+DAN 14:42 = BEL 1:42
+
+# Psalms, numbered as in the Vulgate (CPDV 15 is Hebrew 16).
+# 13 (14): 13:4-6 are the lines Romans 3 quotes ("Their throat is an open
+# sepulchre"), which the Hebrew lacks; they follow 14:3.
+PSA 13:1-3 = PSA 14:1-3
+PSA 13:4 = PSA 14:3
+PSA 13:5 = PSA 14:3
+PSA 13:6 = PSA 14:3
+PSA 13:7-10 = PSA 14:4-7
+# 15 (16): the last verse runs on through the next.
+PSA 15:1-11 = PSA 16:1-11
+# 71 (72), 99 (100): the title is a verse of its own, then "Give the king thy
+# judgments, O God" and "Make a joyful noise unto the LORD".
+PSA 71:1 = PSA 72:1
+PSA 71:2 = PSA 72:1
+PSA 71:3-20 = PSA 72:3-20
+PSA 99:1 = PSA 100:1
+PSA 99:2 = PSA 100:1
+PSA 99:3-5 = PSA 100:3-5
+# 92 (93): a title the Hebrew lacks, then 92:2-3 split "The LORD reigneth".
+PSA 92:1 = PSA 93:1
+PSA 92:2 = PSA 93:1
+PSA 92:3 = PSA 93:1
+PSA 92:4-7 = PSA 93:2-5
+# 115 (116:10-19) and 147 (147:12-20), the Vulgate's second halves.
+PSA 115:1-10 = PSA 116:10-19
+PSA 147:1-9 = PSA 147:12-20
+# 125 (126): 125:6-7 split "He that goeth forth and weepeth" / "shall doubtless
+# come again with rejoicing".
+PSA 125:1-6 = PSA 126:1-6
+PSA 125:7 = PSA 126:6
+# 135 (136): 135:27 repeats "Lord of lords" after the last verse.
+PSA 135:1-26 = PSA 136:1-26
+PSA 135:27 = PSA 136:26

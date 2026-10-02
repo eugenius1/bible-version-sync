@@ -1,0 +1,18 @@
+# НПУ: checked against the text on bible.com, Sept 2026.
+# Three psalms number their title as verse 1, as the Synodal text does, where
+# the Septuagint table has it as verse 0. Psalm 86 (Hebrew 87): 86:1 is the
+# title and 86:2 "His foundation is in the holy mountains" (both Hebrew 87:1).
+PSA 86:1 = PSA 87:1
+PSA 86:2 = PSA 87:1
+PSA 86:3-7 = PSA 87:3-7
+# Psalm 89 (Hebrew 90): 89:1 is the title, 89:2 "Lord, thou hast been our
+# dwelling place" (both Hebrew 90:1), and 89:6 runs on through the grass
+# withering in the evening (Hebrew 90:5-6).
+PSA 89:1 = PSA 90:1
+PSA 89:2 = PSA 90:1
+PSA 89:3-6 = PSA 90:2-5
+PSA 89:7-17 = PSA 90:7-17
+# Psalm 141 (Hebrew 142): 141:1 is the title and "I cried unto the LORD with
+# my voice", taken as the first line, as in shared/psa-13-5.map; 141:2 is "I
+# poured out my complaint".
+PSA 141:1-7 = PSA 142:2-8

@@ -1,0 +1,67 @@
+# DRC1752: checked against the text on bible.com, Sept 2026. Douay-Rheims
+# is in the public domain, so its words are quoted here.
+use 3jn-1-14
+use rev-20-8
+use vulgate-verses
+
+# Chapters whose last verse runs on through the next.
+GEN 5:1-31 = GEN 5:1-31
+2SA 13:1-38 = 2SA 13:1-38
+AMO 9:1-14 = AMO 9:1-14
+JHN 11:1-56 = JHN 11:1-56
+2CO 1:1-23 = 2CO 1:1-23
+PSA 150:1-5 = PSA 150:1-5
+
+# Exodus 39 gives the breastplate's fastenings in three verses ("two chains
+# ... in the rings", "rings of gold", "a lace of violet"), Hebrew 39:17-21,
+# so it runs two behind until it splits the mitres from the breeches and the
+# altar of gold from the hanging: 39:20 "the tunick of the ephod" is 39:22.
+EXO 39:1-17 = EXO 39:1-17
+EXO 39:18 = EXO 39:19
+EXO 39:19 = EXO 39:21
+EXO 39:20-25 = EXO 39:22-27
+EXO 39:26 = EXO 39:28
+EXO 39:27 = EXO 39:28
+EXO 39:28-32 = EXO 39:29-33
+EXO 39:33 = EXO 39:34
+EXO 39:34 = EXO 39:34
+EXO 39:35-36 = EXO 39:36-37
+EXO 39:37 = EXO 39:38
+EXO 39:38 = EXO 39:38
+EXO 39:39-43 = EXO 39:39-43
+# The Canticle has no title verse: 1:1 is "Let him kiss me with the kiss of
+# his mouth".
+SNG 1:1-16 = SNG 1:2-17
+# Isaiah 45:23-24 split "I have sworn by myself" / "every knee shall be
+# bowed", so 45:25-26 are 45:24-25; 46:11 runs on through "Hear me, ye
+# hardhearted" (46:11-12).
+ISA 45:1-23 = ISA 45:1-23
+ISA 45:24 = ISA 45:23
+ISA 45:25-26 = ISA 45:24-25
+ISA 46:1-11 = ISA 46:1-11
+ISA 46:12 = ISA 46:13
+# 1 Thessalonians 4:11 runs on through "walk honestly towards them that are
+# without" (4:11-12), so 4:12 "we will not have you ignorant" is 4:13.
+1TH 4:1-11 = 1TH 4:1-11
+1TH 4:12-17 = 1TH 4:13-18
+# 2 Thessalonians 2:10 runs on through "God shall send them the operation of
+# error" (2:10-11), so 2:11 "That all may be judged" is 2:12.
+2TH 2:1-10 = 2TH 2:1-10
+2TH 2:11-16 = 2TH 2:12-17
+
+# Psalms, numbered as in the Vulgate (DRC 15 is Hebrew 16).
+# 15 (16), 19 (20), 28 (29): the last verse runs on through the next.
+PSA 15:1-11 = PSA 16:1-11
+PSA 19:1-9 = PSA 20:1-9
+PSA 28:1-10 = PSA 29:1-10
+# 42 (43): 42:5-6 split "Why art thou sad, O my soul" / "Hope in God".
+PSA 42:1-5 = PSA 43:1-5
+PSA 42:6 = PSA 43:5
+# 125 (126): 125:6-7 split "Going they went and wept" / "But coming they
+# shall come with joyfulness".
+PSA 125:1-6 = PSA 126:1-6
+PSA 125:7 = PSA 126:6
+# 135 (136): 135:27, "Give glory to the Lord of lords", repeats 136:3 after
+# the last verse; it's taken with the verse it follows.
+PSA 135:1-26 = PSA 136:1-26
+PSA 135:27 = PSA 136:26

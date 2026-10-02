@@ -70,11 +70,23 @@ const SUPPLEMENTAL: Partial<Record<StdScheme, string>> = {
   // rso.vrs doesn't shift Daniel 5:31-6:28, though rsc.vrs and eng.vrs both
   // do: Synodal Daniel 5:31 is Darius receiving the kingdom and 6:1 the 120
   // satraps, as in English (Hebrew 6:1-2).
-  rso: "DAN 5:31 = DAN 6:1\nDAN 6:1-28 = DAN 6:2-29",
+  // rso.vrs has "ISA 3:20-25 = ISA 3:16-21", a slip for rsc.vrs's 3:21-26:
+  // SYNO 3:20 is the rings and nose jewels, 3:23 "instead of sweet smell
+  // there shall be stink", 3:25 the gates lamenting (English 3:21, 24, 26).
+  rso: "DAN 5:31 = DAN 6:1\nDAN 6:1-28 = DAN 6:2-29\nISA 3:20-25 = ISA 3:21-26",
+  // rsc.vrs maps Psalm 89:1, "A prayer of Moses the man of God", to the
+  // title of Hebrew 90 (verse 0), which can't be highlighted, so it fell back
+  // to Hebrew 89:1, another psalm; the title is part of Hebrew 90:1 (НРП, RSP).
+  rsc: "PSA 89:1 = PSA 90:1",
   // lxx.vrs swaps verses into the Greek order of the commandments; UBIO, the
   // only lxx-labelled version surveyed, keeps the Hebrew order (Exodus 20:13
   // and Deuteronomy 5:17 are "do not murder").
   lxx: "EXO 20:13-15 = EXO 20:13-15\nEXO 21:16-17 = EXO 21:16-17\nDEU 5:17-18 = DEU 5:17-18",
+  // vul.vrs counts Jonah 1 and 2 as 16 and 11 verses, the Hebrew division,
+  // but maps them as English ("JON 2:1-10 = JON 2:2-11"): DRC 2:1 is "the
+  // Lord prepared a great fish" and 2:11 "the Lord spoke to the fish", as
+  // in Hebrew.
+  vul: "JON 1:1-16 = JON 1:1-16\nJON 2:1-11 = JON 2:1-11",
 };
 
 const BOOK_LINE = /^([0-9A-Z]{3})((?: \d+:\d+)+)$/;
@@ -95,10 +107,15 @@ export function parseVrs(text: string): { counts: Record<string, number[]>; mapp
       const v2 = Number(v2s);
       const n1 = (v1e ? Number(v1e) : v1) - v1;
       const n2 = (v2e ? Number(v2e) : v2) - v2;
-      // Uneven ranges (e.g. PSA 13:0-5 = 13:1-6 when eng also has 13:6) leave
-      // the tail unmapped, which falls back to identity.
+      // Uneven ranges pair verses from the start, leaving the longer side's
+      // tail unmapped (identity), except when the longer side starts at a
+      // Psalm title: the title is then folded into the first verse, so the
+      // ranges line up at their ends. rso's "PSA 115:0-10 = PSA 116:10-19" is
+      // Synodal 115:1 = Hebrew 116:10 ("I believed, therefore have I
+      // spoken"), and "PSA 86:0-1 = PSA 87:1" maps Synodal 86:1, the title.
+      const skip = v1 === 0 && n1 > n2 ? [n1 - n2, 0] : v2 === 0 && n2 > n1 ? [0, n2 - n1] : [0, 0];
       for (let i = 0; i <= Math.min(n1, n2); i++) {
-        mappings.push([ref(b1, Number(c1), v1 + i), ref(b2, Number(c2), v2 + i)]);
+        mappings.push([ref(b1, Number(c1), v1 + skip[0] + i), ref(b2, Number(c2), v2 + skip[1] + i)]);
       }
       continue;
     }

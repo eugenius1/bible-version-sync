@@ -1,0 +1,28 @@
+# BW1975: checked against the text on bible.com, Sept 2026.
+# Chapters whose last verse runs on through the next: 2 Samuel 8:17 (Benaiah
+# and David's sons, 8:18), 13:38 (David longing for Absalom, 13:39), 2
+# Samuel 17:27 (the bedding and vessels, 17:28), 21:20 (the giant's taunt,
+# 21:21), 1 Chronicles 11:45 (11:46), Zechariah 12:12 (the mourning of the
+# families, 12:13-14).
+2SA 8:1-17 = 2SA 8:1-17
+2SA 13:1-38 = 2SA 13:1-38
+2SA 17:1-27 = 2SA 17:1-27
+2SA 17:28 = 2SA 17:29
+2SA 21:1-20 = 2SA 21:1-20
+2SA 21:21 = 2SA 21:22
+1CH 11:1-45 = 1CH 11:1-45
+1CH 11:46 = 1CH 11:47
+ZEC 12:1-12 = ZEC 12:1-12
+# Ecclesiastes 8:1 splits in two: "Who is as the wise man?" and "a man's
+# wisdom maketh his face to shine", so 8:3 is "keep the king's commandment"
+# (8:2).
+ECC 8:1 = ECC 8:1
+ECC 8:2 = ECC 8:1
+ECC 8:3-18 = ECC 8:2-17
+# Joel has three chapters: 3:6-26 are the Hebrew chapter 4 ("For, behold,
+# in those days"), and 3:1-5 the Hebrew chapter 3 (English 2:28-32).
+JOL 3:1-5 = JOL 3:1-5
+JOL 3:6-26 = JOL 4:1-21
+# Jonah 2 is numbered as in Hebrew, with the fish in 2:1, but in 10 verses:
+# 2:10 runs on through "the LORD spake unto the fish" (2:11).
+JON 2:1-10 = JON 2:1-10

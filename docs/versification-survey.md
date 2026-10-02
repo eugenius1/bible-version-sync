@@ -289,9 +289,9 @@ English.
 wherever another system fits a chapter's count, would map it differently,
 and fits the version's chapters of that book as well as the engine's choice,
 the counts couldn't tell them apart and a verse could be misplaced. That
-happens only in Jonah 2 against `vul` (SIL's `vul.vrs` counts 11 verses there
-but maps 10) and in Kabardian Nehemiah 7:68, mapped as English on purpose as
-in SYNO. So every unlabelled scan either maps with no verse misplaced or is
+happened in Jonah 2 against `vul` (SIL's `vul.vrs` counts 11 verses there
+but maps 10), until that was corrected (below), and happens now only in
+Kabardian Nehemiah 7:68, mapped as English on purpose as in SYNO. So every unlabelled scan either maps with no verse misplaced or is
 refused (next section).
 
 **Bundle size.** The 3,082 labels as `{"id": "eng"}` would add 8 KB to the
@@ -349,3 +349,58 @@ The threshold is absolute, so a small Synodal selection whose books do hold
 such chapters (a few psalms) could stay under it; the scans have none, and a
 version with no counts at all can't be checked.
 
+## Verified on the text (Sept 2026)
+
+Counts only say which system a chapter fits. The two most used versions of
+each language in `scripts/popular.mjs`, the two most used of each numbering
+label (`rsc`: НРП, RSP; `vul`: DRC1752, CPDV) and NCV, 42 versions in all,
+were checked on their text: every verse where numbering could go wrong
+beside the NIV and LSG verses the engine pairs it with, every chapter the
+engine skipped, and every stretch a verse-length aligner suspected
+(`tools/versification-survey`, "Verifying a version's numbering"). They're
+now listed in `scripts/verified.mjs` and skip no chapter.
+
+**Mapped a verse off, though their counts fit a system:**
+
+| Version | Chapter | What the text does |
+|---|---|---|
+| RVR1960 (149), NJB (4869) | Psalm 47 | English numbering (title unnumbered) in Hebrew's 10 verses: English 47:9 split in two |
+| BW1975 (3490) | Jonah 2 | Hebrew division (the fish in 2:1) in English's 10 verses |
+| VIE1925 (193) | Job 39:1-2 | English 38:39-40 in reverse order, under the shared Job table |
+| KEH (101), HHBD (819), UBIO (186) | Judges 3, Matthew 1, 2 Kings 8 | a verse split differently, so a few verses run one off |
+| SYNO (400) | Esther 1, Revelation 20 | the Synodal text's own divisions (Синод and НРП share Revelation 20) |
+| НПУ (3269) | Psalms 86, 89 | the title numbered as verse 1, where its `lxx` label has verse 0 |
+| DRC1752 (55), CPDV (42) | eleven chapters, Exodus 39 to Revelation 20 (most in `shared/vulgate-verses.map`) | the Vulgate's own divisions; Exodus 39 ran two verses off for twenty verses |
+| CPDV (42) | Song of Songs 6, Psalms 71 and 99 | Song 6 one verse behind; the psalm's title a verse of its own |
+
+**Corrections to SIL's tables** (`SUPPLEMENTAL` and `parseVrs` in
+`versification.ts`), each affecting every version with that label:
+
+- An uneven range starting at a Psalm title (`rso`: `PSA 115:0-10 = PSA
+  116:10-19`) was paired from the start, putting every verse one late and
+  Synodal 86:1 (Psalm 87's title) on Hebrew 86:1. The title is now folded
+  into the first verse.
+- `rso`: `ISA 3:20-25 = ISA 3:16-21`, a slip for `rsc`'s 3:21-26.
+- `rsc`: Psalm 89:1, Moses' title, mapped to Hebrew 90's verse 0, which can't
+  be highlighted, so it fell back to Hebrew 89:1, another psalm.
+- `vul`: Jonah counted in the Hebrew division (16 and 11 verses) but mapped
+  as English.
+
+The rest needed tables only for chapters they skipped: a last verse running
+on through the next (2 Samuel 20 in NR06 and NR2006, John 7 in CUNP and
+SUV), a closing greeting given its own verse (1 Timothy 6 in AVD and KEH), a
+chapter printed twice (HHBD's Judges 10) or a verse missing from the text
+(UBIO's 2 Kings 8:6). Fifteen needed nothing. Six of the new tables are
+shared: `1ti-6-22`, `2sa-20-25`, `jhn-1-52` (HSV's, now with NBG51),
+`jhn-7-52`, `rev-20-8` and `vulgate-verses`.
+
+CPDV's Esther is in the Greek order, with the Hebrew text in chapters 3-5,
+6:8-7:19, 9:17-12:12 and 13:25-15:3. Its Greek additions have no Hebrew verse,
+so its table sends them to Greek Esther (ESG), outside the 66 synced books,
+as `vul.vrs` does with Daniel 13-14 (Susanna, Bel): they pair with no other
+version's verse, so a highlight there stays in CPDV.
+
+Left as they are: English verses that hold two Hebrew verses map to the
+later one (1 Samuel 20:42, 1 Kings 22:43, 1 Chronicles 12:4), like Isaiah
+64:1 (issue #6); and verses added from the Septuagint (Synodal Proverbs
+13:14) share the canonical verse of their neighbour.
