@@ -1,6 +1,5 @@
-import { copyFileSync, readFileSync } from "node:fs";
+import { copyFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { type Plugin } from "vite";
@@ -28,22 +27,6 @@ const csp = (): Plugin => ({
   apply: "build",
   transformIndexHtml: (html) =>
     html.replace("<head>", `<head>\n    <meta http-equiv="Content-Security-Policy" content="${CSP}" />`),
-});
-
-// The repository's LICENSE, served as /LICENSE.txt so the footer can link to it
-// without depending on where (or whether) the source is hosted.
-const LICENCE_FILE = fileURLToPath(new URL("../../LICENSE", import.meta.url));
-const licence = (): Plugin => ({
-  name: "bvs-licence",
-  configureServer(server) {
-    server.middlewares.use("/LICENSE.txt", (_req, res) => {
-      res.setHeader("Content-Type", "text/plain; charset=utf-8");
-      res.end(readFileSync(LICENCE_FILE));
-    });
-  },
-  generateBundle() {
-    this.emitFile({ type: "asset", fileName: "LICENSE.txt", source: readFileSync(LICENCE_FILE, "utf8") });
-  },
 });
 
 // Static hosts without an SPA fallback (GitHub Pages) would 404 the sign-in
@@ -81,7 +64,6 @@ export default defineConfig({
     react(),
     tailwindcss(),
     csp(),
-    licence(),
     callbackPage(),
     VitePWA({
       registerType: "autoUpdate",
