@@ -19,8 +19,7 @@ export type RunState =
   | { status: "done"; apply: boolean; scope: Scope; summary: RunSummary }
   | { status: "error"; message: string };
 
-/** Served next to the app (see vite.config.ts), so the link works offline too. */
-const LICENCE_URL = `${import.meta.env.BASE_URL}LICENSE.txt`;
+const LICENCE_URL = "https://github.com/eugenius1/bible-version-sync/blob/main/LICENSE";
 export function App() {
   if (isCallback()) return <Callback />;
   return <Main />;
