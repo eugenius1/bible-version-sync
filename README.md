@@ -51,9 +51,10 @@ next sync simply goes back to only filling in blanks.
 
 ## Versions
 
-Verse numbering has been checked chapter by chapter, for every chapter, for
-**Amplified Bible (AMP)**, **New International Version (NIV)**,
-**Louis Segond 1910 (LSG)** and **Segond 21 (S21)**.
+Verse numbering has been checked against the text, chapter by chapter, for over
+45 versions, including the **New International Version (NIV)**, the **King
+James Version (KJV)** and the **Russian Synodal Bible**, and the most used
+versions of over 15 other languages.
 
 The app starts with an example list, the most used version in each of your
 browser's first three languages (NIV for English, Louis Segond for French)
@@ -71,10 +72,10 @@ version's numbering:
 
 - **Verified numbering**: checked chapter by chapter.
 - **Verse counts known**: the app comes with the verse count of every chapter
-  for 50 more widely used versions (KJV, ESV, NLT, Reina-Valera 1960, Synodal
-  and others) and about 200 smaller ones, scanned in Sept 2026 but not checked
-  by hand. Chapters that
-  follow no standard pattern are skipped rather than guessed.
+  for about 290 more versions (ESV, NLT and many widely used ones in other
+  languages, down to smaller translations), scanned in Sept 2026 but not
+  checked against the text. Chapters that follow no standard pattern are
+  skipped rather than guessed.
 - **Numbering from YouVersion**: worked out from YouVersion's own verse counts.
   Chapters that follow no standard pattern are skipped rather than guessed.
 - **Numbering assumed**: YouVersion wouldn't share the verse counts, so English
