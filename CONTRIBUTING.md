@@ -334,18 +334,19 @@ don't validate a version against it.
 in `.agents/skills`, which Codex and other agents read, and `.claude/skills`
 is a symlink to it because Claude Code reads only that; add new skills to
 `.agents/skills`. The SDK and React skills upstream aren't copied, since the
-app calls the API with plain `fetch` and shows no Bible text. The skill covers only `/v1/bibles` and passages, not highlights
-or sign-in, and it's written for apps that show text: it treats `/v1/bibles`
-as the only source of version ids, where here the list is a subset and
-versions are bundled (above). One trick it documents is worth knowing:
-`page_size=*` is accepted when at most three `fields[]` are asked for, so
+app calls the API with plain `fetch` and shows no Bible text. The skill
+covers only `/v1/bibles` and passages, not highlights or sign-in, and it's
+written for apps that show text: it treats `/v1/bibles` as the only source of
+version ids, where here the list is a subset and versions are bundled
+(above). One trick it documents is worth knowing: `page_size=*` is accepted
+when at most three `fields[]` are asked for, so
 `/v1/bibles?language_ranges[]=*&fields[]=id&fields[]=abbreviation&page_size=*`
 lists every version the app key may read in one request (360 in Sept 2026).
 `tools/youversion-skill.sh` refreshes the copy, and `--check` fails when
 upstream has changed it; the "YouVersion skill up to date" check runs that on
-every PR. It isn't a required check, so an upstream change shows
-red without blocking unrelated PRs: run the script, read what changed against
-this section, and commit it. Don't edit the copy by hand; the check fails on
+every PR. It isn't a required check, so an upstream change shows red without
+blocking unrelated PRs: run the script, read what changed against this
+section, and commit it. Don't edit the copy by hand; the check fails on
 that too.
 
 **Abbreviations aren't unique.** `NVI-S` is both 128 and 2664, `ARC` both 212
