@@ -367,6 +367,17 @@ that too.
 **Abbreviations aren't unique.** `NVI-S` is both 128 and 2664, `ARC` both 212
 and 3407. Key anything version-specific by bible id.
 
+## Claude review on PRs
+
+`.github/workflows/claude-review.yml` runs Claude's `/code-review` and
+`/security-review` on every non-draft PR from this repo and posts findings as
+inline comments, using the owner's Claude plan through the
+`CLAUDE_CODE_OAUTH_TOKEN` secret (made with `claude setup-token`; renew it
+when it expires). Fork and Dependabot PRs are skipped, since they can't read
+the secret. It reports but isn't a required check: a job that fails because
+the token expired or the plan's usage ran out would block every merge, and a
+finding is advice, not a pass or fail.
+
 ## Things that will bite you elsewhere
 
 **Nahum is `NAM`, not `NAH`.** Use the USFM book codes exactly as `BOOKS` in
