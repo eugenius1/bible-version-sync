@@ -37,6 +37,7 @@ describe("Priority", () => {
     const { onVersions } = renderPriority(false);
     expect(screen.getAllByRole("listitem")).toHaveLength(3);
     expect(screen.queryByText("Yellow")).toBeNull();
+    expect(await screen.findByText("Amplified Bible")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Move AMP up" }));
     expect(onVersions).toHaveBeenCalledWith([111, 1588, 93]);
   });

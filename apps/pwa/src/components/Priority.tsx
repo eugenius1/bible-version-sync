@@ -1,9 +1,10 @@
-import { HIGHLIGHT_COLORS, type HighlightColorId } from "@bvs/core";
+import { HIGHLIGHT_COLORS, loadVersionNames, versionNamesLoaded, type HighlightColorId } from "@bvs/core";
 import { ArrowDown, ArrowUp } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useI18n } from "../i18n";
 import { Step } from "./Step";
 import type { VersionSetting } from "../lib/db";
+import { versionName } from "../lib/versions";
 
 const HEX = Object.fromEntries(HIGHLIGHT_COLORS.map((c) => [c.id, c.hex])) as Record<HighlightColorId, string>;
 
@@ -25,6 +26,14 @@ export function Priority({ versions, byColor, colorOrder, disabled, onVersions, 
   const { t, f } = useI18n();
   const tp = t.priority;
   const tv = t.versions;
+  // Titles come in their own chunk; re-render once they're in (see VersionsCard).
+  const [, setNamesLoaded] = useState(false);
+  useEffect(() => {
+    loadVersionNames().then(
+      () => setNamesLoaded(true),
+      () => undefined,
+    );
+  }, []);
   const swap = <T,>(list: T[], i: number, d: -1 | 1) => {
     const next = [...list];
     [next[i], next[i + d]] = [next[i + d], next[i]];
@@ -78,20 +87,32 @@ export function Priority({ versions, byColor, colorOrder, disabled, onVersions, 
     </>
   ) : (
     <ol className="divide-y divide-stone-200 dark:divide-stone-800">
-      {versions.map((v, i) => (
-        <Row
-          key={v.bibleId}
-          n={i + 1}
-          up={f(tv.moveUp, { abbr: v.abbr })}
-          down={f(tv.moveDown, { abbr: v.abbr })}
-          disabled={disabled}
-          first={i === 0}
-          last={i === versions.length - 1}
-          onMove={(d) => void onVersions(swap(ids, i, d))}
-        >
-          <span className="font-medium">{v.abbr}</span>
-        </Row>
-      ))}
+      {versions.map((v, i) => {
+        const name = versionName(v.bibleId);
+        return (
+          <Row
+            key={v.bibleId}
+            n={i + 1}
+            up={f(tv.moveUp, { abbr: v.abbr })}
+            down={f(tv.moveDown, { abbr: v.abbr })}
+            disabled={disabled}
+            first={i === 0}
+            last={i === versions.length - 1}
+            onMove={(d) => void onVersions(swap(ids, i, d))}
+          >
+            <span className="shrink-0 font-medium">{v.abbr}</span>
+            {/* The title tells apart versions whose abbreviations look alike
+                (NVI (es), NVI (pt)); in the version's own script, as in VersionsCard. */}
+            <span
+              className="truncate text-sm text-stone-600 dark:text-stone-400"
+              lang={name?.language}
+              dir={name ? "auto" : undefined}
+            >
+              {name?.title ?? (versionNamesLoaded() ? f(tv.unnamed, { id: v.bibleId }) : null)}
+            </span>
+          </Row>
+        );
+      })}
     </ol>
   );
 
