@@ -96,7 +96,9 @@ real verse count with each candidate system's count
 - Chapters without a known count take the book's pick; with nothing known,
   the label, else English.
 - If two chapters on different systems would claim the same canonical verse,
-  both are skipped rather than guessed.
+  both are skipped rather than guessed, unless one system maps both chapters
+  as they're mapped: Isaiah 63 maps the same under `eng` and `org`, so an
+  `org` 63:19 may share Hebrew 63:19 with an `eng` 64:1.
 - Chapters that follow no system are described by hand in a **correction
   table**, `packages/core/data/overrides/<bible id>.map`, in `.vrs` mapping syntax:
   `LOCAL = CANONICAL`. Every chapter such a table touches uses only the table.
