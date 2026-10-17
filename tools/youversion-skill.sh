@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copy the youversion-platform-api skill from youversion/platform-skills into
-# .claude/skills, or with --check, fail if the copy differs from upstream.
+# .agents/skills, or with --check, fail if the copy differs from upstream.
 #
 # Content is compared, not commits, so upstream changes to its other skills
 # don't count as staleness. Upstream's scripts/ (a test harness hardcoded to
@@ -9,7 +9,7 @@ set -euo pipefail
 
 repo=https://github.com/youversion/platform-skills.git
 skill=youversion-platform-api
-dest="$(git rev-parse --show-toplevel)/.claude/skills/$skill"
+dest="$(git rev-parse --show-toplevel)/.agents/skills/$skill"
 
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
@@ -23,7 +23,7 @@ echo "$commit" > "$tmp/expected/.upstream"
 
 if [[ "${1:-}" == "--check" ]]; then
   if ! diff -r --exclude=.upstream "$tmp/expected" "$dest"; then
-    echo "::error::.claude/skills/$skill differs from youversion/platform-skills@${commit:0:7}." \
+    echo "::error::.agents/skills/$skill differs from youversion/platform-skills@${commit:0:7}." \
       "Run tools/youversion-skill.sh, read the diff, and commit it."
     exit 1
   fi
