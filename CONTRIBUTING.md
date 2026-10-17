@@ -378,6 +378,14 @@ the secret. It reports but isn't a required check: a job that fails because
 the token expired or the plan's usage ran out would block every merge, and a
 finding is advice, not a pass or fail.
 
+**A green tick on a PR that edits `claude-review.yml` means nothing.** The
+action refuses to run when the workflow file differs from the one on `main`
+("Workflow validation failed"), and then exits successfully having done
+nothing, in about ten seconds. So the PR that changes the workflow, including
+the one that added it, is never reviewed by it, and neither is a PR that
+touches the file later. Check the job log for that message before trusting the
+tick, and test a change to the workflow on a later PR that doesn't touch it.
+
 ## Things that will bite you elsewhere
 
 **Nahum is `NAM`, not `NAH`.** Use the USFM book codes exactly as `BOOKS` in
