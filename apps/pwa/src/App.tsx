@@ -9,8 +9,8 @@ import {
 } from "@bvs/core";
 import { LogIn, LogOut, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ColorOrder } from "./components/ColorOrder";
 import { LanguageSwitcher, ThemeSwitcher } from "./components/Pickers";
+import { Priority } from "./components/Priority";
 import { Results } from "./components/Results";
 import { SyncCard } from "./components/SyncCard";
 import { VersionsCard } from "./components/VersionsCard";
@@ -257,16 +257,16 @@ function Main() {
         resolved={versions}
         disabled={running}
         fresh={!customised && remembered === 0}
-        byColor={settings.byColor}
         onChange={saveVersions}
-      >
-        <ColorOrder
-          byColor={settings.byColor}
-          order={settings.colorOrder}
-          disabled={running}
-          onChange={saveColors}
-        />
-      </VersionsCard>
+      />
+      <Priority
+        versions={settings.versions}
+        byColor={settings.byColor}
+        colorOrder={settings.colorOrder}
+        disabled={running}
+        onVersions={saveVersions}
+        onColors={saveColors}
+      />
       <SyncCard
         versions={versions?.filter((v) => v.source !== "unsupported") ?? null}
         run={run}

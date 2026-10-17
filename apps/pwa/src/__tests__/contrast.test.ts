@@ -123,6 +123,18 @@ const PAIRS: Array<[Pair, Pair]> = [
     { label: "focus ring on a card", fg: "amber-500", bg: "stone-900", need: 3 },
   ],
   [
+    { label: "unpicked side of the which-wins switch", fg: "stone-500", bg: "white", need: 4.5 },
+    { label: "unpicked side of the which-wins switch", fg: "stone-400", bg: "stone-900", need: 4.5 },
+  ],
+  [
+    { label: "which-wins switch track on a card", fg: "amber-600", bg: "white", need: 3 },
+    { label: "which-wins switch track on a card", fg: "amber-500", bg: "stone-900", need: 3 },
+  ],
+  [
+    { label: "which-wins switch knob on its track", fg: "white", bg: "amber-600", need: 3 },
+    { label: "which-wins switch knob on its track", fg: "stone-950", bg: "amber-500", need: 3 },
+  ],
+  [
     { label: "progress bar in its track", fg: "amber-700", bg: "stone-200", need: 3 },
     { label: "progress bar in its track", fg: "amber-500", bg: "stone-800", need: 3 },
   ],

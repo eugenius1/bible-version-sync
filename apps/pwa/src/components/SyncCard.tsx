@@ -5,6 +5,7 @@ import type { RunState } from "../App";
 import { useI18n } from "../i18n";
 import type { ResolvedVersion } from "../lib/versions";
 import { Select } from "./Select";
+import { Step } from "./Step";
 
 type Kind = "bible" | "book" | "chapter";
 
@@ -35,7 +36,10 @@ export function SyncCard({ versions, run, onRun, onCancel }: Props) {
 
   return (
     <section className="card space-y-4" aria-labelledby="sync-title">
-      <h2 id="sync-title" className="font-semibold">{ts.title}</h2>
+      <h2 id="sync-title" className="flex items-center gap-2 font-semibold">
+        <Step n={3} />
+        {ts.title}
+      </h2>
 
       <fieldset className="space-y-3" disabled={running}>
         <legend className="sr-only">{ts.scopeLegend}</legend>

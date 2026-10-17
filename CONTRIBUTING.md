@@ -260,7 +260,7 @@ it can't place, which only makes that version a newcomer.
 **Which colour blank versions get.** When versions changed a verse to
 different colours, the one blank versions follow is the first listed
 version's, or, given a colour order (`PlanOptions.colorOrder`, the app's
-"Order by highlight colour instead"), the colour ranked first, with the
+"which wins?" card), the colour ranked first, with the
 versions' order breaking ties. A removal ranks after every colour. Either
 way only blanks and the sync's own copies follow it; each version keeps its
 own colour. Colours are ranked by the nearest of the ten in
