@@ -10,7 +10,6 @@ on:
 permissions:
   contents: read
   pull-requests: write
-  issues: write
   id-token: write # the action exchanges an OIDC token for a short-lived app token
 
 concurrency:
@@ -34,11 +33,7 @@ jobs:
       - uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          prompt: |
-            REPO: ${{ github.repository }}
-            PR NUMBER: ${{ github.event.pull_request.number }}
-
-            /code-review medium --comment
+          prompt: /code-review medium ${{ github.event.pull_request.number }} --comment
           claude_args: >-
             --allowedTools
             "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
@@ -52,21 +47,27 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      # /security-review diffs against origin/HEAD, which checkout never sets
+      # and which would be the default branch rather than this PR's base.
       - uses: actions/checkout@v7
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
+
+      - name: Point origin/HEAD at the PR's base branch
+        env:
+          BASE: ${{ github.event.pull_request.base.ref }}
+        run: git symbolic-ref refs/remotes/origin/HEAD "refs/remotes/origin/$BASE"
 
       - uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
-            REPO: ${{ github.repository }}
-            PR NUMBER: ${{ github.event.pull_request.number }}
-
             /security-review
 
-            Post anything you find as inline comments on the PR; if there is
-            nothing, post nothing.
+            Post anything you find as inline comments on PR
+            ${{ github.event.pull_request.number }}; if there is nothing, post
+            nothing.
           claude_args: >-
             --allowedTools
             "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
