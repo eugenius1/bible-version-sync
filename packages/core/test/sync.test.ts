@@ -7,9 +7,11 @@ import {
   applyPlan,
   buildVersionMap,
   chapterScope,
+  colorRanker,
   emptyState,
   forgetVersion,
   migrateState,
+  nearestColor,
   planBook,
   readBook,
   runSync,
@@ -237,6 +239,62 @@ describe("sync", () => {
     expect(plan.actions).toHaveLength(3);
     expect(api.writes).toBe(0);
     expect(state).toEqual(emptyState());
+  });
+});
+
+describe("a colour order", () => {
+  const YELLOW = "fffe00";
+  const PINK = "ff95ef";
+  const order = ["pink", "yellow"] as const;
+  async function syncBy(versions = VERSIONS) {
+    const plan = planBook("ROM", versions, await readBook(api, versions, "ROM"), state, undefined, { colorOrder: order });
+    await applyPlan(api, versions, plan, state);
+    return plan;
+  }
+
+  it("matches each palette colour, and shades near it", () => {
+    expect(nearestColor("fffe00")).toBe("yellow");
+    expect(nearestColor("fffd00")).toBe("yellow");
+    expect(nearestColor("ffc76f")).toBe("peach");
+    expect(nearestColor("aa00ff")).toBe("purple");
+  });
+
+  it("ranks unlisted colours after listed ones, and a removal last", () => {
+    const rank = colorRanker(order);
+    expect([rank(PINK), rank(YELLOW), rank("aa00ff"), rank(null)]).toEqual([0, 1, 2, 3]);
+  });
+
+  it("fills blanks with the colour listed first, whichever version has it", async () => {
+    api.hl("AMP", "ROM.8.28", YELLOW);
+    api.hl("S21", "ROM.8.28", PINK);
+    const plan = await syncBy();
+    expect(plan.differences).toMatchObject([{ winner: IDS.S21, color: PINK }]);
+    expect(every("ROM.8.28")).toEqual({ AMP: YELLOW, NIV: PINK, LSG: PINK, S21: PINK });
+    expect((await syncBy()).actions).toEqual([]);
+  });
+
+  it("falls back to the versions' order between unlisted colours", async () => {
+    api.hl("S21", "ROM.8.28", "aa00ff");
+    api.hl("NIV", "ROM.8.28", "00d6ff");
+    expect((await syncBy()).differences).toMatchObject([{ winner: IDS.NIV }]);
+  });
+
+  it("prefers a colour to a removal", async () => {
+    api.hl("AMP", "ROM.8.28", YELLOW);
+    await syncBy();
+    delete api.store[IDS.AMP]["ROM.8.28"];
+    api.hl("S21", "ROM.8.28", PINK);
+    await syncBy();
+    expect(every("ROM.8.28")).toEqual({ AMP: null, NIV: PINK, LSG: PINK, S21: PINK });
+  });
+
+  it("gives a newcomer the colour listed first", async () => {
+    const three = VERSIONS.filter((v) => v.abbr !== "LSG");
+    api.hl("AMP", "ROM.8.28", YELLOW);
+    api.hl("S21", "ROM.8.28", PINK);
+    await syncBy(three);
+    await syncBy(VERSIONS); // LSG added now
+    expect(api.color("LSG", "ROM.8.28")).toBe(PINK);
   });
 });
 

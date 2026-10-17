@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { defaultVersions, formerNames, labelVersions } from "../db";
+import { completeColorOrder, defaultVersions, formerNames, labelVersions } from "../db";
 
 describe("defaultVersions", () => {
   it("takes the most used version of the reader's first three languages, then AMP", async () => {
@@ -84,5 +84,14 @@ describe("formerNames", () => {
     expect(names.has("NVI")).toBe(false);
     expect(names.get("NVI-128")).toBe(128);
     expect(names.get("NVI-129")).toBe(129);
+  });
+});
+
+describe("completeColorOrder", () => {
+  it("keeps a saved order, drops unknown colors and appends ones it lacks", () => {
+    const order = completeColorOrder(["pink", "teal", "yellow", "pink"]);
+    expect(order.slice(0, 3)).toEqual(["pink", "yellow", "orange"]);
+    expect([...order].sort()).toEqual(completeColorOrder(undefined).sort());
+    expect(order).toHaveLength(10);
   });
 });

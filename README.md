@@ -35,7 +35,8 @@ again. A highlight lands on the same *words* in every version.
   is removed or recoloured.
 - **When versions disagree, each keeps its own colour.** Versions with no
   highlight on that verse get the colour from the version listed first; you
-  choose the order.
+  choose the order. Or rank the highlight colours instead, so that, say, pink
+  always wins over yellow whichever version it's in.
 - **Later changes follow you.** Remove or recolour a highlight in one version
   and the next sync does the same in the others — but only where the verse
   still has the colour the sync put there. A colour you picked yourself in one

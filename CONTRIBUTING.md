@@ -257,6 +257,18 @@ version, until names stopped being chosen; `migrateState` converts a
 snapshot from then using the names saved with the settings, and drops what
 it can't place, which only makes that version a newcomer.
 
+**Which colour blank versions get.** When versions changed a verse to
+different colours, the one blank versions follow is the first listed
+version's, or, given a colour order (`PlanOptions.colorOrder`, the app's
+"Order by highlight colour instead"), the colour ranked first, with the
+versions' order breaking ties. A removal ranks after every colour. Either
+way only blanks and the sync's own copies follow it; each version keeps its
+own colour. Colours are ranked by the nearest of the ten in
+`HIGHLIGHT_COLORS` (`packages/core/src/colors.ts`), not by equality: the
+five the web offers are exact, but the five only the mobile apps offer were
+recovered from a screenshot of the Android picker, which draws them at about
+55% opacity, and may be a unit or two out.
+
 Safety rules, all tested:
 
 - **A failed read skips the whole book.** Otherwise an unread chapter looks

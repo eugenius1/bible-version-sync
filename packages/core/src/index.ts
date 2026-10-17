@@ -1,6 +1,7 @@
 export * from "./api";
 export * from "./auth";
 export * from "./books";
+export * from "./colors";
 export * from "./discover";
 export * from "./runner";
 export * from "./sync";

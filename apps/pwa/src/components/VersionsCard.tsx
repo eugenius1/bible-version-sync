@@ -1,6 +1,6 @@
 import { assumedScheme, loadVersionNames, versionNamesLoaded } from "@bvs/core";
 import { ArrowDown, ArrowUp, BadgeCheck, Ban, CircleAlert, Hash, Info, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useI18n } from "../i18n";
 import { FindVersions } from "./FindVersions";
 import type { VersionSetting } from "../lib/db";
@@ -22,11 +22,15 @@ interface Props {
   disabled: boolean;
   /** Nothing chosen or synced yet, so the list is the app's example. */
   fresh?: boolean;
+  /** Colors decide instead of the order (see ColorOrder), which changes the help. */
+  byColor?: boolean;
+  /** Shown under the list: the color order, the alternative to it. */
+  children?: ReactNode;
   /** The new list, as bible ids, and the one removed, if any. */
   onChange: (next: number[], removed?: number) => void | Promise<void>;
 }
 
-export function VersionsCard({ settings, resolved, disabled, fresh = false, onChange }: Props) {
+export function VersionsCard({ settings, resolved, disabled, fresh = false, byColor = false, children, onChange }: Props) {
   const { t, f, num } = useI18n();
   const tv = t.versions;
   // Names are a chunk of their own (100 KB gzipped); re-render once they're in.
@@ -49,7 +53,7 @@ export function VersionsCard({ settings, resolved, disabled, fresh = false, onCh
     <section className="card space-y-4" aria-labelledby="versions-title">
       <div>
         <h2 id="versions-title" className="font-semibold">{tv.title}</h2>
-        <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">{tv.help}</p>
+        <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">{byColor ? tv.helpByColor : tv.help}</p>
       </div>
 
       <ol className="divide-y divide-stone-200 dark:divide-stone-800">
@@ -129,6 +133,8 @@ export function VersionsCard({ settings, resolved, disabled, fresh = false, onCh
           );
         })}
       </ol>
+
+      {children}
 
       <FindVersions settings={settings} disabled={disabled} fresh={fresh} onChange={onChange} />
 

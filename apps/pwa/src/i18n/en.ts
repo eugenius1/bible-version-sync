@@ -50,9 +50,34 @@ export const en = {
     provider: "YouVersion reported a problem: {detail}",
   },
 
+  colors: {
+    summary: "Order by highlight color instead",
+    on: "On",
+    help: "When versions disagree on a verse, versions without a highlight get the color listed first here, whichever version it's in. Between two versions with the same color, the version order decides.",
+    legend: "Decide by",
+    byVersion: "By version",
+    byColor: "By color",
+    note: "bible.com offers only yellow, green, blue, peach and pink; the others come from the mobile apps.",
+    moveUp: "Move {color} up",
+    moveDown: "Move {color} down",
+    names: {
+      purple: "Purple",
+      aqua: "Aqua",
+      yellow: "Yellow",
+      green: "Green",
+      blue: "Blue",
+      peach: "Peach",
+      pink: "Pink",
+      paleYellow: "Pale yellow",
+      orange: "Orange",
+      grey: "Gray",
+    },
+  },
+
   versions: {
     title: "Your versions",
     help: "When a verse has different colors, each version keeps its own. Versions without a highlight get the color from the one listed first.",
+    helpByColor: "When a verse has different colors, each version keeps its own. Versions without a highlight get the color that comes first in your color order.",
     source: {
       verified: {
         text: "Verified numbering",

@@ -51,9 +51,34 @@ export const fr: Dictionary = {
     provider: "YouVersion a signalé un problème : {detail}",
   },
 
+  colors: {
+    summary: "Ordonner plutôt par couleur de surlignage",
+    on: "Activé",
+    help: "Quand les versions ne s'accordent pas sur un verset, celles sans surlignage reçoivent la couleur la plus haute ici, quelle que soit la version qui l'a. Entre deux versions de même couleur, l'ordre des versions décide.",
+    legend: "Décider",
+    byVersion: "Par version",
+    byColor: "Par couleur",
+    note: "bible.com ne propose que le jaune, le vert, le bleu, le pêche et le rose ; les autres viennent des applications mobiles.",
+    moveUp: "Monter {color}",
+    moveDown: "Descendre {color}",
+    names: {
+      purple: "Violet",
+      aqua: "Turquoise",
+      yellow: "Jaune",
+      green: "Vert",
+      blue: "Bleu",
+      peach: "Pêche",
+      pink: "Rose",
+      paleYellow: "Jaune pâle",
+      orange: "Orange",
+      grey: "Gris",
+    },
+  },
+
   versions: {
     title: "Vos versions",
     help: "Quand un verset a des couleurs différentes, chaque version garde la sienne. Les versions sans surlignage reçoivent la couleur de la première de la liste.",
+    helpByColor: "Quand un verset a des couleurs différentes, chaque version garde la sienne. Les versions sans surlignage reçoivent la couleur qui vient en premier dans votre ordre des couleurs.",
     source: {
       verified: {
         text: "Numérotation vérifiée",

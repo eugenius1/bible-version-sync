@@ -1,9 +1,11 @@
 import Dexie, { type Table } from "dexie";
 import {
+  HIGHLIGHT_COLORS,
   loadVersionNames,
   migrateState,
   mostUsedVersions,
   versionName,
+  type HighlightColorId,
   type SyncState,
   type TokenSet,
   type TokenStore,
@@ -19,6 +21,10 @@ export interface Settings {
   /** Order matters: when colors differ, blank verses get the first version's color. */
   versions: VersionSetting[];
   maxRemovals: number;
+  /** Decide between differing colors by colorOrder rather than by the versions' order. */
+  byColor: boolean;
+  /** Every palette color, the preferred first; kept even while byColor is off. */
+  colorOrder: HighlightColorId[];
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -27,7 +33,19 @@ export const DEFAULT_SETTINGS: Settings = {
     { abbr: "AMP", bibleId: 1588 },
   ],
   maxRemovals: 25,
+  byColor: false,
+  colorOrder: HIGHLIGHT_COLORS.map((c) => c.id),
 };
+
+/**
+ * A saved color order with every palette color exactly once: unknown ones
+ * dropped and any the palette gains since appended in palette order.
+ */
+export function completeColorOrder(saved: readonly string[] | undefined): HighlightColorId[] {
+  const ids = HIGHLIGHT_COLORS.map((c) => c.id);
+  const kept = [...new Set(saved ?? [])].filter((id): id is HighlightColorId => (ids as string[]).includes(id));
+  return [...kept, ...ids.filter((id) => !kept.includes(id))];
+}
 
 const AMP = 1588;
 
@@ -111,8 +129,11 @@ async function exampleIds(languages: readonly string[]): Promise<number[]> {
 const readerLanguages = () => (typeof navigator === "undefined" ? [] : navigator.languages ?? [navigator.language]);
 
 /** As saved: only ids now, and a name alongside each in settings saved before. */
-interface SavedSettings extends Omit<Settings, "versions"> {
+interface SavedSettings extends Omit<Settings, "versions" | "byColor" | "colorOrder"> {
   versions: { bibleId: number; abbr?: string }[];
+  /** Missing in settings saved before colors could be ordered. */
+  byColor?: boolean;
+  colorOrder?: string[];
 }
 
 interface KV {
@@ -144,10 +165,26 @@ export const store = {
     const saved = await get<SavedSettings>("settings");
     if (!saved) return { ...DEFAULT_SETTINGS, versions: await defaultVersions() };
     await loadVersionNames().catch(() => undefined); // offline before the app was cached: numbers
-    return { ...DEFAULT_SETTINGS, ...saved, versions: labelVersions(saved.versions.map((v) => v.bibleId)) };
+    return {
+      ...DEFAULT_SETTINGS,
+      ...saved,
+      versions: labelVersions(saved.versions.map((v) => v.bibleId)),
+      colorOrder: completeColorOrder(saved.colorOrder),
+    };
   },
-  /** Only ids are saved; names are worked out again on reading. */
-  setSettings: (s: Settings) => put("settings", { ...s, versions: s.versions.map(({ bibleId }) => ({ bibleId })) }),
+  /**
+   * Only ids are saved; names are worked out again on reading. The color
+   * order is saved only once it's been changed, so an untouched one follows
+   * the default if that changes.
+   */
+  setSettings: ({ colorOrder, ...s }: Settings) => {
+    const custom = colorOrder.join() !== DEFAULT_SETTINGS.colorOrder.join();
+    return put("settings", {
+      ...s,
+      versions: s.versions.map(({ bibleId }) => ({ bibleId })),
+      ...(custom && { colorOrder }),
+    });
+  },
   /** Whether the person has saved settings, rather than seeing the defaults. */
   hasSettings: async () => (await get<SavedSettings>("settings")) !== undefined,
 
