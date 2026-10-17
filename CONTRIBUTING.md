@@ -219,9 +219,13 @@ language has only its default version, the one bible.com opens for it
 default that a hand-made list leaves out ranks just after it. Both ride in
 the names chunk. The example list shown before the person chooses
 (`defaultVersions` in `apps/pwa/src/lib/db.ts`) uses the same ranking: the
-most used version of each of the browser's first three languages, then AMP,
-or the most used English version and AMP when none of those languages is
-known, so there are always two to sync.
+most used version of each of the browser's first seven languages. A sync
+needs two, so when that gives one, the next most used version in its
+language joins it (NIV and KJV for English alone), or NIV and AMP when its
+language has no other; NIV and AMP are also the list when none of the
+languages is known. AMP is an arbitrary favourite. Converting a snapshot
+saved by name still uses the old rule (first three languages, then AMP),
+since that's the list whose names it holds.
 
 **Verifying a version.** Also add an entry to `VERIFIED` in
 `packages/core/scripts/verified.mjs`, and for each chapter that matches neither

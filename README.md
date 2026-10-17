@@ -58,8 +58,9 @@ James Version (KJV)** and the **Russian Synodal Bible**, and the most used
 versions of over 15 other languages.
 
 The app starts with an example list, the most used version in each of your
-browser's first three languages (NIV for English, Louis Segond for French)
-and the Amplified Bible, and, the first time
+browser's first seven languages (NIV for English, Louis Segond for French),
+with a second version of the same language when that's the only one, and,
+the first time
 you sign in, looks for the versions you actually highlight in: it reads your
 highlights in Isaiah 41, Philippians 4 and John 3 in every
 version in your browser's languages, most used versions first, and offers to

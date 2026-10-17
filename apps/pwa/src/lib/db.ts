@@ -5,6 +5,7 @@ import {
   migrateState,
   mostUsedVersions,
   versionName,
+  versionsInLanguages,
   type HighlightColorId,
   type SyncState,
   type TokenSet,
@@ -47,6 +48,9 @@ export function completeColorOrder(saved: readonly string[] | undefined): Highli
   return [...kept, ...ids.filter((id) => !kept.includes(id))];
 }
 
+// AMP is arbitrarily picked as a favourite: the second version of the
+// built-in pair, and the one the example list leans on to make two.
+const NIV = 111;
 const AMP = 1588;
 
 /**
@@ -107,9 +111,10 @@ const provisional = new WeakSet<SyncState>();
 
 /**
  * The example list before the person chooses: the most used version of each
- * of their first three languages, then AMP. With none of their languages
- * known (or offline before the app was cached, without the names chunk), the
- * most used English version, so there are at least two.
+ * of their first seven languages. A sync needs two, so when that gives only
+ * one, the next most used version in its language joins it, or failing
+ * that NIV and AMP, which are also the list when none of their languages is
+ * known (or offline before the app was cached, without the names chunk).
  */
 export async function defaultVersions(languages: readonly string[] = readerLanguages()): Promise<VersionSetting[]> {
   try {
@@ -121,6 +126,22 @@ export async function defaultVersions(languages: readonly string[] = readerLangu
 }
 
 async function exampleIds(languages: readonly string[]): Promise<number[]> {
+  const ids = mostUsedVersions(languages, 7).filter((id) => id !== AMP);
+  if (ids.length >= 2) return ids;
+  if (ids.length === 1) {
+    const next = versionsInLanguages([versionName(ids[0])!.language]).find((id) => id !== ids[0] && id !== AMP);
+    if (next !== undefined) return [ids[0], next];
+  }
+  return [...new Set([...ids, NIV, AMP])];
+}
+
+/**
+ * The example list as it was worked out while snapshots were keyed by name:
+ * the most used version of each of the first three languages, then AMP. Only
+ * for converting such a snapshot (see getState), which named the versions
+ * of the list in use then.
+ */
+async function formerExampleIds(languages: readonly string[]): Promise<number[]> {
   const ids = mostUsedVersions(languages).filter((id) => id !== AMP);
   const english = mostUsedVersions(["en"]).filter((id) => id !== AMP);
   return [...(ids.length ? ids : english), AMP];
@@ -201,7 +222,7 @@ export const store = {
     let named = true;
     try {
       await loadVersionNames();
-      if (!settings) examples = await exampleIds(readerLanguages());
+      if (!settings) examples = await formerExampleIds(readerLanguages());
     } catch {
       // Offline before the app was cached: only saved names, and the built-in examples'.
       named = !!settings?.versions.every((v) => v.abbr);

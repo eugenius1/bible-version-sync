@@ -2,32 +2,37 @@ import { describe, expect, it } from "vitest";
 import { completeColorOrder, defaultVersions, formerNames, labelVersions } from "../db";
 
 describe("defaultVersions", () => {
-  it("takes the most used version of the reader's first three languages, then AMP", async () => {
+  it("takes the most used version of each of the reader's first seven languages", async () => {
     expect(await defaultVersions(["en-GB", "fr", "es", "de"])).toEqual([
       { abbr: "NIV", bibleId: 111 },
       { abbr: "LSG", bibleId: 93 },
       { abbr: "RVR1960", bibleId: 149 },
-      { abbr: "AMP", bibleId: 1588 },
+      { abbr: "DELUT", bibleId: 51 },
     ]);
+    const eight = await defaultVersions(["en", "fr", "es", "de", "pt", "it", "nl", "sw"]);
+    expect(eight.map((v) => v.abbr)).toEqual(["NIV", "LSG", "RVR1960", "DELUT", "NVI", "NR06", "HSV"]);
   });
 
-  it("falls back to the most used English version, so there are always two", async () => {
+  it("adds the next most used version of a lone language, so there are two", async () => {
+    expect(await defaultVersions(["en-US", "en"])).toEqual([
+      { abbr: "NIV", bibleId: 111 },
+      { abbr: "KJV", bibleId: 1 },
+    ]);
+    expect((await defaultVersions(["fr"])).map((v) => v.abbr)).toEqual(["LSG", "S21"]);
+  });
+
+  it("adds NIV and AMP to a language with a single version", async () => {
+    // Batak Toba (bbc) has one version on YouVersion.
+    expect((await defaultVersions(["bbc"])).map((v) => v.bibleId)).toEqual([17, 111, 1588]);
+  });
+
+  it("falls back to NIV and AMP when none of the reader's languages is known", async () => {
     const two = [
       { abbr: "NIV", bibleId: 111 },
       { abbr: "AMP", bibleId: 1588 },
     ];
     expect(await defaultVersions(["xx"])).toEqual(two);
     expect(await defaultVersions([])).toEqual(two);
-    expect(await defaultVersions(["en-US", "en"])).toEqual(two);
-  });
-
-  it("names two versions with the same abbreviation apart", async () => {
-    // Spanish and Portuguese both open on an NVI.
-    expect(await defaultVersions(["pt", "es-419"])).toEqual([
-      { abbr: "NVI", bibleId: 129 },
-      { abbr: "RVR1960", bibleId: 149 },
-      { abbr: "AMP", bibleId: 1588 },
-    ]);
   });
 });
 
