@@ -385,6 +385,9 @@ nothing, in about ten seconds. So the PR that changes the workflow, including
 the one that added it, is never reviewed by it, and neither is a PR that
 touches the file later. Check the job log for that message before trusting the
 tick, and test a change to the workflow on a later PR that doesn't touch it.
+Because of that, keep a PR that edits the workflow minimal and free of
+production code: it gets no Claude review, so anything else in it gets none
+either. Put the code in its own PR.
 
 ## Things that will bite you elsewhere
 
