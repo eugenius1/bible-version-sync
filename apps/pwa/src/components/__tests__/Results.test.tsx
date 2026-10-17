@@ -127,4 +127,24 @@ describe("a run YouVersion rate limited", () => {
     expect(screen.getByText(/Try again in 2 minutes\. Nothing more was changed\./)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Sign in again" })).not.toBeInTheDocument();
   });
+
+  it("says a few minutes when YouVersion didn't say how long", () => {
+    render(
+      <I18nProvider>
+        <Results
+          run={{
+            status: "done",
+            apply: false,
+            scope: { kind: "books", books: ["PSA"] },
+            summary: { ...summary, books: [], sets: 0, removals: 0, differences: 0, refused: [], fatal: { reason: "rateLimited", message: "x" } },
+          }}
+          names={names}
+          onApply={vi.fn()}
+          onApplyAllowingRemovals={vi.fn()}
+          onSignInAgain={vi.fn()}
+        />
+      </I18nProvider>,
+    );
+    expect(screen.getByText(/Try again in a few minutes\. Nothing more was changed\./)).toBeInTheDocument();
+  });
 });

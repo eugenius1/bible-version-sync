@@ -281,6 +281,17 @@ describe("runSync", () => {
     expect(s.books.map((b) => b.book)).toEqual(["RUT"]);
   });
 
+  it("stops the whole run when YouVersion can't be reached", async () => {
+    const orig = api.getHighlights.bind(api);
+    api.getHighlights = async (id, p) => {
+      if (p === "RUT.1") throw new ApiError(0, "YouVersion isn't answering", p);
+      return orig(id, p);
+    };
+    const s = await runSync({ api, versions: VERSIONS, scope: { kind: "books", books: ["RUT", "JHN"] }, state, apply: true });
+    expect(s.fatal?.reason).toBe("network");
+    expect(s.books.map((b) => b.book)).toEqual(["RUT"]);
+  });
+
   it("stops the whole run when YouVersion rate limits the app, saying how long to wait", async () => {
     const orig = api.getHighlights.bind(api);
     api.getHighlights = async (id, p) => {

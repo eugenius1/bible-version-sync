@@ -147,6 +147,17 @@ describe("VersionsCard", () => {
       expect(await screen.findByRole("alert")).toHaveTextContent(/Version 999998 can't be synced: 153 of its chapters/);
       expect(onChange).not.toHaveBeenCalled();
     });
+
+    it("explains in the reader's language why a version couldn't be added", async () => {
+      const { ApiError } = await import("@bvs/core");
+      getHighlights.mockRejectedValue(new ApiError(0, "Failed to fetch"));
+      const onChange = renderCard([{ abbr: "NIV", bibleId: 111 }]);
+      const [kjv] = await search("KJV");
+      await userEvent.click(kjv);
+      expect(await screen.findByRole("alert")).toHaveTextContent(/Couldn't read highlights for version 1: YouVersion isn't answering\./);
+      expect(screen.getByRole("alert")).not.toHaveTextContent(/Failed to fetch/);
+      expect(onChange).not.toHaveBeenCalled();
+    });
   });
 
   it("explains a saved version whose numbering it can't map", () => {
