@@ -132,12 +132,6 @@ export async function runSync(o: RunOptions): Promise<RunSummary> {
       continue;
     }
 
-    // Stopped just after the read: a preview keeps the book it finished, but
-    // a sync reports only what it wrote, so it drops a plan it won't apply.
-    if (o.signal?.aborted && o.apply) {
-      summary.aborted = true;
-      break;
-    }
     const plan = result.plan;
     const sets = plan.actions.filter((a) => a.op === "set").length;
     const rems = plan.actions.length - sets;
