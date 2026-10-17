@@ -73,4 +73,37 @@ describe("discoverVersions", () => {
     expect(seen).toEqual([1, 2]);
     expect(api.calls).toHaveLength(2);
   });
+
+  it("reports nothing for a request that finishes after the stop", async () => {
+    const controller = new AbortController();
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    const api = {
+      async getHighlights(bibleId: number) {
+        await gate;
+        return hl(bibleId, "ISA.41.10");
+      },
+    };
+    const reports: number[] = [];
+    const run = discoverVersions({
+      api, bibleIds: [1, 2, 3, 4, 5], concurrency: 2, signal: controller.signal, onProgress: (p) => reports.push(p.done),
+    });
+    controller.abort();
+    release();
+    await expect(run).rejects.toMatchObject({ name: "AbortError" });
+    expect(reports).toEqual([]);
+  });
+
+  it("hands the stop to each read", async () => {
+    const controller = new AbortController();
+    const signals: (AbortSignal | undefined)[] = [];
+    const api = {
+      async getHighlights(_id: number, _c: string, o?: { signal?: AbortSignal }) {
+        signals.push(o?.signal);
+        return [];
+      },
+    };
+    await discoverVersions({ api, bibleIds: [1], signal: controller.signal });
+    expect(signals.every((x) => x === controller.signal)).toBe(true);
+  });
 });

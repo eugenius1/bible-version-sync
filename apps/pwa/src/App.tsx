@@ -110,6 +110,7 @@ function Main() {
   const [remembered, setRemembered] = useState(0);
   const [customised, setCustomised] = useState(true);
   const abort = useRef<AbortController | null>(null);
+  const [stopping, setStopping] = useState(false);
 
   useEffect(() => {
     void (async () => {
@@ -153,6 +154,7 @@ function Main() {
       if (!versions || !settings) return;
       const controller = new AbortController();
       abort.current = controller;
+      setStopping(false);
       setRun({ status: "running", apply, scope, progress: null });
       let wakeLock: { release(): Promise<void> } | null = null;
       try {
@@ -180,6 +182,7 @@ function Main() {
       } finally {
         await wakeLock?.release().catch(() => undefined);
         abort.current = null;
+        setStopping(false);
       }
     },
     [versions, settings],
@@ -239,8 +242,12 @@ function Main() {
       <SyncCard
         versions={versions?.filter((v) => v.source !== "unsupported") ?? null}
         run={run}
+        stopping={stopping}
         onRun={startRun}
-        onCancel={() => abort.current?.abort()}
+        onCancel={() => {
+          abort.current?.abort();
+          setStopping(true);
+        }}
       />
       {run.status === "done" && (
         <Results
