@@ -323,9 +323,9 @@ gzipped. A version without one is treated as `eng`/`org`, or refused when its
 counts say otherwise.
 
 **`/v1/bibles` lists only the platform's subset.** Spanish has 9 versions there
-(no Reina-Valera 1960) against 30 in the app, and `page_size` must be at most
-99. Versions missing from the list still read and write highlights, so don't
-validate a version against it.
+(no Reina-Valera 1960) against 30 in the app, and a numeric `page_size` must be
+at most 99. Versions missing from the list still read and write highlights, so
+don't validate a version against it.
 
 **YouVersion's own agent skill is vendored, but this section overrides it.**
 `.claude/skills/youversion-platform-api` is copied from
