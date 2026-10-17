@@ -57,8 +57,12 @@ export function parseRef(r: Ref): [string, number, number] {
   return [book, c, n];
 }
 
-// eng.vrs has no mapping for these NT differences; org merges two English verses.
+// Where org holds two English verses in one, which eng.vrs doesn't map.
+// English Isaiah 64:1, "rend the heavens and come down", is the second half
+// of Hebrew 63:19 (LSG 63:19, as rso.vrs, rsc.vrs and vul.vrs have it);
+// eng.vrs shifts it onto Hebrew 64:1, the fire and boiling water (issue #6).
 const SUPPLEMENTAL_ENG_TO_ORG: Record<Ref, Ref> = {
+  "ISA.64.1": "ISA.63.19",
   "ACT.19.41": "ACT.19.40",
   "2CO.13.13": "2CO.13.12",
   "2CO.13.14": "2CO.13.13",
@@ -386,13 +390,39 @@ export class VersionMap {
           }
         }
       }
+      // A chapter that maps the same under several systems belongs to each of
+      // them: in versions with Hebrew Isaiah 9 but English Isaiah 64, Isaiah
+      // 63 is org by the book's majority and eng maps it identically, so its
+      // 63:19 may share a canonical verse with eng 64:1.
+      const compatible = new Map<string, Set<Scheme>>();
+      const schemesOf = (l: Ref): Set<Scheme> => {
+        const [b, c] = parseRef(l);
+        const key = `${b}.${c}`;
+        let set = compatible.get(key);
+        if (!set) {
+          const s = this.schemes[b][c]!;
+          set = new Set<Scheme>([s]);
+          const n = this.counts[b][c] ?? 0;
+          for (const other of STD_SCHEMES) {
+            if (other === s || std.count(other, b, c) !== n) continue;
+            let same = true;
+            for (let v = 1; v <= n && same; v++) {
+              const local = ref(b, c, v);
+              same = std.toCanon(other, local) === toCanon.get(local);
+            }
+            if (same) set.add(other);
+          }
+          compatible.set(key, set);
+        }
+        return set;
+      };
       const bad = new Set<string>();
       for (const locals of fromCanon.values()) {
         const kinds = new Set(locals.map((l) => {
           const [b, c] = parseRef(l);
           return this.schemes[b][c];
         }));
-        if (kinds.size > 1) {
+        if (kinds.size > 1 && ![...schemesOf(locals[0])].some((s) => locals.every((l) => schemesOf(l).has(s)))) {
           for (const l of locals) {
             const [b, c] = parseRef(l);
             bad.add(`${b}.${c}`);
