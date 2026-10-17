@@ -42,8 +42,13 @@ changes the app only through a reviewed diff there.
     "abbr": "NIV11", "local_abbr": "NIV", "title": "…", "lang": "eng", "vrs": "eng",
     "counts": { "GEN": [31, 25, …] },
     "gaps": { "MAT.17": [21] },
-    "merged": ["JHN.3.1+JHN.3.2"] } }
+    "merged": ["JHN.3.1+JHN.3.2"],
+    "suffixed": { "PSA": [42, 43] } } }
 ```
+
+`suffixed`, only where there are any, lists the chapters YouVersion ids
+`BOOK.<n>_1`, by book (DHH94I's). They're counted as chapter `<n>`, and the
+app reads and writes their highlights under the suffixed ids.
 
 `counts` holds the **highest verse number present** in each chapter (0 when
 the chapter doesn't exist), not the number of verses, so an omitted verse

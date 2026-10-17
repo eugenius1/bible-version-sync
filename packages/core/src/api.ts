@@ -1,5 +1,7 @@
 /** Minimal client for the YouVersion Platform API (https://developers.youversion.com/api). */
 
+import { suffixedChapters } from "./versification";
+
 export const API_BASE = "https://api.youversion.com";
 
 export class ApiError extends Error {
@@ -58,6 +60,28 @@ export interface ClientOptions {
   delayMs?: number;
   maxRetries?: number;
   fetch?: typeof fetch;
+}
+
+/**
+ * A passage id as YouVersion ids it in this version. A few versions id some
+ * chapters BOOK.<n>_1 (NR2006's Psalms are PSA.1_1, its verses PSA.1_1.5),
+ * and their highlights are stored under those ids: reading PSA.1 there gives
+ * an empty list, not an error, and writing PSA.1.2 is a 502 (#25). The rest
+ * of the app speaks plain BOOK.<n>; the client translates.
+ */
+export function toYouVersionId(bibleId: number, passageId: string): string {
+  const suffixed = suffixedChapters(bibleId);
+  return passageId.replace(/(^|\+)([0-9A-Z]{3})\.(\d+)(?=[.+]|$)/g, (m, start, book, ch) =>
+    suffixed[book]?.includes(Number(ch)) ? `${start}${book}.${ch}_1` : m,
+  );
+}
+
+/** The reverse of toYouVersionId: "PSA.1_1.5" -> "PSA.1.5" where that chapter is suffixed. */
+export function fromYouVersionId(bibleId: number, passageId: string): string {
+  const suffixed = suffixedChapters(bibleId);
+  return passageId.replace(/(^|\+)([0-9A-Z]{3})\.(\d+)_1(?=[.+]|$)/g, (m, start, book, ch) =>
+    suffixed[book]?.includes(Number(ch)) ? `${start}${book}.${ch}` : m,
+  );
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -250,10 +274,11 @@ export class YouVersionClient implements HighlightsApi {
   async getHighlights(bibleId: number, passageId: string): Promise<Highlight[]> {
     const { status, body } = await this.request("GET", "/v1/highlights", {
       auth: true,
-      params: { bible_id: bibleId, passage_id: passageId },
+      params: { bible_id: bibleId, passage_id: toYouVersionId(bibleId, passageId) },
     });
     if (status === 204 || !body) return [];
-    return ((body as { data?: Highlight[] }).data ?? []);
+    const data = (body as { data?: Highlight[] }).data ?? [];
+    return data.map((h) => (h?.passage_id ? { ...h, passage_id: fromYouVersionId(bibleId, h.passage_id) } : h));
   }
 
   async setHighlight(bibleId: number, passageId: string, color: string): Promise<void> {
@@ -262,13 +287,13 @@ export class YouVersionClient implements HighlightsApi {
       ignoreBody: true,
       json: {
         request_id: crypto.randomUUID(),
-        highlight: { bible_id: bibleId, passage_id: passageId, color },
+        highlight: { bible_id: bibleId, passage_id: toYouVersionId(bibleId, passageId), color },
       },
     });
   }
 
   async deleteHighlight(bibleId: number, passageId: string): Promise<void> {
-    await this.request("DELETE", `/v1/highlights/${encodeURIComponent(passageId)}`, {
+    await this.request("DELETE", `/v1/highlights/${encodeURIComponent(toYouVersionId(bibleId, passageId))}`, {
       auth: true,
       ignoreBody: true,
       params: { bible_id: bibleId },
