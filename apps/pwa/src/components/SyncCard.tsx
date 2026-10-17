@@ -12,11 +12,13 @@ interface Props {
   /** The versions that can be synced: those with unsupported numbering are left out. */
   versions: ResolvedVersion[] | null;
   run: RunState;
+  /** Stop was asked for; the run is winding down to a safe point. */
+  stopping: boolean;
   onRun: (scope: Scope, apply: boolean) => void;
   onCancel: () => void;
 }
 
-export function SyncCard({ versions, run, onRun, onCancel }: Props) {
+export function SyncCard({ versions, run, stopping, onRun, onCancel }: Props) {
   const { t, f, plural, num, book: bookName } = useI18n();
   const ts = t.sync;
   const [kind, setKind] = useState<Kind>("chapter");
@@ -88,7 +90,7 @@ export function SyncCard({ versions, run, onRun, onCancel }: Props) {
       </fieldset>
 
       {running ? (
-        <ProgressView run={run} onCancel={onCancel} />
+        <ProgressView run={run} stopping={stopping} onCancel={onCancel} />
       ) : (
         <div className="flex flex-col gap-2 sm:flex-row">
           <button className="btn-primary" disabled={!ready} onClick={() => onRun(scope, false)}>
@@ -112,12 +114,18 @@ export function SyncCard({ versions, run, onRun, onCancel }: Props) {
   );
 }
 
-function ProgressView({ run, onCancel }: { run: Extract<RunState, { status: "running" }>; onCancel: () => void }) {
+function ProgressView({ run, stopping, onCancel }: {
+  run: Extract<RunState, { status: "running" }>;
+  stopping: boolean;
+  onCancel: () => void;
+}) {
   const { t, f, num, book } = useI18n();
   const ts = t.sync;
   const p = run.progress;
   const pct = p && p.readTotal ? Math.round((p.readDone / p.readTotal) * 100) : 0;
-  const text = !p
+  const text = stopping
+    ? run.apply && p?.phase === "writing" ? f(ts.stoppingWriting, { book: book(p.book) }) : ts.stopping
+    : !p
     ? ts.starting
     : p.phase === "reading"
       ? f(ts.reading, { book: book(p.book), done: num(p.readDone), total: num(p.readTotal) })
@@ -129,16 +137,16 @@ function ProgressView({ run, onCancel }: { run: Extract<RunState, { status: "run
           <RefreshCw size={14} className="shrink-0 animate-spin motion-reduce:animate-none" aria-hidden />
           {run.apply ? ts.syncing : ts.previewing} — {text}
         </span>
-        <button className="btn-ghost shrink-0" onClick={onCancel}>
+        <button className="btn-ghost shrink-0" disabled={stopping} onClick={onCancel}>
           <Square size={14} aria-hidden />
-          {ts.stop}
+          {stopping ? ts.stoppingButton : ts.stop}
         </button>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-stone-200 dark:bg-stone-800">
         <progress className="sr-only" max={100} value={pct} />
         <div className="h-full rounded-full bg-amber-700 transition-[width] dark:bg-amber-500" style={{ width: `${pct}%` }} />
       </div>
-      <p className="text-xs text-stone-600 dark:text-stone-400">{ts.stopNote}</p>
+      {run.apply && <p className="text-xs text-stone-600 dark:text-stone-400">{ts.stopNote}</p>}
     </div>
   );
 }

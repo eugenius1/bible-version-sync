@@ -71,6 +71,36 @@ describe("YouVersionClient", () => {
     expect(Date.now() - t0).toBeGreaterThanOrEqual(900); // backed off ~1s
   });
 
+  it("stops a read at once when asked, even while backing off, without calling it a failure", async () => {
+    const { f, calls } = fakeFetch([{ status: 429, body: { message: "slow down" }, headers: { "Retry-After": "30" } }]);
+    const c = new YouVersionClient({ appKey: "k", tokens: new MemoryTokens(fresh()), fetch: f, delayMs: 0 });
+    const controller = new AbortController();
+    const read = c.getHighlights(111, "JHN.3", { signal: controller.signal });
+    await new Promise((r) => setTimeout(r, 20));
+    const t0 = Date.now();
+    controller.abort();
+    const e = await read.catch((x: unknown) => x);
+    expect(e).toBeInstanceOf(DOMException);
+    expect((e as DOMException).name).toBe("AbortError");
+    expect(Date.now() - t0).toBeLessThan(500);
+    expect(calls).toHaveLength(1);
+  });
+
+  it("passes the stop on to fetch, and doesn't retry a cancelled request", async () => {
+    let seen: AbortSignal | undefined;
+    const f = (async (_url: string, init: RequestInit) => {
+      seen = init.signal ?? undefined;
+      return new Promise<Response>((_, reject) => init.signal!.addEventListener("abort", () => reject(new TypeError("aborted"))));
+    }) as unknown as typeof fetch;
+    const c = new YouVersionClient({ appKey: "k", tokens: new MemoryTokens(fresh()), fetch: f, delayMs: 0 });
+    const controller = new AbortController();
+    const read = c.getHighlights(111, "JHN.3", { signal: controller.signal });
+    await new Promise((r) => setTimeout(r, 10));
+    controller.abort();
+    await expect(read).rejects.toMatchObject({ name: "AbortError" });
+    expect(seen).toBe(controller.signal);
+  });
+
   it("refreshes the token once on a 401 and retries", async () => {
     const tokens = new MemoryTokens(fresh());
     const { f, calls } = fakeFetch([

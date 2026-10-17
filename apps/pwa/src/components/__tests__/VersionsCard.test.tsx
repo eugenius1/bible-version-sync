@@ -183,7 +183,7 @@ describe("VersionsCard", () => {
       expect(screen.getByText("2 highlighted verses in the sample")).toBeInTheDocument();
       expect(screen.getByText("No highlights found in LSG and S21 in the chapters sampled.")).toBeInTheDocument();
       // Only reads: nothing but highlights and indexes is asked for.
-      expect(getHighlights).toHaveBeenCalledWith(111, "JHN.3");
+      expect(getHighlights).toHaveBeenCalledWith(111, "JHN.3", expect.anything());
       expect(getHighlights).not.toHaveBeenCalledWith(1, "PHP.4"); // KJV already found
       // The most used versions are asked about first.
       expect(getHighlights.mock.calls.slice(0, 3).map(([id]) => id)).toEqual([111, 93, 1]); // NIV, LSG (French default-level rank), KJV
@@ -212,6 +212,29 @@ describe("VersionsCard", () => {
       expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
       await userEvent.click(add);
       expect(onChange).toHaveBeenCalledWith([111, 1588, 1]);
+    });
+
+    it("stops when asked, says so, and keeps what it found", async () => {
+      // ASV's John 3 answers only to the stop, as a real request does.
+      const found = getHighlights.getMockImplementation()!;
+      getHighlights.mockImplementation((id: number, chapter: string, o?: { signal?: AbortSignal }) =>
+        id === 12 && chapter === "JHN.3"
+          ? new Promise((_, reject) => o?.signal?.addEventListener("abort", () => reject(o.signal!.reason)))
+          : found(id, chapter),
+      );
+      renderCard([{ abbr: "NIV", bibleId: 111 }, { abbr: "AMP", bibleId: 1588 }]);
+      await userEvent.click(screen.getByRole("button", { name: "Find my versions" }));
+      await screen.findByRole("button", { name: "Add KJV" });
+      await userEvent.click(screen.getByRole("button", { name: "Stop" }));
+      expect(await screen.findByText(/^Stopped after checking \d+ of \d+\.$/)).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /Stop/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Look again" })).toBeEnabled();
+      expect(screen.getByRole("button", { name: "Add KJV" })).toBeInTheDocument();
+      // Nothing was asked for after the stop.
+      const calls = getHighlights.mock.calls.length;
+      await new Promise((r) => setTimeout(r, 50));
+      expect(getHighlights.mock.calls.length).toBe(calls);
     });
 
     it("says so when signed out or offline", async () => {

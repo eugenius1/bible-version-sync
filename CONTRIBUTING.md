@@ -279,6 +279,12 @@ Safety rules, all tested:
   `runSync` and `planBook` skip a version whose map is flagged `unsupported`:
   nothing is read or written for it, its snapshot is carried over untouched,
   and `RunSummary.refused` names it.
+- **A stop never leaves a book half planned.** The abort signal goes into
+  every read (the client hands it to `fetch` and to its back-off sleeps), so
+  reading stops at once; a book stopped mid-read is dropped from the summary
+  unplanned, and a sync drops one it read but hadn't started writing.
+  Writes take no signal: a book being written is finished first, since a
+  request cut off mid-flight may or may not have landed.
 
 ## The YouVersion API: things that will bite you
 
