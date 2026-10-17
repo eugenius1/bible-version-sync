@@ -358,7 +358,7 @@ when at most three `fields[]` are asked for, so
 `/v1/bibles?language_ranges[]=*&fields[]=id&fields[]=abbreviation&page_size=*`
 lists every version the app key may read in one request (360 in Sept 2026).
 `tools/youversion-skill.sh` refreshes the copy, and `--check` fails when
-upstream has changed it; the "YouVersion skill up to date" check runs that on
+upstream has changed it; the "YouVersion skill / Up to date" check runs that on
 every PR. It isn't a required check, so an upstream change shows red without
 blocking unrelated PRs: run the script, read what changed against this
 section, and commit it. Don't edit the copy by hand; the check fails on
