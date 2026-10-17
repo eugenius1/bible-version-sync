@@ -1,0 +1,21 @@
+name: YouVersion skill
+
+# Flags when youversion/platform-skills changes the vendored API skill. Kept
+# out of the required "Typecheck, test, build" check, so an upstream push
+# shows red on open PRs without blocking them.
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  skill:
+    name: YouVersion skill up to date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: tools/youversion-skill.sh --check
