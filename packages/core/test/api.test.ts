@@ -201,6 +201,14 @@ describe("chapters YouVersion ids BOOK.<n>_1", () => {
     expect(new URL(calls[2].url).pathname).toBe("/v1/highlights/PSA.1_1.2");
     expect(new URL(calls[3].url).searchParams.get("passage_id")).toBe("JHN.3");
   });
+
+  it("passes on a highlight without a passage id, and a body without data, for the engine to judge", async () => {
+    const odd = { bible_id: 4833, color: "ffe066" };
+    const { f } = fakeFetch([{ status: 200, body: { data: [odd] } }, { status: 200, body: {} }]);
+    const c = new YouVersionClient({ appKey: "k", tokens: new MemoryTokens(fresh()), fetch: f, delayMs: 0 });
+    expect(await c.getHighlights(4833, "PSA.1")).toEqual([odd]);
+    expect(await c.getHighlights(4833, "PSA.1")).toEqual([]);
+  });
 });
 
 describe("sign-in helpers", () => {
