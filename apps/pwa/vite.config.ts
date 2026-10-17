@@ -46,14 +46,18 @@ const callbackPage = (): Plugin => {
   };
 };
 
+const port = Number(process.env.PORT) || 8001;
+
 export default defineConfig({
   // Where the build is served from, e.g. /bible-version-sync/ on GitHub Pages.
   // An env var rather than --base, which npm swallows as its own config flag
   // when the root build script forwards to the workspace one.
   base: process.env.BASE_PATH ?? "/",
   // Port 8001 + /callback matches the redirect URI registered for the app key.
-  server: { port: 8001, strictPort: true },
-  preview: { port: 8001, strictPort: true },
+  // PORT moves it when 8001 is taken (another checkout's server), at the cost
+  // of signing in there: the callback would go to a port the key doesn't know.
+  server: { port, strictPort: true },
+  preview: { port, strictPort: true },
   test: {
     // Node by default; component tests opt in with a `@vitest-environment jsdom` docblock.
     environment: "node",

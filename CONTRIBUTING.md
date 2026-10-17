@@ -38,9 +38,11 @@ package, runs all tests and builds the app. Run it before every commit.
 `VITE_YV_APP_KEY` (git ignores that file). The app's callback URL must be
 `<origin><base>callback`, where the base is `/` except when deployed below a
 domain's root; the dev server is pinned to port 8001 so that
-`http://localhost:8001/callback` stays valid. The key isn't a secret — it's an
-OAuth client id and ends up in the built JavaScript — but keep your real value
-out of the repository anyway.
+`http://localhost:8001/callback` stays valid. `PORT` moves it (when another
+checkout's server has 8001), but signing in only works on 8001 unless that
+port's callback is registered for the key too. The key isn't a secret — it's
+an OAuth client id and ends up in the built JavaScript — but keep your real
+value out of the repository anyway.
 
 **Deploying.** Pushes to `main` deploy to GitHub Pages at
 <https://eusebius.tech/bible-version-sync/> (`.github/workflows/deploy.yml`).

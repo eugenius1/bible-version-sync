@@ -5,13 +5,15 @@
       "name": "pwa-dev",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "-w", "@bvs/pwa"],
-      "port": 8001
+      "port": 8001,
+      "autoPort": true
     },
     {
       "name": "pwa-preview",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "preview", "-w", "@bvs/pwa"],
-      "port": 8001
+      "port": 8001,
+      "autoPort": true
     }
   ]
 }
