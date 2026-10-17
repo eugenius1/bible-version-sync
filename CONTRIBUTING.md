@@ -118,7 +118,7 @@ The `rso`, `rsc`, `lxx` and `vul` tables are read from
 text (`SUPPLEMENTAL` in `versification.ts`), and a mapping into another of the
 66 books is dropped: the sync plans one book at a time, so such a verse would
 look unread, and so removed, when the other book syncs.
-`packages/core/test/survey.test.ts` runs the engine over all 335 scanned
+`packages/core/test/survey.test.ts` runs the engine over all 353 scanned
 versions and pins what each one skips.
 
 **A version no system explains is refused.** Without a label, only `eng`
@@ -140,8 +140,9 @@ before.
 Verse counts come from, in order: `packages/core/data/known_counts.json`
 (the 46 verified versions in `scripts/verified.mjs` and the rest scanned
 for the survey: 54 widely used, 56 more from the hand-made ranking in
-`scripts/popular.mjs`, four more bundled when they were verified, and 221
-smaller unlabelled ones scanned for coverage, by bible id), then the
+`scripts/popular.mjs`, four more bundled when they were verified, 18 that
+print many merged verses, and 221 smaller unlabelled ones scanned for
+coverage, by bible id), then the
 YouVersion API's `/v1/bibles/{id}/index` (only for versions the app key may
 read), then an assumption of the version's label or English numbering. The
 app shows which as a badge: "Verified numbering", "Verse counts known",
@@ -152,7 +153,7 @@ English, and those where its candidate systems disagree (the engine needs
 those to pick each book's system). A chapter the version lacks is stored as
 0 so it isn't read, and a whole book it lacks as one `"BOOK": 0` (many
 versions are a Gospel or two). Everything else would get the same count and
-system anyway, which keeps the 335 versions to about 34,000 entries.
+system anyway, which keeps the 353 versions to about 36,500 entries.
 
 [docs/versification-survey.md](docs/versification-survey.md) records how 54
 widely used versions in 20 languages fared against the two-system engine,

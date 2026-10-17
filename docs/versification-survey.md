@@ -24,9 +24,17 @@ one verse on purpose: Synod (167), BTI (313) and CARS (385) keep Nehemiah
 7:67–7:73 match NIV verse for verse, where `rso`/`rsc` would fold 7:68 into
 7:67. Two of the 56, GNA2025 (67) and NR2006 (4833), id some chapters
 `PSA.1_1`, like TUKARA84 below, and were bundled once `scan.py` counted
-those as ordinary chapters. Held back: 19 that print many merged verses
-(over 100 spans, or a Living Bible paraphrase), until merged-verse
-highlighting is tested (#3, task 5).
+those as ordinary chapters. Held back at first: 19 that print many merged
+verses (over 100 spans, or a Living Bible paraphrase), and BEX2004 (3286,
+190 spans), until merged-verse highlighting was tested. Once it was (finding
+5), the 18 of them not already bundled with the verified versions (all but
+ASD and RSP) were bundled too: TLA, CEV, TSI, KLB, ICL00D, GNT, UMT, FAYH,
+NTLH, DHH94I, HERV, CSB, BFC, SAB, CCB, CCBT, PLNT and BEX2004. None is
+refused and none has a misplaced verse; nine skip nothing, and the rest skip
+one or two chapters that fit no system (John 7 in 52 verses in GNT and NTLH,
+Revelation 12 in 17 in PLNT and FAYH, 2 Chronicles 12 in 17 in DHH94I and TLA,
+Psalm 13 in UMT, Mark 16 in CEV, Romans 14 and 3 John in TSI). No correction
+tables were written for them.
 
 **Columns.** *Label*: YouVersion's system for the version. *Fits*: of the ~348
 chapters where the systems disagree, how many match the label / another system
@@ -69,8 +77,13 @@ LSG is labelled `org` but follows English numbering in Malachi and Joel, and
 neither in Job 38–41. Per-chapter detection is still needed.
 
 **5. Merged verses are common in paraphrases.** MSG prints 8,085 verses as
-merged spans, JCB 2,020, Het Boek 1,285, BIMK 643. How YouVersion stores a
-highlight on a merged span (one verse, or each) hasn't been tested.
+merged spans, JCB 2,020, Het Boek 1,285, BIMK 643. Tested since on MSG
+([#35](https://github.com/eugenius1/bible-version-sync/issues/35)):
+YouVersion stores a highlight on a span as one entry per verse, and accepts
+a highlight written to a single verse inside a span, which the app then shows
+across the whole span. The engine maps verse by verse, so merged spans need
+no special handling: a highlight synced into one verse of a span looks wider
+in the app, but doesn't spread back to other versions.
 
 ## Recommendations
 
@@ -94,7 +107,8 @@ The scanner and data behind this survey are in
    (Job 38–41, Hosea 1–2, Nehemiah 8 …): done, along with Revelation 12 and
    3 John; see [below](#shared-correction-tables).
 5. **Test merged-verse highlighting** against a paraphrase (MSG) before
-   promoting those versions.
+   promoting those versions: done, see finding 5; the versions held back
+   for it are bundled.
 
 ## Results
 
@@ -243,7 +257,8 @@ and AMP now use the shared Revelation 12 table. Their maps are unchanged.
 Het Boek is a paraphrase whose verse numbers drift inside the chapters it
 renumbers (its Exodus 6:2 holds 6:2–3, its 6:3 is 6:4, and so on), so only
 the chapters whose boundaries match HSV's exactly were given tables; the rest
-waits for the merged-verse work (#3, task 5).
+are skipped. Its merged spans are no obstacle (finding 5), but a table for a
+chapter whose numbers drift means reading its text verse by verse.
 
 ## Label coverage
 

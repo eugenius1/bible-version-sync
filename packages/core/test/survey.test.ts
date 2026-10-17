@@ -18,12 +18,13 @@ import {
 
 // The real engine over every chapter of the versions scanned for
 // docs/versification-survey.md, so what the survey measured stays true: the
-// 54 widely used versions of the original survey and 56 more from the
-// hand-made ranking (scripts/popular.mjs), all labelled, and 221 that
-// YouVersion leaves unlabelled, scanned for label coverage: mostly a single
-// Gospel, or Ruth and Jonah, plus 11 in languages where Synodal or Septuagint
-// numbering is common. GNA2025, NR2006 and TUKARA84 id some chapters
-// BOOK.<n>_1; scan.py counts those as chapter <n>.
+// 54 widely used versions of the original survey, 56 more from the hand-made
+// ranking (scripts/popular.mjs) and 18 that print many merged verses, all
+// labelled, and 221 that YouVersion leaves unlabelled, scanned for label
+// coverage: mostly a single Gospel, or Ruth and Jonah, plus 11 in languages
+// where Synodal or Septuagint numbering is common. GNA2025, NR2006, DHH94I,
+// BFC and TUKARA84 id some chapters BOOK.<n>_1; scan.py counts those as
+// chapter <n>.
 interface Scanned {
   abbr: string;
   vrs: StdScheme | null;
@@ -110,6 +111,13 @@ const SKIPPED: Record<number, number> = {
   67: 7, 4833: 0,
   // Bundled with the versions verified in Sept 2026 (scripts/verified.mjs).
   1264: 0, 201: 0, 55: 0, 42: 0,
+  // Held back for their merged verse spans until #35 showed YouVersion stores
+  // a span's highlight per verse. Each skips at most two chapters that fit no
+  // system: John 7 in 52 verses (GNT, NTLH), Revelation 12 in 17 (PLNT, ILB),
+  // 2 Chronicles 12 in 17 (DHH94I, TLA), Psalm 13 in 7 (UMT), Mark 16 in 22
+  // (CEV), and Romans 14 and 3 John (TSI).
+  36: 0, 52: 17, 63: 0, 68: 52, 86: 0, 137: 17, 153: 0, 176: 17, 204: 7, 211: 52, 320: 40, 392: 22,
+  1196: 0, 1392: 0, 1713: 0, 2562: 0, 2727: 17, 3286: 0,
 };
 
 // Chapters where the engine deliberately departs from the label's table, each

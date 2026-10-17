@@ -17,7 +17,7 @@ handles each.
 | `text.py` | Fetches whole versions' text, verse by verse, into `out/text/<id>.json` (gitignored; Bible text isn't committed). Same API and pace as `scan.py`; about three minutes per Bible. |
 | `align.ts`, `sheets.ts` | Review sheets for checking a version's numbering on the text; see below. |
 | `REVIEW.md` | How to read a review sheet, for a person or an agent. |
-| `data/counts.json` | The scan (Sept 2026), compact: the survey's 54 widely used versions, 56 more from the app's hand-made ranking (`packages/core/scripts/popular.mjs`), four more bundled when they were verified (ASD, RSP, DRC1752, CPDV), and 221 unlabelled ones scanned for label coverage. |
+| `data/counts.json` | The scan (Sept 2026), compact: the survey's 54 widely used versions, 56 more from the app's hand-made ranking (`packages/core/scripts/popular.mjs`), four more bundled when they were verified (ASD, RSP, DRC1752, CPDV), 18 held back for their merged verses until [#35](https://github.com/eugenius1/bible-version-sync/issues/35), and 221 unlabelled ones scanned for label coverage. |
 | `data/analysis.json` | `analyse.py`'s output for that scan. |
 | `data/defaults.json` | The version bible.com opens for each language (Sept 2026), by language tag. |
 | `data/candidates.json` | Every version of every language YouVersion lists (3,864 in 2,462 languages, Sept 2026), by language tag, with its numbering label and name. |
