@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 
 import type { BookPlan, RunSummary } from "@bvs/core";
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../../i18n";
@@ -67,5 +67,41 @@ describe("Results", () => {
     expect(colors.textContent).toBe("AMPNIV"); // the list's order, not the ids'
     expect(screen.getByText(/versions without a highlight get NIV's color/)).toBeInTheDocument();
     expect(screen.getAllByText("NVI (es)")).toHaveLength(2); // one row per action
+  });
+});
+
+describe("a stopped run", () => {
+  const stopped = (books: RunSummary["books"], apply = false) =>
+    render(
+      <I18nProvider>
+        <Results
+          run={{
+            status: "done",
+            apply,
+            scope: { kind: "books", books: ["PSA", "PRO"] },
+            summary: { ...summary, books, sets: 0, removals: 0, differences: 0, aborted: true, refused: [] },
+          }}
+          names={names}
+          onApply={vi.fn()}
+          onApplyAllowingRemovals={vi.fn()}
+          onSignInAgain={vi.fn()}
+        />
+      </I18nProvider>,
+    );
+  const empty: BookPlan = { ...plan, book: "PSA", actions: [], differences: [] };
+
+  it("doesn't claim everything is in sync when it finished no book", () => {
+    stopped([]);
+    expect(screen.getByRole("heading", { name: "Preview (stopped)" })).toBeInTheDocument();
+    expect(screen.getByText(/Stopped before a whole book was read/)).toBeInTheDocument();
+    expect(screen.queryByText(/everything is in sync/)).not.toBeInTheDocument();
+  });
+
+  it("speaks only for the books it finished", () => {
+    stopped([{ book: "PSA", plan: empty, writeErrors: [] }]);
+    expect(screen.getByText("Nothing to change in the book read before stopping.")).toBeInTheDocument();
+    cleanup();
+    stopped([{ book: "PSA", plan: empty, writeErrors: [] }], true);
+    expect(screen.getByText("Nothing needed changing in the book synced before stopping.")).toBeInTheDocument();
   });
 });

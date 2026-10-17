@@ -17,8 +17,10 @@ type Numbering = "checking" | "ok" | "unsupported";
 
 type Scan =
   | { status: "idle" }
-  | { status: "running"; done: number; total: number; found: Found[] }
+  | { status: "running"; done: number; total: number; found: Found[]; stopping?: boolean }
   | { status: "done"; found: Found[] }
+  /** Stopped on request: what was found so far stays, to be added. */
+  | { status: "stopped"; done: number; total: number; found: Found[] }
   | { status: "error"; message: string };
 
 interface Props {
@@ -75,13 +77,18 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
         signal: controller.signal,
         onProgress: (p) => {
           for (const id of p.found.keys()) check(id);
-          setScan({ status: "running", done: p.done, total: p.total, found: toFound(p.found) });
+          setScan((s) =>
+            s.status === "running"
+              ? { status: "running", done: p.done, total: p.total, found: toFound(p.found), stopping: s.stopping }
+              : s,
+          );
         },
       });
       setScan({ status: "done", found: toFound(counts) });
     } catch (e) {
-      if (controller.signal.aborted) setScan({ status: "idle" });
-      else setScan({ status: "error", message: problemText(e) });
+      if (controller.signal.aborted) {
+        setScan((s) => (s.status === "running" ? { status: "stopped", done: s.done, total: s.total, found: s.found } : { status: "idle" }));
+      } else setScan({ status: "error", message: problemText(e) });
     } finally {
       abort.current = null;
     }
@@ -97,11 +104,15 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
   }, [fresh, start]);
   useEffect(() => () => abort.current?.abort(), []);
 
+  const stop = () => {
+    abort.current?.abort();
+    setScan((s) => (s.status === "running" ? { ...s, stopping: true } : s));
+  };
   const add = (bibleId: number) => void onChange([...settings.map((s) => s.bibleId), bibleId]);
   const replaceWith = (found: Found[]) => void onChange(found.map((v) => v.bibleId));
 
   const running = scan.status === "running";
-  const found = scan.status === "running" || scan.status === "done" ? scan.found : [];
+  const found = scan.status === "running" || scan.status === "done" || scan.status === "stopped" ? scan.found : [];
   const usable = found.filter((v) => numbering.get(v.bibleId) === "ok");
   const checking = found.some((v) => numbering.get(v.bibleId) === "checking");
   const missing = scan.status === "done" ? settings.filter((s) => !found.some((v) => v.bibleId === s.bibleId)) : [];
@@ -116,11 +127,15 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
           <div className="flex items-center justify-between gap-3 text-sm">
             <span className="inline-flex items-center gap-2">
               <Search size={14} className="shrink-0" aria-hidden />
-              {scan.total ? f(tf.progress, { done: num(scan.done), total: num(scan.total) }) : tf.starting}
+              {scan.stopping
+                ? tf.stopping
+                : scan.total
+                  ? f(tf.progress, { done: num(scan.done), total: num(scan.total) })
+                  : tf.starting}
             </span>
-            <button className="btn-ghost shrink-0" onClick={() => abort.current?.abort()}>
+            <button className="btn-ghost shrink-0" disabled={scan.stopping} onClick={stop}>
               <Square size={14} aria-hidden />
-              {tf.stop}
+              {scan.stopping ? tf.stoppingButton : tf.stop}
             </button>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-stone-200 dark:bg-stone-800">
@@ -138,6 +153,11 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
         </div>
       )}
 
+      {scan.status === "stopped" && (
+        <p className="text-sm text-stone-600 dark:text-stone-400" role="status">
+          {scan.total ? f(tf.stopped, { done: num(scan.done), total: num(scan.total) }) : tf.stoppedAtStart}
+        </p>
+      )}
       {scan.status === "error" && <p className="text-sm text-red-700 dark:text-red-300">{f(tf.failed, { problem: scan.message })}</p>}
       {scan.status === "done" && !found.length && <p className="text-sm text-stone-600 dark:text-stone-400">{tf.none}</p>}
 

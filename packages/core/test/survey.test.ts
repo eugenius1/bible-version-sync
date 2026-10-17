@@ -155,17 +155,15 @@ const OFF_LABEL: Record<number, Record<string, number>> = {
   // Correction tables for chapters whose count fits the label but whose
   // verses are divided differently: KEH's Judges 3:19-21, HHBD's Matthew
   // 1:6-8, and the Vulgate divisions of DRC1752 and CPDV (overrides/55.map,
-  // 42.map, shared/vulgate-verses.map). Their Isaiah 64:1 is "O that thou
-  // wouldst rend the heavens", which vul.vrs puts at Hebrew 63:19; it's
-  // mapped as English, as NIV's is (see issue #6).
+  // 42.map, shared/vulgate-verses.map).
   101: { "JDG.3": 2 },
   819: { "MAT.1": 2 },
   55: {
-    "1CH.11": 2, "2TI.4": 1, "DEU.6": 2, "EXO.39": 19, "ISA.64": 1, "LUK.9": 2, "NEH.7": 6, "NUM.15": 2,
+    "1CH.11": 2, "2TI.4": 1, "DEU.6": 2, "EXO.39": 19, "LUK.9": 2, "NEH.7": 6, "NUM.15": 2,
     "NUM.27": 4, "PSA.108": 2, "REV.20": 1, "SNG.1": 1,
   },
   42: {
-    "1CH.11": 2, "2TI.4": 1, "DEU.6": 2, "EXO.39": 20, "ISA.64": 1, "LUK.9": 2, "NEH.7": 6, "NUM.15": 2,
+    "1CH.11": 2, "2TI.4": 1, "DEU.6": 2, "EXO.39": 20, "LUK.9": 2, "NEH.7": 6, "NUM.15": 2,
     "NUM.27": 4, "PSA.108": 2, "PSA.71": 1, "PSA.99": 1, "REV.20": 1,
   },
 };
@@ -238,15 +236,20 @@ describe("surveyed versions", () => {
     expect([...withLabel.toCanon], v.abbr).toEqual([...without.toCanon]);
   });
 
+  // Chapters of different systems may share a canonical verse only when one
+  // system maps them all so: UBIO's Isaiah 63 is org, its 64 eng, and eng
+  // maps both 63:19 and 64:1 to Hebrew 63:19.
   it("never mixes schemes on one canonical verse", () => {
+    const std = Standard.load();
     for (const id of [143, 186, 400]) {
       const m = buildVersionMap(SCAN[id].abbr, id, indexOf(SCAN[id])).map;
       for (const [canon, locals] of m.fromCanon) {
-        const schemes = new Set(locals.map((l) => {
+        const under = (s: StdScheme | "custom") => locals.every((l) => {
           const [b, c] = parseRef(l);
-          return m.schemes[b][c];
-        }));
-        expect(schemes.size, `${SCAN[id].abbr} ${canon}`).toBe(1);
+          if (s === "custom") return m.schemes[b][c] === "custom";
+          return std.count(s, b, c) === m.counts[b][c] && std.toCanon(s, l) === canon;
+        });
+        expect([...STD_SCHEMES, "custom" as const].some(under), `${SCAN[id].abbr} ${canon}`).toBe(true);
       }
     }
   });

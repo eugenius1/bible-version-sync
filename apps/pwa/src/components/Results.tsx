@@ -57,6 +57,9 @@ export function Results({ run, names, onApply, onApplyAllowingRemovals, onSignIn
   const authExpired = s.fatal?.reason === "auth" || s.books.some((b) => b.writeErrors.some((e) => /HTTP 401/.test(e)));
   const total = s.sets + s.removals;
   const inSync = total === 0 && !s.failedBooks;
+  // A stopped run only speaks for the books it finished: "everything is in
+  // sync" would be a claim about books it never read.
+  const finished = s.books.length;
 
   return (
     <NamesContext.Provider value={names}>
@@ -67,9 +70,13 @@ export function Results({ run, names, onApply, onApplyAllowingRemovals, onSignIn
             {s.aborted && ` ${tr.stopped}`}
           </h2>
           <p className="flex items-start gap-1.5 text-sm text-stone-600 dark:text-stone-400">
-            {inSync && <Check size={16} className="mt-0.5 shrink-0 text-emerald-700 dark:text-emerald-400" aria-hidden />}
+            {inSync && !s.aborted && <Check size={16} className="mt-0.5 shrink-0 text-emerald-700 dark:text-emerald-400" aria-hidden />}
             <span>
-              {inSync
+              {s.aborted && !finished
+                ? tr.stoppedBeforeBook
+                : inSync && s.aborted
+                ? plural(run.apply ? tr.inSyncStoppedDone : tr.inSyncStoppedPreview, finished)
+                : inSync
                 ? run.apply ? tr.inSyncDone : tr.inSyncPreview
                 : run.apply
                   ? `${plural(tr.added, s.sets)}, ${plural(tr.removedCount, s.removals)}.`

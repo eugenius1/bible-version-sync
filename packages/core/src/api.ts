@@ -47,7 +47,11 @@ export interface Highlight {
 
 /** The subset of the client the sync engine needs (lets tests use a fake). */
 export interface HighlightsApi {
-  getHighlights(bibleId: number, passageId: string): Promise<Highlight[]>;
+  /**
+   * A read can be stopped: aborting the signal rejects with its reason (not
+   * an ApiError), at once, even mid-request or while backing off.
+   */
+  getHighlights(bibleId: number, passageId: string, opts?: { signal?: AbortSignal }): Promise<Highlight[]>;
   setHighlight(bibleId: number, passageId: string, color: string): Promise<void>;
   deleteHighlight(bibleId: number, passageId: string): Promise<void>;
 }
@@ -84,7 +88,35 @@ export function fromYouVersionId(bibleId: number, passageId: string): string {
   );
 }
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const sleep = (ms: number, signal?: AbortSignal) =>
+  new Promise<void>((resolve, reject) => {
+    signal?.throwIfAborted();
+    const done = () => {
+      signal?.removeEventListener("abort", stop);
+      resolve();
+    };
+    const timer = setTimeout(done, ms);
+    const stop = () => {
+      clearTimeout(timer);
+      reject(signal!.reason);
+    };
+    signal?.addEventListener("abort", stop, { once: true });
+  });
+
+/**
+ * Wait for shared work (a token refresh) but stop waiting when this caller's
+ * signal fires, leaving the work itself to finish for everyone else.
+ */
+function untilAborted<T>(work: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return work;
+  work.catch(() => undefined); // its failure is reported to whoever still waits
+  return new Promise<T>((resolve, reject) => {
+    signal.throwIfAborted();
+    const stop = () => reject(signal.reason);
+    signal.addEventListener("abort", stop, { once: true });
+    work.then(resolve, reject).finally(() => signal.removeEventListener("abort", stop));
+  });
+}
 
 /**
  * YouVersion returns errors in several shapes: {"message"} (per the spec),
@@ -154,6 +186,8 @@ export class YouVersionClient implements HighlightsApi {
     auth?: boolean;
     /** Writes don't need the body, so one that can't be parsed is no failure. */
     ignoreBody?: boolean;
+    /** Only reads take one: a write cut off mid-request may or may not have landed. */
+    signal?: AbortSignal;
   } = {}): Promise<{ status: number; body: unknown }> {
     let url = this.base + path;
     if (init.params) url += "?" + new URLSearchParams(Object.entries(init.params).map(([k, v]) => [k, String(v)]));
@@ -173,8 +207,10 @@ export class YouVersionClient implements HighlightsApi {
     }
     let res: Response;
     try {
-      res = await this.fetchImpl(url, { method, headers, body });
+      res = await this.fetchImpl(url, { method, headers, body, signal: init.signal });
     } catch (e) {
+      // A stop isn't a network failure: it mustn't be retried or reported as one.
+      init.signal?.throwIfAborted();
       throw new ApiError(0, e instanceof Error ? e.message : String(e), path);
     }
     const text = await res.text();
@@ -188,13 +224,13 @@ export class YouVersionClient implements HighlightsApi {
   }
 
   private async request(method: string, path: string, init: Parameters<YouVersionClient["raw"]>[2] = {}) {
-    if (init.auth && (await this.expiresSoon())) await this.refreshOrExpire(path, false);
+    if (init.auth && (await this.expiresSoon())) await untilAborted(this.refreshOrExpire(path, false), init.signal);
     let refreshed = false;
     let networkFailures = 0;
     for (let attempt = 0; ; attempt++) {
       const wait = this.pauseUntil - Date.now();
-      if (wait > 0) await sleep(wait);
-      if (this.delayMs) await sleep(this.delayMs);
+      if (wait > 0) await sleep(wait, init.signal);
+      if (this.delayMs) await sleep(this.delayMs, init.signal);
       try {
         return await this.raw(method, path, init);
       } catch (e) {
@@ -205,7 +241,7 @@ export class YouVersionClient implements HighlightsApi {
         if (maybeAuth && init.auth && !refreshed) {
           refreshed = true;
           if ((await this.tokens?.get())?.refresh_token) {
-            await this.refreshOrExpire(path, true);
+            await untilAborted(this.refreshOrExpire(path, true), init.signal);
             continue;
           }
         }
@@ -271,9 +307,10 @@ export class YouVersionClient implements HighlightsApi {
   }
 
   /** Highlights for one whole chapter (e.g. "JHN.3"); the API rejects single verses. */
-  async getHighlights(bibleId: number, passageId: string): Promise<Highlight[]> {
+  async getHighlights(bibleId: number, passageId: string, opts: { signal?: AbortSignal } = {}): Promise<Highlight[]> {
     const { status, body } = await this.request("GET", "/v1/highlights", {
       auth: true,
+      signal: opts.signal,
       params: { bible_id: bibleId, passage_id: toYouVersionId(bibleId, passageId) },
     });
     if (status === 204 || !body) return [];

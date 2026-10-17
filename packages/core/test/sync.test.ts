@@ -298,6 +298,57 @@ describe("runSync", () => {
     expect(api.color("AMP", "RUT.1.1")).toBe("ffe066");
   });
 
+  it("stops a preview mid-book, reporting only the books it finished", async () => {
+    api.hl("NIV", "RUT.1.16", "ffe066");
+    api.hl("NIV", "JHN.3.16", "ffe066");
+    const controller = new AbortController();
+    const s = await runSync({
+      api, versions: VERSIONS, scope: { kind: "books", books: ["RUT", "JHN"] }, state, apply: false,
+      signal: controller.signal,
+      onProgress: (p) => {
+        if (p.book === "JHN" && p.done === 3) controller.abort();
+      },
+    });
+    expect(s.aborted).toBe(true);
+    expect(s.books.map((b) => b.book)).toEqual(["RUT"]);
+    // Four versions at two at a time: nothing past the requests already in flight.
+    expect(api.reads.length).toBeLessThanOrEqual(4 * 4 + 4);
+  });
+
+  it("stopped while reading, writes nothing and leaves the snapshot alone", async () => {
+    api.hl("NIV", "JHN.3.16", "ffe066");
+    const controller = new AbortController();
+    const before = JSON.stringify(state);
+    const s = await runSync({
+      api, versions: VERSIONS, scope: { kind: "books", books: ["JHN"] }, state, apply: true,
+      signal: controller.signal,
+      onProgress: (p) => {
+        if (p.phase === "reading" && p.done === 5) controller.abort();
+      },
+    });
+    expect(s.aborted).toBe(true);
+    expect(s.books).toEqual([]);
+    expect(api.writes).toBe(0);
+    expect(JSON.stringify(state)).toBe(before);
+  });
+
+  it("stopped while writing, finishes that book and starts no other", async () => {
+    for (let v = 1; v <= 3; v++) api.hl("NIV", `RUT.1.${v}`, "ffe066");
+    api.hl("NIV", "JHN.3.16", "ffe066");
+    const controller = new AbortController();
+    const s = await runSync({
+      api, versions: VERSIONS, scope: { kind: "books", books: ["RUT", "JHN"] }, state, apply: true,
+      signal: controller.signal,
+      onProgress: (p) => {
+        if (p.phase === "writing") controller.abort();
+      },
+    });
+    expect(s.aborted).toBe(true);
+    expect(s.books.map((b) => b.book)).toEqual(["RUT"]);
+    for (let v = 1; v <= 3; v++) expect(every(`RUT.1.${v}`)).toEqual({ AMP: "ffe066", NIV: "ffe066", LSG: "ffe066", S21: "ffe066" });
+    expect(api.color("AMP", "JHN.3.16")).toBeNull();
+  });
+
   it("reports progress up to the total", async () => {
     const seen: number[] = [];
     await runSync({

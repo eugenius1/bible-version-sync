@@ -235,11 +235,12 @@ export type BookHighlights = Record<number, Map<Ref, string>>;
 
 const norm = (c: string | null | undefined) => (c ? c.toLowerCase().replace(/^#/, "") : null);
 
-async function pool<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R>): Promise<R[]> {
+async function pool<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R>, signal?: AbortSignal): Promise<R[]> {
   const out: R[] = new Array(items.length);
   let next = 0;
   const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
     while (next < items.length) {
+      signal?.throwIfAborted();
       const i = next++;
       out[i] = await fn(items[i]);
     }
@@ -289,15 +290,24 @@ export async function readBook(
   api: HighlightsApi,
   versions: SyncVersion[],
   book: string,
-  opts: { concurrency?: number; chapters?: Record<number, Set<number>>; onChapter?: () => void } = {},
+  opts: {
+    concurrency?: number;
+    chapters?: Record<number, Set<number>>;
+    onChapter?: () => void;
+    /** Aborting rejects with the signal's reason; a book half read is never returned. */
+    signal?: AbortSignal;
+  } = {},
 ): Promise<BookHighlights> {
   const jobs = chaptersToRead(versions, book, opts.chapters);
   const out: BookHighlights = Object.fromEntries(versions.map((v) => [v.bibleId, new Map()]));
+  const { signal } = opts;
   const results = await pool(jobs, opts.concurrency ?? 4, async (job) => {
-    const items = await api.getHighlights(job.version.bibleId, `${book}.${job.chapter}`);
+    const items = await api.getHighlights(job.version.bibleId, `${book}.${job.chapter}`, { signal });
+    signal?.throwIfAborted();
     opts.onChapter?.();
     return { id: job.version.bibleId, items };
-  });
+  }, signal);
+  signal?.throwIfAborted();
   for (const { id, items } of results) {
     for (const h of items) {
       const color = norm(h.color);

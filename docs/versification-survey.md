@@ -42,7 +42,8 @@ chapters where the systems disagree, how many match the label / another system
 correction tables) leaves unsynced. *Misplaced*: verses the current engine maps
 differently from the version's labelled system, counting only chapters whose
 verse count fits the label (so the label is very likely right there); the
-deliberate Acts 19:41 and 2 Cor 13:12–14 merges are excluded. *Merged*: verse
+deliberate Acts 19:41 and 2 Cor 13:12–14 merges are excluded (Isaiah 64:1,
+since merged the same way, is still counted in the tables below). *Merged*: verse
 spans printed as one (e.g. `GEN.1.1+GEN.1.2`).
 
 ## Findings
@@ -419,6 +420,9 @@ as `vul.vrs` does with Daniel 13-14 (Susanna, Bel): they pair with no other
 version's verse, so a highlight there stays in CPDV.
 
 Left as they are: English verses that hold two Hebrew verses map to the
-later one (1 Samuel 20:42, 1 Kings 22:43, 1 Chronicles 12:4), like Isaiah
-64:1 (issue #6); and verses added from the Septuagint (Synodal Proverbs
-13:14) share the canonical verse of their neighbour.
+later one (1 Samuel 20:42, 1 Kings 22:43, 1 Chronicles 12:4); and verses
+added from the Septuagint (Synodal Proverbs 13:14) share the canonical verse
+of their neighbour. Isaiah 64:1 was another until issue #6: `eng.vrs` put
+"rend the heavens" on Hebrew 64:1, the fire verse, where it is the second
+half of Hebrew 63:19 (as `rso`, `rsc` and `vul` have it). English 64:1 now
+maps there, alongside 63:19.

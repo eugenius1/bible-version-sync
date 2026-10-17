@@ -96,7 +96,9 @@ real verse count with each candidate system's count
 - Chapters without a known count take the book's pick; with nothing known,
   the label, else English.
 - If two chapters on different systems would claim the same canonical verse,
-  both are skipped rather than guessed.
+  both are skipped rather than guessed, unless one system maps both chapters
+  as they're mapped: Isaiah 63 maps the same under `eng` and `org`, so an
+  `org` 63:19 may share Hebrew 63:19 with an `eng` 64:1.
 - Chapters that follow no system are described by hand in a **correction
   table**, `packages/core/data/overrides/<bible id>.map`, in `.vrs` mapping syntax:
   `LOCAL = CANONICAL`. Every chapter such a table touches uses only the table.
@@ -280,6 +282,13 @@ Safety rules, all tested:
   `runSync` and `planBook` skip a version whose map is flagged `unsupported`:
   nothing is read or written for it, its snapshot is carried over untouched,
   and `RunSummary.refused` names it.
+- **A stop never leaves a book half planned.** The abort signal goes into
+  every read (the client hands it to `fetch` and to its back-off sleeps), so
+  reading stops at once, and a book stopped mid-read is dropped from the
+  summary unplanned (`readBook` checks the signal once more before it
+  returns, so a book is either read in full or not at all). Writes take no
+  signal: a book being written is finished first, since a
+  request cut off mid-flight may or may not have landed.
 
 ## The YouVersion API: things that will bite you
 

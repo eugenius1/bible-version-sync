@@ -63,10 +63,13 @@ export async function discoverVersions(o: DiscoverOptions): Promise<Map<number, 
         continue;
       }
       try {
-        const verses = new Set((await o.api.getHighlights(id, chapter)).map((h) => h.passage_id));
+        const verses = new Set((await o.api.getHighlights(id, chapter, { signal: o.signal })).map((h) => h.passage_id));
+        // A request that finishes after a stop mustn't report progress: the
+        // caller has already moved on, and a late report would undo that.
+        o.signal?.throwIfAborted();
         if (verses.size) found.set(id, verses.size);
       } catch (e) {
-        if (!(e instanceof ApiError) || e.retryable || e.status === 401) {
+        if (o.signal?.aborted || !(e instanceof ApiError) || e.retryable || e.status === 401) {
           queue.length = 0; // stop the other workers too
           throw e;
         }
@@ -76,6 +79,7 @@ export async function discoverVersions(o: DiscoverOptions): Promise<Map<number, 
     }
   };
   await Promise.all(Array.from({ length: Math.max(1, o.concurrency ?? 4) }, worker));
+  o.signal?.throwIfAborted();
   report();
   return found;
 }
