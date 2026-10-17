@@ -237,6 +237,18 @@ describe("VersionsCard", () => {
       expect(getHighlights.mock.calls.length).toBe(calls);
     });
 
+    it("doesn't count zero of zero when stopped before the first answer", async () => {
+      getHighlights.mockImplementation(
+        (_id: number, _c: string, o?: { signal?: AbortSignal }) =>
+          new Promise((_, reject) => o?.signal?.addEventListener("abort", () => reject(o.signal!.reason))),
+      );
+      renderCard([{ abbr: "NIV", bibleId: 111 }]);
+      await userEvent.click(screen.getByRole("button", { name: "Find my versions" }));
+      await userEvent.click(await screen.findByRole("button", { name: "Stop" }));
+      expect(await screen.findByText("Stopped before anything was checked.")).toBeInTheDocument();
+      expect(screen.queryByText(/of 0/)).not.toBeInTheDocument();
+    });
+
     it("says so when signed out or offline", async () => {
       const { ApiError } = await import("@bvs/core");
       getHighlights.mockRejectedValue(new ApiError(401, "sign-in expired"));

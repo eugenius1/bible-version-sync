@@ -155,7 +155,7 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
 
       {scan.status === "stopped" && (
         <p className="text-sm text-stone-600 dark:text-stone-400" role="status">
-          {f(tf.stopped, { done: num(scan.done), total: num(scan.total) })}
+          {scan.total ? f(tf.stopped, { done: num(scan.done), total: num(scan.total) }) : tf.stoppedAtStart}
         </p>
       )}
       {scan.status === "error" && <p className="text-sm text-red-700 dark:text-red-300">{f(tf.failed, { problem: scan.message })}</p>}

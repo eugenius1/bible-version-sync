@@ -110,6 +110,7 @@ export const en = {
       stopping: "Stopping…",
       stoppingButton: "Stopping",
       stopped: "Stopped after checking {done} of {total}.",
+      stoppedAtStart: "Stopped before anything was checked.",
       failed: "Couldn't finish looking: {problem}",
       none: "No highlights found in the chapters sampled (Isaiah 41, Philippians 4, John 3). Add your versions below.",
       foundTitle: "You highlight in",
@@ -157,6 +158,15 @@ export const en = {
     stopped: "(stopped)",
     inSyncDone: "Everything was already in sync.",
     inSyncPreview: "Nothing to change — everything is in sync.",
+    inSyncStoppedDone: [
+      "Nothing needed changing in the book synced before stopping.",
+      "Nothing needed changing in the {n} books synced before stopping.",
+    ],
+    inSyncStoppedPreview: [
+      "Nothing to change in the book read before stopping.",
+      "Nothing to change in the {n} books read before stopping.",
+    ],
+    stoppedBeforeBook: "Stopped before a whole book was read, so there's nothing to show. Nothing was changed.",
     added: ["{n} highlight added", "{n} highlights added"],
     removedCount: ["{n} removed", "{n} removed"],
     toAdd: ["{n} highlight to add", "{n} highlights to add"],

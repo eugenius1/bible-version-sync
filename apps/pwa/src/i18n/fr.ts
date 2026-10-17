@@ -110,6 +110,7 @@ export const fr: Dictionary = {
       stopping: "Arrêt en cours…",
       stoppingButton: "Arrêt",
       stopped: "Recherche arrêtée après {done} sur {total}.",
+      stoppedAtStart: "Recherche arrêtée avant toute vérification.",
       failed: "Impossible de terminer la recherche : {problem}",
       none: "Aucun surlignage trouvé dans les chapitres examinés (Ésaïe 41, Philippiens 4, Jean 3). Ajoutez vos versions ci-dessous.",
       foundTitle: "Vous surlignez dans",
@@ -157,6 +158,15 @@ export const fr: Dictionary = {
     stopped: "(arrêtée)",
     inSyncDone: "Tout était déjà synchronisé.",
     inSyncPreview: "Rien à modifier : tout est synchronisé.",
+    inSyncStoppedDone: [
+      "Rien n'était à modifier dans le livre synchronisé avant l'arrêt.",
+      "Rien n'était à modifier dans les {n} livres synchronisés avant l'arrêt.",
+    ],
+    inSyncStoppedPreview: [
+      "Rien à modifier dans le livre lu avant l'arrêt.",
+      "Rien à modifier dans les {n} livres lus avant l'arrêt.",
+    ],
+    stoppedBeforeBook: "Arrêté avant qu'un livre entier soit lu : rien à afficher. Rien n'a été modifié.",
     added: ["{n} surlignage ajouté", "{n} surlignages ajoutés"],
     removedCount: ["{n} supprimé", "{n} supprimés"],
     toAdd: ["{n} surlignage à ajouter", "{n} surlignages à ajouter"],
