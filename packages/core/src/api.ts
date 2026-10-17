@@ -80,6 +80,21 @@ const sleep = (ms: number, signal?: AbortSignal) =>
   });
 
 /**
+ * Wait for shared work (a token refresh) but stop waiting when this caller's
+ * signal fires, leaving the work itself to finish for everyone else.
+ */
+function untilAborted<T>(work: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return work;
+  work.catch(() => undefined); // its failure is reported to whoever still waits
+  return new Promise<T>((resolve, reject) => {
+    signal.throwIfAborted();
+    const stop = () => reject(signal.reason);
+    signal.addEventListener("abort", stop, { once: true });
+    work.then(resolve, reject).finally(() => signal.removeEventListener("abort", stop));
+  });
+}
+
+/**
  * YouVersion returns errors in several shapes: {"message"} (per the spec),
  * {"error","error_description"} from the auth layer and
  * {"fault":{"faultstring"}} from the gateway.
@@ -185,7 +200,7 @@ export class YouVersionClient implements HighlightsApi {
   }
 
   private async request(method: string, path: string, init: Parameters<YouVersionClient["raw"]>[2] = {}) {
-    if (init.auth && (await this.expiresSoon())) await this.refreshOrExpire(path, false);
+    if (init.auth && (await this.expiresSoon())) await untilAborted(this.refreshOrExpire(path, false), init.signal);
     let refreshed = false;
     let networkFailures = 0;
     for (let attempt = 0; ; attempt++) {
@@ -202,7 +217,7 @@ export class YouVersionClient implements HighlightsApi {
         if (maybeAuth && init.auth && !refreshed) {
           refreshed = true;
           if ((await this.tokens?.get())?.refresh_token) {
-            await this.refreshOrExpire(path, true);
+            await untilAborted(this.refreshOrExpire(path, true), init.signal);
             continue;
           }
         }

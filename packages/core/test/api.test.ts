@@ -101,6 +101,31 @@ describe("YouVersionClient", () => {
     expect(seen).toBe(controller.signal);
   });
 
+  it("stops waiting for a stalled token refresh when asked, leaving the refresh to finish", async () => {
+    let answer!: (r: Response) => void;
+    const calls: string[] = [];
+    const f = (async (url: string) => {
+      calls.push(url);
+      if (url.includes("/auth/token")) return new Promise<Response>((r) => (answer = r));
+      return new Response(null, { status: 204 });
+    }) as unknown as typeof fetch;
+    // A token about to expire, so the read refreshes it first.
+    const tokens = new MemoryTokens({ ...fresh(), obtained_at: Date.now() - 3_600_000 });
+    const c = new YouVersionClient({ appKey: "k", tokens, fetch: f, delayMs: 0 });
+    const controller = new AbortController();
+    const stopped = c.getHighlights(111, "JHN.3", { signal: controller.signal });
+    const other = c.getHighlights(12, "JHN.3");
+    await new Promise((r) => setTimeout(r, 10));
+    controller.abort();
+    await expect(stopped).rejects.toMatchObject({ name: "AbortError" });
+    // The refresh carries on for the request that wasn't stopped.
+    answer(new Response(JSON.stringify({ access_token: "a2", expires_in: 3599 }), { status: 200 }));
+    expect(await other).toEqual([]);
+    expect(tokens.t?.access_token).toBe("a2");
+    expect(calls.filter((u) => u.includes("/auth/token"))).toHaveLength(1);
+    expect(calls.filter((u) => u.includes("bible_id=111"))).toHaveLength(0);
+  });
+
   it("refreshes the token once on a 401 and retries", async () => {
     const tokens = new MemoryTokens(fresh());
     const { f, calls } = fakeFetch([
