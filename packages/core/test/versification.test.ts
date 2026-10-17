@@ -602,6 +602,14 @@ describe("choosing a system per chapter", () => {
     expect(unlabelled.schemes.PSA[91]).toBe("eng");
   });
 
+  it("skips chapters on different systems that claim one verse", () => {
+    // Synodal Psalm 91 is Hebrew 92; an English Psalm 92 (15 verses) is too.
+    // eng gives Psalm 91 16 verses as well, but maps it to Hebrew 91, so no
+    // one system explains both chapters.
+    const m = VersionMap.build("X", std, { knownCounts: { PSA: { ...psalms.PSA, 92: 15 } }, label: "rso" });
+    expect(m.skippedChapters("PSA")).toEqual([91, 92]);
+  });
+
   it("ignores an eng or org label", () => {
     const counts = { MAL: { 3: 18, 4: 6 } };
     const org = VersionMap.build("X", std, { knownCounts: counts, label: "org" });

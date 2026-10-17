@@ -402,7 +402,7 @@ export class VersionMap {
         if (!set) {
           const s = this.schemes[b][c]!;
           set = new Set<Scheme>([s]);
-          const n = this.counts[b][c] ?? 0;
+          const n = this.counts[b][c];
           for (const other of STD_SCHEMES) {
             if (other === s || std.count(other, b, c) !== n) continue;
             let same = true;
