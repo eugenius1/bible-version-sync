@@ -67,7 +67,12 @@ export interface RunSummary {
    * Set when the run stopped early because YouVersion couldn't be used at all
    * (sign-in expired or offline); later books were not attempted.
    */
-  fatal?: { reason: "auth" | "network"; message: string };
+  fatal?: {
+    reason: "auth" | "network" | "rateLimited";
+    message: string;
+    /** For "rateLimited": seconds YouVersion asked to wait, when it said. */
+    retryAfter?: number;
+  };
   /**
    * Versions (bible ids) left out because their numbering is unsupported:
    * nothing was read or written for them, and their snapshot is untouched.
@@ -124,9 +129,10 @@ export async function runSync(o: RunOptions): Promise<RunSummary> {
       readDone += bookTotal - bookDone;
       summary.books.push(result);
       await o.onBookDone?.(result);
-      if (e.status === 401 || e.status === 0) {
+      if (e.status === 401 || e.status === 0 || e.status === 429) {
         // Every other book would fail the same way; stop instead of hammering.
-        summary.fatal = { reason: e.status === 401 ? "auth" : "network", message: e.message };
+        const reason = e.status === 401 ? "auth" : e.status === 429 ? "rateLimited" : "network";
+        summary.fatal = { reason, message: e.message, retryAfter: e.retryAfter };
         break;
       }
       continue;

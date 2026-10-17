@@ -90,6 +90,11 @@ export function Results({ run, names, onApply, onApplyAllowingRemovals, onSignIn
         {s.failedBooks > 0 && <Notice tone="error">{plural(tr.booksSkipped, s.failedBooks)}</Notice>}
         {s.writeErrors > 0 && <Notice tone="error">{plural(tr.writeErrors, s.writeErrors)}</Notice>}
 
+        {s.fatal?.reason === "rateLimited" && (
+          <Notice tone="warn">
+            {s.fatal.retryAfter ? plural(tr.rateLimited, Math.ceil(s.fatal.retryAfter / 60)) : tr.rateLimitedSoon}
+          </Notice>
+        )}
         {(authExpired || s.fatal?.reason === "network") && (
           <Notice tone="warn">
             <p>{authExpired ? tr.authExpired : tr.network}</p>

@@ -105,3 +105,26 @@ describe("a stopped run", () => {
     expect(screen.getByText("Nothing needed changing in the book synced before stopping.")).toBeInTheDocument();
   });
 });
+
+describe("a run YouVersion rate limited", () => {
+  it("says how long to wait, and doesn't suggest signing in again", () => {
+    render(
+      <I18nProvider>
+        <Results
+          run={{
+            status: "done",
+            apply: true,
+            scope: { kind: "books", books: ["PSA"] },
+            summary: { ...summary, books: [], sets: 0, removals: 0, differences: 0, refused: [], fatal: { reason: "rateLimited", message: "x", retryAfter: 90 } },
+          }}
+          names={names}
+          onApply={vi.fn()}
+          onApplyAllowingRemovals={vi.fn()}
+          onSignInAgain={vi.fn()}
+        />
+      </I18nProvider>,
+    );
+    expect(screen.getByText(/Try again in 2 minutes\. Nothing more was changed\./)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Sign in again" })).not.toBeInTheDocument();
+  });
+});

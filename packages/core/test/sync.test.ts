@@ -281,6 +281,22 @@ describe("runSync", () => {
     expect(s.books.map((b) => b.book)).toEqual(["RUT"]);
   });
 
+  it("stops the whole run when YouVersion rate limits the app, saying how long to wait", async () => {
+    const orig = api.getHighlights.bind(api);
+    api.getHighlights = async (id, p) => {
+      if (p === "RUT.2") {
+        const e = new ApiError(429, "too many requests", p);
+        e.retryAfter = 300;
+        throw e;
+      }
+      return orig(id, p);
+    };
+    const s = await runSync({ api, versions: VERSIONS, scope: { kind: "books", books: ["RUT", "JHN"] }, state, apply: true });
+    expect(s.fatal).toMatchObject({ reason: "rateLimited", retryAfter: 300 });
+    expect(s.books.map((b) => b.book)).toEqual(["RUT"]);
+    expect(api.writes).toBe(0);
+  });
+
   it("blocks books that exceed the removal limit", async () => {
     for (let v = 1; v <= 5; v++) api.hl("NIV", `RUT.1.${v}`, "ffe066");
     await runSync({ api, versions: VERSIONS, scope: { kind: "books", books: ["RUT"] }, state, apply: true });

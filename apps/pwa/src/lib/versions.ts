@@ -5,6 +5,7 @@ import {
   type NumberingSource,
   type SyncVersion,
 } from "@bvs/core";
+import type { I18n } from "../i18n";
 import { client } from "./auth";
 import { store, type VersionSetting } from "./db";
 
@@ -68,15 +69,27 @@ export function readerLanguages(appLocale: string): string[] {
   return [...nav, appLocale].filter(Boolean);
 }
 
-/** A short description of a failed request, for an error message. */
-export const problemText = (e: unknown) => (e instanceof ApiError ? e.detail || `HTTP ${e.status}` : String(e));
+/**
+ * A failed request, phrased for an error message. The engine's own detail
+ * is English and sometimes a browser's (a 429 without CORS headers reaches
+ * the page as "Failed to fetch"), so the failures a person can act on are
+ * told apart by status and phrased here.
+ */
+export function problemText(e: unknown, { t, plural }: Pick<I18n, "t" | "plural">): string {
+  if (!(e instanceof ApiError)) return String(e);
+  const tp = t.problems;
+  if (e.status === 401) return tp.signInExpired;
+  if (e.status === 0) return tp.unreachable;
+  if (e.status === 429) return e.retryAfter ? plural(tp.rateLimited, Math.ceil(e.retryAfter / 60)) : tp.rateLimitedSoon;
+  return e.detail || `HTTP ${e.status}`;
+}
 
-/** Quick check that highlights can be read for a version. */
-export async function canReadHighlights(bibleId: number): Promise<string | null> {
+/** Quick check that highlights can be read for a version: the failure, or null. */
+export async function canReadHighlights(bibleId: number): Promise<unknown> {
   try {
     await client.getHighlights(bibleId, "JHN.3");
     return null;
   } catch (e) {
-    return problemText(e);
+    return e;
   }
 }

@@ -185,7 +185,12 @@ export const fr: Dictionary = {
     ],
     authExpired: "Arrêtée : votre connexion YouVersion a expiré. Rien d'autre n'a été modifié.",
     network:
-      "Arrêtée : impossible de joindre YouVersion. Vérifiez votre connexion et réessayez. Si le problème persiste, reconnectez-vous.",
+      "Arrêtée : YouVersion ne répond pas. Vérifiez votre connexion. Si vous êtes en ligne, l'application a sans doute fait trop de demandes pour l'instant : YouVersion la fait alors patienter plusieurs minutes. Rien d'autre n'a été modifié.",
+    rateLimited: [
+      "Arrêtée : YouVersion a reçu trop de demandes de l'application pour l'instant. Réessayez dans {n} minute. Rien d'autre n'a été modifié.",
+      "Arrêtée : YouVersion a reçu trop de demandes de l'application pour l'instant. Réessayez dans {n} minutes. Rien d'autre n'a été modifié.",
+    ],
+    rateLimitedSoon: "Arrêtée : YouVersion a reçu trop de demandes de l'application pour l'instant. Réessayez dans quelques minutes. Rien d'autre n'a été modifié.",
     signInAgain: "Se reconnecter",
     apply: ["Appliquer {n} modification", "Appliquer {n} modifications"],
     blocked: [
@@ -201,6 +206,17 @@ export const fr: Dictionary = {
     action: { fill: "ajouter", recolor: "changer la couleur", remove: "supprimer" },
     more: "…et {n} de plus",
     refused: "Exclues car leur numérotation n'est pas prise en charge : {names}. Rien n'y a été lu ni modifié.",
+  },
+
+  problems: {
+    signInExpired: "votre connexion YouVersion a expiré. Reconnectez-vous.",
+    unreachable:
+      "YouVersion ne répond pas. Vérifiez votre connexion. Si vous êtes en ligne, l'application a sans doute fait trop de demandes pour l'instant : YouVersion la fait alors patienter plusieurs minutes.",
+    rateLimited: [
+      "YouVersion a reçu trop de demandes de l'application pour l'instant. Réessayez dans {n} minute.",
+      "YouVersion a reçu trop de demandes de l'application pour l'instant. Réessayez dans {n} minutes.",
+    ],
+    rateLimitedSoon: "YouVersion a reçu trop de demandes de l'application pour l'instant. Réessayez dans quelques minutes.",
   },
 
   footer: {

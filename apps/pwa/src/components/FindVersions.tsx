@@ -37,7 +37,8 @@ interface Props {
  * their languages (see discoverVersions). Read-only: adding one is up to them.
  */
 export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
-  const { t, f, num, plural } = useI18n();
+  const i18n = useI18n();
+  const { t, f, num, plural } = i18n;
   const tf = t.versions.find;
   const [scan, setScan] = useState<Scan>({ status: "idle" });
   const [numbering, setNumbering] = useState<ReadonlyMap<number, Numbering>>(new Map());
@@ -88,11 +89,11 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
     } catch (e) {
       if (controller.signal.aborted) {
         setScan((s) => (s.status === "running" ? { status: "stopped", done: s.done, total: s.total, found: s.found } : { status: "idle" }));
-      } else setScan({ status: "error", message: problemText(e) });
+      } else setScan({ status: "error", message: problemText(e, i18n) });
     } finally {
       abort.current = null;
     }
-  }, [settings, localeTag]);
+  }, [settings, localeTag, i18n]);
 
   // Look straight away on a first visit. Once only: settings change as soon
   // as a suggestion is taken, and that mustn't start another scan.
