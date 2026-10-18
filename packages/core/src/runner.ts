@@ -103,6 +103,7 @@ export async function runSync(o: RunOptions): Promise<RunSummary> {
       const current = await readBook(o.api, versions, book, {
         concurrency: o.concurrency,
         chapters: scope?.chapters,
+        signal: o.signal,
         onChapter: () => {
           readDone++;
           bookDone++;
@@ -112,6 +113,12 @@ export async function runSync(o: RunOptions): Promise<RunSummary> {
       // All of them: planBook keeps the refused versions' snapshot.
       result.plan = planBook(book, o.versions, current, o.state, scope?.canon, { colorOrder: o.colorOrder });
     } catch (e) {
+      // Stopped mid-read: nothing of this book was planned or written, and it
+      // isn't reported, so a half-read book can never look like removals.
+      if (o.signal?.aborted) {
+        summary.aborted = true;
+        break;
+      }
       if (!(e instanceof ApiError)) throw e;
       result.readError = e.message;
       summary.failedBooks++;
@@ -139,7 +146,7 @@ export async function runSync(o: RunOptions): Promise<RunSummary> {
     };
 
     if (!o.apply) count();
-    else if (!o.signal?.aborted) {
+    else {
       if (rems && removalsSoFar + rems > maxRemovals && !o.allowRemovals) {
         result.blocked = { removals: rems, limit: maxRemovals };
         summary.blockedBooks++;
@@ -157,5 +164,6 @@ export async function runSync(o: RunOptions): Promise<RunSummary> {
     summary.books.push(result);
     await o.onBookDone?.(result);
   }
+  if (o.signal?.aborted) summary.aborted = true;
   return summary;
 }

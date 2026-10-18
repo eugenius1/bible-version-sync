@@ -98,7 +98,9 @@ real verse count with each candidate system's count
 - Chapters without a known count take the book's pick; with nothing known,
   the label, else English.
 - If two chapters on different systems would claim the same canonical verse,
-  both are skipped rather than guessed.
+  both are skipped rather than guessed, unless one system maps both chapters
+  as they're mapped: Isaiah 63 maps the same under `eng` and `org`, so an
+  `org` 63:19 may share Hebrew 63:19 with an `eng` 64:1.
 - Chapters that follow no system are described by hand in a **correction
   table**, `packages/core/data/overrides/<bible id>.map`, in `.vrs` mapping syntax:
   `LOCAL = CANONICAL`. Every chapter such a table touches uses only the table.
@@ -298,6 +300,13 @@ Safety rules, all tested:
   `runSync` and `planBook` skip a version whose map is flagged `unsupported`:
   nothing is read or written for it, its snapshot is carried over untouched,
   and `RunSummary.refused` names it.
+- **A stop never leaves a book half planned.** The abort signal goes into
+  every read (the client hands it to `fetch` and to its back-off sleeps), so
+  reading stops at once, and a book stopped mid-read is dropped from the
+  summary unplanned (`readBook` checks the signal once more before it
+  returns, so a book is either read in full or not at all). Writes take no
+  signal: a book being written is finished first, since a
+  request cut off mid-flight may or may not have landed.
 
 ## The YouVersion API: things that will bite you
 
@@ -367,7 +376,7 @@ when at most three `fields[]` are asked for, so
 `/v1/bibles?language_ranges[]=*&fields[]=id&fields[]=abbreviation&page_size=*`
 lists every version the app key may read in one request (360 in Sept 2026).
 `tools/youversion-skill.sh` refreshes the copy, and `--check` fails when
-upstream has changed it; the "YouVersion skill up to date" check runs that on
+upstream has changed it; the "YouVersion skill / Up to date" check runs that on
 every PR. It isn't a required check, so an upstream change shows red without
 blocking unrelated PRs: run the script, read what changed against this
 section, and commit it. Don't edit the copy by hand; the check fails on
@@ -375,6 +384,28 @@ that too.
 
 **Abbreviations aren't unique.** `NVI-S` is both 128 and 2664, `ARC` both 212
 and 3407. Key anything version-specific by bible id.
+
+## Claude review on PRs
+
+`.github/workflows/claude-review.yml` runs Claude's `/code-review` and
+`/security-review` on every non-draft PR from this repo and posts findings as
+inline comments, using the owner's Claude plan through the
+`CLAUDE_CODE_OAUTH_TOKEN` secret (made with `claude setup-token`; renew it
+when it expires). Fork and Dependabot PRs are skipped, since they can't read
+the secret. It reports but isn't a required check: a job that fails because
+the token expired or the plan's usage ran out would block every merge, and a
+finding is advice, not a pass or fail.
+
+**A green tick on a PR that edits `claude-review.yml` means nothing.** The
+action refuses to run when the workflow file differs from the one on `main`
+("Workflow validation failed"), and then exits successfully having done
+nothing, in about ten seconds. So the PR that changes the workflow, including
+the one that added it, is never reviewed by it, and neither is a PR that
+touches the file later. Check the job log for that message before trusting the
+tick, and test a change to the workflow on a later PR that doesn't touch it.
+Because of that, keep a PR that edits the workflow minimal and free of
+production code: it gets no Claude review, so anything else in it gets none
+either. Put the code in its own PR.
 
 ## Things that will bite you elsewhere
 

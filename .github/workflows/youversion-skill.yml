@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   skill:
-    name: YouVersion skill up to date
+    name: Up to date
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

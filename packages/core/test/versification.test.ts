@@ -61,6 +61,30 @@ describe("verse mapping", () => {
     expect(across(niv).LSG).toEqual(lsg);
   });
 
+  // English 64:1, "rend the heavens and come down", is the second half of
+  // Hebrew 63:19 (LSG 63:19 «Oh! Si tu déchirais les cieux»); Synodal
+  // numbers it 64:1 «О, если бы Ты расторг небеса». English 64:2 and LSG
+  // 64:1 are the fire and boiling water (issue #6).
+  it.each([
+    ["ISA.63.19", ["ISA.63.19", "ISA.64.1"], ["ISA.63.19", "ISA.64.1"], ["ISA.63.19"]],
+    ["ISA.64.1", ["ISA.63.19", "ISA.64.1"], ["ISA.63.19", "ISA.64.1"], ["ISA.63.19"]],
+    ["ISA.64.2", ["ISA.64.2"], ["ISA.64.2"], ["ISA.64.1"]],
+  ])("Isaiah 64:1: NIV %s -> NIV %j, SYNO %j, LSG %j", (niv, nivs, syno, lsg) => {
+    const canon = MAPS.NIV.toCanon.get(niv)!;
+    expect(MAPS.NIV.fromCanon.get(canon)).toEqual(nivs);
+    expect(buildVersionMap("SYNO", 400).map.fromCanon.get(canon)).toEqual(syno);
+    expect(MAPS.LSG.fromCanon.get(canon)).toEqual(lsg);
+  });
+
+  it("keeps Isaiah 63-64 where Isaiah 9 is Hebrew and 64 English", () => {
+    // NR06: Isaiah 9 in 20 verses, 64 in 12, so 63 is org and 64 eng.
+    const m = buildVersionMap("NR06", 122).map;
+    expect(m.schemes.ISA[63]).toBe("org");
+    expect(m.schemes.ISA[64]).toBe("eng");
+    expect(m.skippedChapters("ISA")).toEqual([]);
+    expect(m.fromCanon.get("ISA.63.19")).toEqual(["ISA.63.19", "ISA.64.1"]);
+  });
+
   it("maps every chapter of every version", () => {
     for (const [abbr, m] of Object.entries(MAPS)) {
       for (const b of BOOKS) {
@@ -576,6 +600,14 @@ describe("choosing a system per chapter", () => {
     expect(labelled.schemes.PSA[91]).toBe("rso");
     expect(labelled.toCanon.get("PSA.91.2")).toBe("PSA.92.2");
     expect(unlabelled.schemes.PSA[91]).toBe("eng");
+  });
+
+  it("skips chapters on different systems that claim one verse", () => {
+    // Synodal Psalm 91 is Hebrew 92; an English Psalm 92 (15 verses) is too.
+    // eng gives Psalm 91 16 verses as well, but maps it to Hebrew 91, so no
+    // one system explains both chapters.
+    const m = VersionMap.build("X", std, { knownCounts: { PSA: { ...psalms.PSA, 92: 15 } }, label: "rso" });
+    expect(m.skippedChapters("PSA")).toEqual([91, 92]);
   });
 
   it("ignores an eng or org label", () => {
