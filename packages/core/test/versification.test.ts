@@ -391,9 +391,16 @@ describe("an API index with chapters YouVersion ids BOOK.<n>_1", () => {
       { id: "3_1", verses: [] },
       { id: "4_2", verses: v(8) },
       { id: "intro", verses: [] },
+      { verses: v(3) },
     ]);
     expect(countsFromIndex(i)).toEqual({ PSA: { 1: 6, 2: 12 } });
     expect(suffixedFromIndex(i)).toEqual({});
+  });
+
+  it("joins a book listed twice", () => {
+    const i = { books: [index([{ id: "1", verses: [] }]).books[0], index([{ id: "1_1", verses: v(6) }]).books[0]] };
+    expect(countsFromIndex(i)).toEqual({ PSA: { 1: 6 } });
+    expect(suffixedFromIndex(i)).toEqual({ PSA: [1] });
   });
 
   it("are the bundled ones for a bundled version, and none for an index without any", () => {
