@@ -308,6 +308,36 @@ describe("runSync", () => {
     expect(api.writes).toBe(0);
   });
 
+  it("sends no more reads once one is rate limited, and lets those in flight settle first", async () => {
+    let inFlight = 0;
+    let started = 0;
+    let settledBeforeStop = true;
+    let stopped = false;
+    api.getHighlights = async (_id, p) => {
+      started++;
+      inFlight++;
+      await new Promise((r) => setTimeout(r, 5));
+      inFlight--;
+      if (stopped) settledBeforeStop = false;
+      if (p === "RUT.2") {
+        const e = new ApiError(429, "too many requests", p);
+        e.retryAfter = 300;
+        throw e;
+      }
+      return [];
+    };
+    const s = await runSync({ api, versions: VERSIONS, scope: { kind: "books", books: ["RUT", "JHN"] }, state, apply: false });
+    stopped = true;
+    expect(s.fatal?.reason).toBe("rateLimited");
+    expect(inFlight).toBe(0);
+    expect(settledBeforeStop).toBe(true);
+    // Ruth is 4 chapters in 4 versions, read 4 at a time: the 429 comes in the
+    // second batch at the latest, and no later batch starts.
+    expect(started).toBeLessThanOrEqual(8);
+    await new Promise((r) => setTimeout(r, 20));
+    expect(started).toBeLessThanOrEqual(8);
+  });
+
   it("stops writing when rate limited mid-book, and the next run writes the rest", async () => {
     for (const v of [16, 17, 18]) api.hl("NIV", `RUT.1.${v}`, "ffe066");
     const orig = api.setHighlight.bind(api);

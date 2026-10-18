@@ -230,17 +230,30 @@ export type BookHighlights = Record<number, Map<Ref, string>>;
 
 const norm = (c: string | null | undefined) => (c ? c.toLowerCase().replace(/^#/, "") : null);
 
+/**
+ * Run fn over items, limit at a time. The first failure (or a stop) ends
+ * the whole pool: the other workers take no new item, and the ones in
+ * flight settle before it rejects, so a failure that stops a run (a rate
+ * limit, which every further request seems to extend) isn't followed by
+ * more requests or late progress.
+ */
 async function pool<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R>, signal?: AbortSignal): Promise<R[]> {
   const out: R[] = new Array(items.length);
   let next = 0;
+  let failure: { error: unknown } | undefined;
   const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (next < items.length) {
-      signal?.throwIfAborted();
-      const i = next++;
-      out[i] = await fn(items[i]);
+    while (next < items.length && !failure) {
+      try {
+        signal?.throwIfAborted();
+        const i = next++;
+        out[i] = await fn(items[i]);
+      } catch (error) {
+        failure ??= { error };
+      }
     }
   });
   await Promise.all(workers);
+  if (failure) throw failure.error;
   return out;
 }
 
