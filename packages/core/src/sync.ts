@@ -457,17 +457,24 @@ export async function applyPlan(
   plan: BookPlan,
   state: SyncState,
   onAction?: () => void,
-): Promise<{ errors: string[]; stoppedBy?: ApiError }> {
+): Promise<{ errors: string[]; stoppedBy?: ApiError; sets: number; removals: number }> {
   const byId = new Map(versions.map((v) => [v.bibleId, v]));
   const retry = new Set<Ref>(); // canonical refs to leave for next run
   const rejected = new Map<Ref, Set<number>>(); // canonical ref -> bible ids the API refused
   const errors: string[] = [];
   let stoppedBy: ApiError | undefined;
+  let sets = 0; // written, not just planned
+  let removals = 0;
   for (const [i, a] of plan.actions.entries()) {
     const v = byId.get(a.version)!;
     try {
-      if (a.op === "set") await api.setHighlight(v.bibleId, a.local, a.color!);
-      else await api.deleteHighlight(v.bibleId, a.local);
+      if (a.op === "set") {
+        await api.setHighlight(v.bibleId, a.local, a.color!);
+        sets++;
+      } else {
+        await api.deleteHighlight(v.bibleId, a.local);
+        removals++;
+      }
     } catch (e) {
       if (!(e instanceof ApiError)) throw e;
       errors.push(`${v.abbr} ${a.op} ${a.local}: ${e.message}`);
@@ -509,5 +516,5 @@ export async function applyPlan(
     if (Object.keys(kept).length) state.verses[canon] = kept;
     else delete state.verses[canon];
   }
-  return { errors, stoppedBy };
+  return { errors, stoppedBy, sets, removals };
 }

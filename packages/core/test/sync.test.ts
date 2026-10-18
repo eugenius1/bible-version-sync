@@ -323,6 +323,7 @@ describe("runSync", () => {
     const s = await runSync({ api, versions: VERSIONS, scope: { kind: "books", books: ["RUT", "JHN"] }, state, apply: true });
     expect(s.fatal).toMatchObject({ reason: "rateLimited", retryAfter: 300 });
     expect(attempts).toBe(2); // no request after the 429
+    expect(s.sets).toBe(1); // only the write that went through
     expect(s.books.map((b) => b.book)).toEqual(["RUT"]); // JHN not attempted
 
     api.setHighlight = orig;
