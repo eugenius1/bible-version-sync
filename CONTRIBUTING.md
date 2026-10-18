@@ -312,6 +312,7 @@ unreachable; after three network failures, give up. The runner stops the
 whole run on the first auth, network or rate-limit failure rather than
 failing every book. A write that fails that way stops the rest of its book
 too, and those verses keep their old snapshot so the next run retries them.
+A failed read stops the book's other readers from starting new reads.
 
 **The rate limit is small, and in a browser it's invisible.** In Oct 2026 an
 app key got a 429 with `Retry-After: 300` after about 120 requests, whether
