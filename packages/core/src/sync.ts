@@ -248,6 +248,12 @@ async function pool<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R>, s
   const out: R[] = new Array(items.length);
   let next = 0;
   let failure: { error: unknown } | undefined;
+  // The first failure, unless one that stops the whole run (a rate limit,
+  // say) settles after it: the runner must see that one, or it would skip
+  // just this book and go on reading the next.
+  const fail = (error: unknown) => {
+    if (!failure || (stopsRun(error) && !stopsRun(failure.error))) failure = { error };
+  };
   const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
     while (next < items.length && !failure) {
       try {
@@ -255,10 +261,7 @@ async function pool<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R>, s
         const i = next++;
         out[i] = await fn(items[i]);
       } catch (error) {
-        // The first failure, unless one that stops the whole run (a rate
-        // limit, say) settles after it: the runner must see that one, or it
-        // would skip just this book and go on reading the next.
-        if (!failure || (stopsRun(error) && !stopsRun(failure.error))) failure = { error };
+        fail(error);
       }
     }
   });
