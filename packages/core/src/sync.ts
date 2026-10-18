@@ -7,7 +7,8 @@
  *
  *   - nothing changed              -> nothing to do
  *   - one or more versions changed -> that change is the "new value"
- *     (if they changed to different colors, the first listed version wins)
+ *     (if they changed to different colors, the first listed version wins,
+ *     or, given a colour order, the colour listed first, then the version)
  *
  * The new value is then applied to the *other* versions, but existing
  * highlights are never overwritten with a different color:
@@ -43,6 +44,7 @@
  */
 
 import { ApiError, type HighlightsApi } from "./api";
+import { colorRanker, type HighlightColorId } from "./colors";
 import { parseRef, ref, type Ref, type VersionMap } from "./versification";
 
 export interface SyncVersion {
@@ -204,7 +206,7 @@ export interface Difference {
   ref: Ref;
   /** bible id -> its new color (null = removed) */
   colors: Record<number, string | null>;
-  /** The version (bible id) whose color blank versions get. */
+  /** The version (bible id) whose color blank versions get: see PlanOptions. */
   winner: number;
   color: string | null;
 }
@@ -344,12 +346,23 @@ export async function readBook(
   return out;
 }
 
+export interface PlanOptions {
+  /**
+   * Decide between colours by this order instead of by the versions' order.
+   * The versions' order still breaks ties, such as two shades of one colour.
+   * It only picks which change blank versions follow: a version's own
+   * colour is kept either way.
+   */
+  colorOrder?: readonly HighlightColorId[];
+}
+
 export function planBook(
   book: string,
   all: SyncVersion[],
   current: BookHighlights,
   state: SyncState,
   only?: Set<Ref>,
+  opts: PlanOptions = {},
 ): BookPlan {
   const versions = supported(all);
   // A refused version keeps its snapshot, so that once it can be synced
@@ -359,6 +372,10 @@ export function planBook(
     book, actions: [], differences: [], newState: {}, members: {}, counts: {}, maps: {}, remapped: [],
   };
   const priority = versions.map((v) => v.bibleId);
+  // The first of `ids` (in version order) by colour, or simply the first.
+  const rank = opts.colorOrder && colorRanker(opts.colorOrder);
+  const first = (ids: number[], colorOf: (id: number) => string | null) =>
+    rank ? ids.reduce((best, a) => (rank(colorOf(a)) < rank(colorOf(best)) ? a : best)) : ids[0];
   for (const v of versions) {
     const fp = mapFingerprint(v.map, book);
     plan.maps[v.bibleId] = fp;
@@ -433,7 +450,7 @@ export function planBook(
     };
 
     if (Object.keys(changed).length > 0) {
-      const winner = priority.find((a) => a in changed)!;
+      const winner = first(priority.filter((a) => a in changed), (a) => changed[a]);
       const target = changed[winner];
       const old = prev[winner] ?? null; // the color the sync last left in the winner
       if (new Set(Object.values(changed)).size > 1) {
@@ -460,11 +477,12 @@ export function planBook(
       }
     }
 
-    // Newcomers with a blank get the verse's color (first listed version's).
+    // Newcomers with a blank get the verse's color (first listed version's,
+    // or the first by colour order).
     for (const v of participants) {
       if (!newcomers.has(v.bibleId) || cur[v.bibleId] !== null) continue;
-      const color = priority.map((a) => result[a]).find(Boolean);
-      if (color) addActions(v, "set", "fill", color);
+      const colored = priority.filter((a) => result[a]);
+      if (colored.length) addActions(v, "set", "fill", result[first(colored, (a) => result[a])]);
     }
 
     for (const a of refused) {

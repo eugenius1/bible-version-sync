@@ -38,9 +38,11 @@ package, runs all tests and builds the app. Run it before every commit.
 `VITE_YV_APP_KEY` (git ignores that file). The app's callback URL must be
 `<origin><base>callback`, where the base is `/` except when deployed below a
 domain's root; the dev server is pinned to port 8001 so that
-`http://localhost:8001/callback` stays valid. The key isn't a secret — it's an
-OAuth client id and ends up in the built JavaScript — but keep your real value
-out of the repository anyway.
+`http://localhost:8001/callback` stays valid. `PORT` moves it (when another
+checkout's server has 8001), but signing in only works on 8001 unless that
+port's callback is registered for the key too. The key isn't a secret — it's
+an OAuth client id and ends up in the built JavaScript — but keep your real
+value out of the repository anyway.
 
 **Deploying.** Pushes to `main` deploy to GitHub Pages at
 <https://eusebius.tech/bible-version-sync/> (`.github/workflows/deploy.yml`).
@@ -221,9 +223,13 @@ language has only its default version, the one bible.com opens for it
 default that a hand-made list leaves out ranks just after it. Both ride in
 the names chunk. The example list shown before the person chooses
 (`defaultVersions` in `apps/pwa/src/lib/db.ts`) uses the same ranking: the
-most used version of each of the browser's first three languages, then AMP,
-or the most used English version and AMP when none of those languages is
-known, so there are always two to sync.
+most used version of each of the browser's first seven languages. A sync
+needs two, so when that gives one, the next most used version in its
+language joins it (NIV and KJV for English alone), or NIV and AMP when its
+language has no other; NIV and AMP are also the list when none of the
+languages is known. AMP is an arbitrary favourite. Converting a snapshot
+saved by name still uses the old rule (first three languages, then AMP),
+since that's the list whose names it holds.
 
 **Verifying a version.** Also add an entry to `VERIFIED` in
 `packages/core/scripts/verified.mjs`, and for each chapter that matches neither
@@ -258,6 +264,18 @@ in the snapshot and in plans. It used to be the name the person gave each
 version, until names stopped being chosen; `migrateState` converts a
 snapshot from then using the names saved with the settings, and drops what
 it can't place, which only makes that version a newcomer.
+
+**Which colour blank versions get.** When versions changed a verse to
+different colours, the one blank versions follow is the first listed
+version's, or, given a colour order (`PlanOptions.colorOrder`, the app's
+"which wins?" card), the colour ranked first, with the
+versions' order breaking ties. A removal ranks after every colour. Either
+way only blanks and the sync's own copies follow it; each version keeps its
+own colour. Colours are ranked by the nearest of the ten in
+`HIGHLIGHT_COLORS` (`packages/core/src/colors.ts`), not by equality: the
+five the web offers are exact, but the five only the mobile apps offer were
+recovered from a screenshot of the Android picker, which draws them at about
+55% opacity, and may be a unit or two out.
 
 Safety rules, all tested:
 
@@ -403,7 +421,9 @@ and 3407. Key anything version-specific by bible id.
 ## Claude review on PRs
 
 `.github/workflows/claude-review.yml` runs Claude's `/code-review` and
-`/security-review` on every non-draft PR from this repo and posts findings as
+`/security-review`, from the shared actions in
+[eugenius1/actions](https://github.com/eugenius1/actions), on every non-draft
+PR from this repo and posts findings as
 inline comments, using the owner's Claude plan through the
 `CLAUDE_CODE_OAUTH_TOKEN` secret (made with `claude setup-token`; renew it
 when it expires). Fork and Dependabot PRs are skipped, since they can't read
@@ -421,6 +441,9 @@ tick, and test a change to the workflow on a later PR that doesn't touch it.
 Because of that, keep a PR that edits the workflow minimal and free of
 production code: it gets no Claude review, so anything else in it gets none
 either. Put the code in its own PR.
+
+A change to the shared actions isn't checked that way: once merged there, it
+runs on every repo's next PR.
 
 ## Things that will bite you elsewhere
 

@@ -35,7 +35,8 @@ again. A highlight lands on the same *words* in every version.
   is removed or recoloured.
 - **When versions disagree, each keeps its own colour.** Versions with no
   highlight on that verse get the colour from the version listed first; you
-  choose the order.
+  choose the order. Or rank the highlight colours instead, so that, say, pink
+  always wins over yellow whichever version it's in.
 - **Later changes follow you.** Remove or recolour a highlight in one version
   and the next sync does the same in the others — but only where the verse
   still has the colour the sync put there. A colour you picked yourself in one
@@ -57,8 +58,9 @@ James Version (KJV)** and the **Russian Synodal Bible**, and the most used
 versions of over 15 other languages.
 
 The app starts with an example list, the most used version in each of your
-browser's first three languages (NIV for English, Louis Segond for French)
-and the Amplified Bible, and, the first time
+browser's first seven languages (NIV for English, Louis Segond for French),
+with a second version of the same language when that's the only one, and,
+the first time
 you sign in, looks for the versions you actually highlight in: it reads your
 highlights in Isaiah 41, Philippians 4 and John 3 in every
 version in your browser's languages, most used versions first, and offers to
