@@ -235,6 +235,8 @@ export type BookHighlights = Record<number, Map<Ref, string>>;
 
 const norm = (c: string | null | undefined) => (c ? c.toLowerCase().replace(/^#/, "") : null);
 
+const stopsRun = (e: unknown) => e instanceof ApiError && e.stopsRun;
+
 /**
  * Run fn over items, limit at a time. The first failure (or a stop) ends
  * the whole pool: the other workers take no new item, and the ones in
@@ -253,7 +255,10 @@ async function pool<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R>, s
         const i = next++;
         out[i] = await fn(items[i]);
       } catch (error) {
-        failure ??= { error };
+        // The first failure, unless one that stops the whole run (a rate
+        // limit, say) settles after it: the runner must see that one, or it
+        // would skip just this book and go on reading the next.
+        if (!failure || (stopsRun(error) && !stopsRun(failure.error))) failure = { error };
       }
     }
   });

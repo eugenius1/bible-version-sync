@@ -343,6 +343,20 @@ describe("runSync", () => {
     expect(started).toBeLessThanOrEqual(8);
   });
 
+  it("stops the run on a rate limit that settles after another read's ordinary failure", async () => {
+    api.getHighlights = async (_id, p) => {
+      if (p === "RUT.1") throw new ApiError(503, "busy", p);
+      if (p === "RUT.2") {
+        await new Promise((r) => setTimeout(r, 5));
+        throw new ApiError(429, "too many requests", p);
+      }
+      return [];
+    };
+    const s = await runSync({ api, versions: VERSIONS, scope: { kind: "books", books: ["RUT", "JHN"] }, state, apply: false });
+    expect(s.fatal?.reason).toBe("rateLimited");
+    expect(s.books.map((b) => b.book)).toEqual(["RUT"]); // John not started
+  });
+
   it("stops writing when rate limited mid-book, and the next run writes the rest", async () => {
     for (const v of [16, 17, 18]) api.hl("NIV", `RUT.1.${v}`, "ffe066");
     const orig = api.setHighlight.bind(api);
