@@ -4,8 +4,11 @@ import {
   ApiError,
   Standard,
   VersionMap,
+  YouVersionClient,
   applyPlan,
   buildVersionMap,
+  builtinCounts,
+  builtinOverrides,
   chapterScope,
   emptyState,
   forgetVersion,
@@ -13,6 +16,8 @@ import {
   planBook,
   readBook,
   runSync,
+  suffixedChapters,
+  versificationLabel,
   type Highlight,
   type HighlightsApi,
   type SyncState,
@@ -476,6 +481,101 @@ describe("a version moving from assumed numbering to bundled counts", () => {
     expect(api.color("NIV", "PSA.51.2")).toBe("ffe066");
     expect(api.color("NIV", "PSA.23.1")).toBe("a3d9ff");
     expect(api.store[73]["PSA.51.3"]).toBe("ffe066"); // NIV 51:1, now in its place
+  });
+});
+
+describe("a version whose chapters YouVersion ids PSA.1_1", () => {
+  // NR2006 (4833) ids its Psalms and Job PSA.1_1, JOB.1_1…, and stores their
+  // highlights under those ids. This YouVersion answers as the real one did
+  // when checked (#25): a plain chapter of those books reads as empty, and a
+  // plain write there is a 502.
+  class YouVersion {
+    store: Record<number, Record<string, string>> = { 111: {}, 4833: {} };
+    readonly fetch = (async (url: string, init: RequestInit) => {
+      const u = new URL(url);
+      const id = Number(u.searchParams.get("bible_id"));
+      if (init.method === "GET") {
+        const chapter = u.searchParams.get("passage_id")!;
+        const data = Object.entries(this.store[id])
+          .filter(([p]) => p.startsWith(`${chapter}.`))
+          .map(([p, c]) => ({ bible_id: id, passage_id: p, color: c }));
+        return data.length ? Response.json({ data }) : new Response(null, { status: 204 });
+      }
+      if (init.method === "POST") {
+        const { highlight: h } = JSON.parse(String(init.body));
+        if (h.bible_id === 4833 && /^(PSA|JOB)\.\d+\./.test(h.passage_id)) {
+          return Response.json({ message: "Unexpected response from highlights backend" }, { status: 502 });
+        }
+        this.store[h.bible_id][h.passage_id] = h.color;
+        return Response.json({}, { status: 201 });
+      }
+      delete this.store[id][decodeURIComponent(u.pathname.split("/").pop()!)];
+      return new Response(null, { status: 204 });
+    }) as unknown as typeof fetch;
+  }
+
+  let yv: YouVersion;
+  let client: YouVersionClient;
+  const NIV: SyncVersion = { abbr: "NIV", bibleId: 111, map: buildVersionMap("NIV", 111).map };
+  const NR2006: SyncVersion = { abbr: "NR2006", bibleId: 4833, map: buildVersionMap("NR2006", 4833).map };
+  const run = async (book: string, versions = [NIV, NR2006]) => {
+    const plan = planBook(book, versions, await readBook(client, versions, book), state);
+    await applyPlan(client, versions, plan, state);
+    return plan;
+  };
+
+  beforeEach(() => {
+    yv = new YouVersion();
+    const tokens = { get: async () => ({ access_token: "a", obtained_at: Date.now() }), set: async () => {} };
+    client = new YouVersionClient({ appKey: "k", tokens, fetch: yv.fetch, delayMs: 0, maxRetries: 0 });
+  });
+
+  it("is read and written under its own ids", async () => {
+    expect(Object.keys(suffixedChapters(4833))).toEqual(["JOB", "PSA"]);
+    yv.store[4833]["PSA.1_1.5"] = "ffe066";
+    yv.store[111]["JOB.1.1"] = "a3d9ff";
+    yv.store[111]["JHN.3.16"] = "c1f4c1";
+    await run("PSA");
+    await run("JOB");
+    await run("JHN");
+    expect(yv.store[111]["PSA.1.5"]).toBe("ffe066");
+    expect(yv.store[4833]).toEqual({ "PSA.1_1.5": "ffe066", "JOB.1_1.1": "a3d9ff", "JHN.3.16": "c1f4c1" });
+
+    // A removal there is seen, and follows to the others.
+    delete yv.store[4833]["PSA.1_1.5"];
+    const plan = await run("PSA");
+    expect(plan.actions.map((a) => [a.version, a.op, a.local])).toEqual([[111, "remove", "PSA.1.5"]]);
+    expect(yv.store[111]["PSA.1.5"]).toBeUndefined();
+  });
+
+  it("is a newcomer once in those books, so nothing synced under the old ids reads as removed", async () => {
+    // As the map was before #25: the same numbering, read and written plain.
+    const std = Standard.load();
+    const plain: SyncVersion = {
+      ...NR2006,
+      map: VersionMap.build("NR2006", std, {
+        knownCounts: builtinCounts(4833),
+        overrides: builtinOverrides(4833),
+        label: versificationLabel(4833),
+      }),
+    };
+    expect(plain.map.toCanon).toEqual(NR2006.map.toCanon);
+    yv.store[111]["PSA.23.1"] = "ffe066";
+    yv.store[4833]["PSA.23_1.1"] = "ffe066";
+    await run("PSA", [NIV, plain]);
+    expect(state.verses["PSA.23.1"]).toEqual({ 111: "ffe066", 4833: "ffe066" });
+
+    // Had a plain write ever been stored where reads by the real ids can't
+    // see it, the snapshot would hold a colour NR2006 now seems to lack.
+    delete yv.store[4833]["PSA.23_1.1"];
+    const plan = await run("PSA");
+    expect(plan.remapped).toEqual([4833]);
+    expect(plan.actions.filter((a) => a.op === "remove")).toEqual([]);
+    expect(yv.store[111]["PSA.23.1"]).toBe("ffe066");
+    expect(yv.store[4833]["PSA.23_1.1"]).toBe("ffe066"); // filled, under its real id
+
+    // Only once: the next sync diffs as usual.
+    expect((await run("PSA")).remapped).toEqual([]);
   });
 });
 

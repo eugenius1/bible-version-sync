@@ -10,6 +10,7 @@ import {
   builtinOverrides,
   isVerifiedVersion,
   parseRef,
+  suffixedChapters,
   unfitChapters,
   versificationLabel,
   type ChapterCounts,
@@ -24,11 +25,12 @@ import {
 // coverage: mostly a single Gospel, or Ruth and Jonah, plus 11 in languages
 // where Synodal or Septuagint numbering is common. GNA2025, NR2006, DHH94I,
 // BFC and TUKARA84 id some chapters BOOK.<n>_1; scan.py counts those as
-// chapter <n>.
+// chapter <n>, and records them as `suffixed`.
 interface Scanned {
   abbr: string;
   vrs: StdScheme | null;
   counts: Record<string, number[]>;
+  suffixed?: Record<string, number[]>;
 }
 const SCAN: Record<string, Scanned> = JSON.parse(
   readFileSync(new URL("../../../tools/versification-survey/data/counts.json", import.meta.url), "utf8"),
@@ -174,6 +176,14 @@ describe("bundled labels", () => {
     expect(Object.keys(labels).length).toBeGreaterThan(3000);
     for (const [id, vrs] of Object.entries(labels)) expect(versificationLabel(Number(id)), id).toBe(vrs);
     for (let id = 1; id <= 5000; id++) if (!(id in labels)) expect(versificationLabel(id), String(id)).toBeUndefined();
+  });
+});
+
+describe("chapters YouVersion ids BOOK.<n>_1", () => {
+  it("are bundled exactly as the scan found them", () => {
+    const ids = Object.keys(SCAN).map(Number);
+    for (const id of ids) expect(suffixedChapters(id), String(id)).toEqual(SCAN[id].suffixed ?? {});
+    expect(ids.filter((id) => SCAN[id].suffixed).sort((a, b) => a - b)).toEqual([52, 63, 67, 3404, 4833]);
   });
 });
 

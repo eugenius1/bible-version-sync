@@ -153,7 +153,22 @@ for (const [lang, versions] of Object.entries(candidates)) {
 const defaults = [...new Set(Object.values(JSON.parse(readFileSync(join(survey, "defaults.json"), "utf8"))))].sort(byNumber);
 for (const id of defaults) if (!names[id]) throw new Error(`defaults.json: ${id} isn't a listed version`);
 
+// The chapters YouVersion ids BOOK.<n>_1, by version and book (NR2006's
+// Psalms are PSA.1_1…, BFC's only 10 to 147). Their highlights are stored under those ids, so the
+// API client translates them to and from BOOK.<n> (#25).
+const suffixed = {};
+for (const [id, v] of Object.entries(scanned)) {
+  if (!v.suffixed) continue;
+  const books = Object.entries(v.suffixed);
+  const chapters = (cs) => Array.isArray(cs) && cs.length && cs.every((c) => Number.isInteger(c) && c > 0);
+  if (!books.length || !books.every(([b, cs]) => BOOKS.includes(b) && chapters(cs))) {
+    throw new Error(`counts.json: ${id}: bad suffixed chapters ${JSON.stringify(v.suffixed)}`);
+  }
+  suffixed[id] = v.suffixed;
+}
+
 writeJson("known_counts.json", known);
+writeJson("suffixed_chapters.json", suffixed);
 writeJson("labels.json", labels);
 writeJson("names.json", names, { inline: true });
 writeFileSync(join(data, "defaults.json"), `[\n${defaults.join(",\n")}\n]\n`);
@@ -161,6 +176,7 @@ writeFileSync(join(data, "defaults.json"), `[\n${defaults.join(",\n")}\n]\n`);
 const total = Object.values(known).reduce((n, v) => n + Object.keys(v).length, 0);
 console.log(
   `wrote data/known_counts.json (${Object.keys(known).length} versions, ${total} chapters)` +
+    `, data/suffixed_chapters.json (${Object.keys(suffixed).length} versions)` +
     `, data/labels.json (${Object.keys(labels).length} labels)` +
     `, data/names.json (${Object.keys(names).length} names)` +
     ` and data/defaults.json (${defaults.length} language defaults)`,
