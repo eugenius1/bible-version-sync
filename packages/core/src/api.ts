@@ -23,6 +23,11 @@ export class ApiError extends Error {
   get retryable(): boolean {
     return this.status === 0 || this.status === 429 || this.status >= 500;
   }
+
+  /** Sign-in expired, YouVersion unreachable or rate limited: every other request would fail the same way. */
+  get stopsRun(): boolean {
+    return this.status === 401 || this.status === 0 || this.status === 429;
+  }
 }
 
 export interface TokenSet {
@@ -87,6 +92,13 @@ export function fromYouVersionId(bibleId: number, passageId: string): string {
     suffixed[book]?.includes(Number(ch)) ? `${start}${book}.${ch}` : m,
   );
 }
+
+/**
+ * The longest Retry-After worth waiting out inside a request. YouVersion's
+ * rate limit asks for 300 s; sitting silently through that, five retries
+ * over, looks like a hang, so the error goes to the caller to explain.
+ */
+const MAX_RETRY_AFTER_S = 60;
 
 const sleep = (ms: number, signal?: AbortSignal) =>
   new Promise<void>((resolve, reject) => {
@@ -249,6 +261,7 @@ export class YouVersionClient implements HighlightsApi {
         if (e.status === 0 && ++networkFailures > 2) {
           throw new ApiError(0, init.auth ? "can't reach YouVersion, or the sign-in has expired" : e.detail, path);
         }
+        if (e.status === 429 && (e.retryAfter ?? 0) > MAX_RETRY_AFTER_S) throw e;
         if (!e.retryable || attempt >= this.maxRetries) throw e;
         const backoff = Math.max(Math.min(60_000, 1000 * 2 ** attempt), (e.retryAfter ?? 0) * 1000);
         this.pauseUntil = Math.max(this.pauseUntil, Date.now() + backoff);
@@ -264,6 +277,12 @@ export class YouVersionClient implements HighlightsApi {
       if (e instanceof ApiError && (e.status === 400 || e.status === 401)) {
         throw new ApiError(401, "sign-in expired", path);
       }
+      // The token endpoint answers a stale refresh token with a 400 that
+      // the browser can read, so a refresh that can't get through at all
+      // isn't about the sign-in: YouVersion is unreachable, or is rate
+      // limiting this app key with a 429 that has no CORS header. Retrying
+      // only extends the lock-out, so stop here.
+      if (e instanceof ApiError && e.status === 0) throw new ApiError(0, e.detail, path);
       throw e;
     }
   }

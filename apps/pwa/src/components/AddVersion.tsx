@@ -30,7 +30,8 @@ function languageName(tag: string, locale: string): string {
  * offered, as "Version {id}", since the names can lag behind YouVersion.
  */
 export function AddVersion({ added, disabled, onAdd }: Props) {
-  const { t, f, num } = useI18n();
+  const i18n = useI18n();
+  const { t, f, num } = i18n;
   const tv = t.versions;
   const localeTag = t.meta.localeTag;
   const listId = useId();
@@ -57,14 +58,15 @@ export function AddVersion({ added, disabled, onAdd }: Props) {
     if (!selectable(bibleId)) return;
     setError(null);
     setAdding(bibleId);
-    let problem = await canReadHighlights(bibleId);
+    const failure = await canReadHighlights(bibleId);
+    let problem = failure ? problemText(failure, i18n) : null;
     // A version whose numbering can't be mapped would only ever be left out.
     let resolved = null;
     if (!problem) {
       try {
         resolved = await resolveVersion({ bibleId, abbr: versionName(bibleId)?.abbr ?? String(bibleId) });
       } catch (e) {
-        problem = problemText(e); // e.g. rate limited: nothing cached, so adding it again retries
+        problem = problemText(e, i18n); // e.g. rate limited: nothing cached, so adding it again retries
       }
     }
     setAdding(null);

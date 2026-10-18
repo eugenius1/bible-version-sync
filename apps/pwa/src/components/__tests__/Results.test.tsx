@@ -105,3 +105,89 @@ describe("a stopped run", () => {
     expect(screen.getByText("Nothing needed changing in the book synced before stopping.")).toBeInTheDocument();
   });
 });
+
+describe("a run YouVersion rate limited", () => {
+  it("says how long to wait, and doesn't suggest signing in again", () => {
+    render(
+      <I18nProvider>
+        <Results
+          run={{
+            status: "done",
+            apply: true,
+            scope: { kind: "books", books: ["PSA"] },
+            summary: { ...summary, books: [], sets: 0, removals: 0, differences: 0, refused: [], fatal: { reason: "rateLimited", message: "x", retryAfter: 90 } },
+          }}
+          names={names}
+          onApply={vi.fn()}
+          onApplyAllowingRemovals={vi.fn()}
+          onSignInAgain={vi.fn()}
+        />
+      </I18nProvider>,
+    );
+    expect(screen.getByText(/Try again in 2 minutes\. Nothing more was changed\./)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Sign in again" })).not.toBeInTheDocument();
+  });
+
+  it("says a few minutes when YouVersion didn't say how long", () => {
+    render(
+      <I18nProvider>
+        <Results
+          run={{
+            status: "done",
+            apply: false,
+            scope: { kind: "books", books: ["PSA"] },
+            summary: { ...summary, books: [], sets: 0, removals: 0, differences: 0, refused: [], fatal: { reason: "rateLimited", message: "x" } },
+          }}
+          names={names}
+          onApply={vi.fn()}
+          onApplyAllowingRemovals={vi.fn()}
+          onSignInAgain={vi.fn()}
+        />
+      </I18nProvider>,
+    );
+    expect(screen.getByText(/Try again in a few minutes\. Nothing more was changed\./)).toBeInTheDocument();
+  });
+});
+
+describe("a run YouVersion stopped answering", () => {
+  it("explains a possible rate limit and doesn't suggest signing in again", () => {
+    render(
+      <I18nProvider>
+        <Results
+          run={{
+            status: "done",
+            apply: false,
+            scope: { kind: "books", books: ["PSA"] },
+            summary: { ...summary, books: [], sets: 0, removals: 0, differences: 0, refused: [], fatal: { reason: "network", message: "x" } },
+          }}
+          names={names}
+          onApply={vi.fn()}
+          onApplyAllowingRemovals={vi.fn()}
+          onSignInAgain={vi.fn()}
+        />
+      </I18nProvider>,
+    );
+    expect(screen.getByText(/YouVersion isn't answering\..*asked too often/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Sign in again" })).not.toBeInTheDocument();
+  });
+
+  it("still offers to sign in again when the sign-in has expired", () => {
+    render(
+      <I18nProvider>
+        <Results
+          run={{
+            status: "done",
+            apply: true,
+            scope: { kind: "books", books: ["PSA"] },
+            summary: { ...summary, books: [], sets: 0, removals: 0, differences: 0, refused: [], fatal: { reason: "auth", message: "x" } },
+          }}
+          names={names}
+          onApply={vi.fn()}
+          onApplyAllowingRemovals={vi.fn()}
+          onSignInAgain={vi.fn()}
+        />
+      </I18nProvider>,
+    );
+    expect(screen.getByRole("button", { name: "Sign in again" })).toBeInTheDocument();
+  });
+});

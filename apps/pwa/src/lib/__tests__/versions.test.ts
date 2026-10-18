@@ -11,7 +11,8 @@ vi.mock("../db", () => ({
   },
 }));
 
-const { resolveVersions } = await import("../versions");
+const { problemText, resolveVersions } = await import("../versions");
+const { createI18n } = await import("../../i18n");
 
 describe("resolveVersions", () => {
   beforeEach(() => {
@@ -79,5 +80,29 @@ describe("resolveVersions", () => {
     expect(first.source).toBe("assumed");
     expect(again.source).toBe("assumed");
     expect(getIndex).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("problemText", () => {
+  const en = createI18n("en");
+  const fr = createI18n("fr");
+  const limited = (retryAfter?: number) => Object.assign(new ApiError(429, "too many requests"), { retryAfter });
+
+  it("phrases the failures a person can act on in their language, never the client's English", () => {
+    expect(problemText(new ApiError(401, "sign-in expired"), fr)).toBe("votre connexion YouVersion a expiré. Reconnectez-vous.");
+    expect(problemText(new ApiError(0, "Failed to fetch"), fr)).toMatch(/^YouVersion ne répond pas\./);
+    expect(problemText(new ApiError(0, "Failed to fetch"), en)).not.toMatch(/Failed to fetch/);
+  });
+
+  it("says how long a rate limit lasts when YouVersion says, in whole minutes", () => {
+    expect(problemText(limited(300), en)).toMatch(/Try again in 5 minutes\.$/);
+    expect(problemText(limited(30), en)).toMatch(/Try again in 1 minute\.$/);
+    expect(problemText(limited(), en)).toMatch(/Try again in a few minutes\.$/);
+  });
+
+  it("falls back to YouVersion's own message, then the status, for anything else", () => {
+    expect(problemText(new ApiError(403, "not licensed"), en)).toBe("not licensed");
+    expect(problemText(new ApiError(500, ""), en)).toBe("HTTP 500");
+    expect(problemText(new TypeError("boom"), en)).toBe("TypeError: boom");
   });
 });

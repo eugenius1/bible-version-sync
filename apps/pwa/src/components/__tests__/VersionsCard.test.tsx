@@ -147,6 +147,17 @@ describe("VersionsCard", () => {
       expect(await screen.findByRole("alert")).toHaveTextContent(/Version 999998 can't be synced: 153 of its chapters/);
       expect(onChange).not.toHaveBeenCalled();
     });
+
+    it("explains in the reader's language why a version couldn't be added", async () => {
+      const { ApiError } = await import("@bvs/core");
+      getHighlights.mockRejectedValue(new ApiError(0, "Failed to fetch"));
+      const onChange = renderCard([{ abbr: "NIV", bibleId: 111 }]);
+      const [kjv] = await search("KJV");
+      await userEvent.click(kjv);
+      expect(await screen.findByRole("alert")).toHaveTextContent(/Couldn't read highlights for version 1: YouVersion isn't answering\./);
+      expect(screen.getByRole("alert")).not.toHaveTextContent(/Failed to fetch/);
+      expect(onChange).not.toHaveBeenCalled();
+    });
   });
 
   it("explains a saved version whose numbering it can't map", () => {
@@ -254,7 +265,26 @@ describe("VersionsCard", () => {
       getHighlights.mockRejectedValue(new ApiError(401, "sign-in expired"));
       renderCard([{ abbr: "KJV", bibleId: 1 }]);
       await userEvent.click(screen.getByRole("button", { name: "Find my versions" }));
-      expect(await screen.findByText("Couldn't finish looking: sign-in expired")).toBeInTheDocument();
+      expect(await screen.findByText("Couldn't finish looking: your YouVersion sign-in has expired. Sign in again.")).toBeInTheDocument();
+    });
+
+    it("explains a request that never got an answer, in the reader's language", async () => {
+      const { ApiError } = await import("@bvs/core");
+      getHighlights.mockRejectedValue(new ApiError(0, "Failed to fetch"));
+      renderCard([{ abbr: "KJV", bibleId: 1 }]);
+      await userEvent.click(screen.getByRole("button", { name: "Find my versions" }));
+      expect(await screen.findByText(/^Couldn't finish looking: YouVersion isn't answering\./)).toBeInTheDocument();
+      expect(screen.queryByText(/Failed to fetch/)).not.toBeInTheDocument();
+    });
+
+    it("says how long to wait when YouVersion rate limits the app", async () => {
+      const { ApiError } = await import("@bvs/core");
+      const e = new ApiError(429, "too many requests");
+      e.retryAfter = 300;
+      getHighlights.mockRejectedValue(e);
+      renderCard([{ abbr: "KJV", bibleId: 1 }]);
+      await userEvent.click(screen.getByRole("button", { name: "Find my versions" }));
+      expect(await screen.findByText(/Try again in 5 minutes\.$/)).toBeInTheDocument();
     });
   });
 });

@@ -324,8 +324,27 @@ in every version — about 1,200 requests per version for a whole Bible.
 instead of returning the 401. Successful responses and other errors do have the
 header. The client therefore treats a failed authenticated request as a likely
 expired token: refresh once and retry; if the refresh is rejected, report
-"sign-in expired"; after three network failures, give up. The runner stops the
-whole run on the first auth or network failure rather than failing every book.
+"sign-in expired"; if the refresh can't get through either, it isn't the
+sign-in (a stale refresh token gets a readable 400), so stop at once as
+unreachable; after three network failures, give up. The runner stops the
+whole run on the first auth, network or rate-limit failure rather than
+failing every book. A write that fails that way stops the rest of its book
+too, and those verses keep their old snapshot so the next run retries them.
+A failed read stops the book's other readers from starting new reads.
+
+**The rate limit is small, and in a browser it's invisible.** In Oct 2026 an
+app key got a 429 with `Retry-After: 300` after about 120 requests, whether
+they came in 5 seconds or over two minutes, so the limit counts requests over
+minutes, and pacing only delays it. A "Find my versions" scan in English can
+need 270 reads, so it can trip the limit on its own. The 429 has no CORS
+header, for `/auth/token` too, so the browser reports only "Failed to fetch".
+That's the case above where the refresh can't get through. Every request
+during the lock-out seems to extend it, which is why the client stops
+instead of retrying. Outside a browser the 429 is visible: the client waits
+out a `Retry-After` of up to a minute itself, and hands a longer one back so
+the app can say how long to wait. The app phrases failures by status in
+`problemText` (`apps/pwa/src/lib/versions.ts`), never with the client's
+detail, which is English and sometimes the browser's.
 
 **The refresh grant works** (`grant_type=refresh_token`), though the docs don't
 describe it. Tokens last an hour.

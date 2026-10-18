@@ -205,7 +205,13 @@ export const en = {
     ],
     writeErrors: ["{n} change failed; the next sync retries it.", "{n} changes failed; the next sync retries them."],
     authExpired: "Stopped: your YouVersion sign-in has expired. Nothing more was changed.",
-    network: "Stopped: couldn't reach YouVersion. Check your connection and try again. If it keeps happening, sign in again.",
+    network:
+      "Stopped: YouVersion isn't answering. Check your connection. If you're online, the app has probably asked too often for now: YouVersion then makes it wait several minutes. Nothing more was changed.",
+    rateLimited: [
+      "Stopped: YouVersion has had too many requests from the app for now. Try again in {n} minute. Nothing more was changed.",
+      "Stopped: YouVersion has had too many requests from the app for now. Try again in {n} minutes. Nothing more was changed.",
+    ],
+    rateLimitedSoon: "Stopped: YouVersion has had too many requests from the app for now. Try again in a few minutes. Nothing more was changed.",
     signInAgain: "Sign in again",
     apply: ["Apply {n} change", "Apply {n} changes"],
     blocked: [
@@ -221,6 +227,17 @@ export const en = {
     action: { fill: "add", recolor: "change color", remove: "remove" },
     more: "…and {n} more",
     refused: "Left out because their numbering isn't supported: {names}. Nothing was read or changed in them.",
+  },
+
+  problems: {
+    signInExpired: "your YouVersion sign-in has expired. Sign in again.",
+    unreachable:
+      "YouVersion isn't answering. Check your connection. If you're online, the app has probably asked too often for now: YouVersion then makes it wait several minutes.",
+    rateLimited: [
+      "YouVersion has had too many requests from the app for now. Try again in {n} minute.",
+      "YouVersion has had too many requests from the app for now. Try again in {n} minutes.",
+    ],
+    rateLimitedSoon: "YouVersion has had too many requests from the app for now. Try again in a few minutes.",
   },
 
   footer: {

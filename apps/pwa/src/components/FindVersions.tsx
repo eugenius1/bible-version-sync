@@ -21,7 +21,8 @@ type Scan =
   | { status: "done"; found: Found[] }
   /** Stopped on request: what was found so far stays, to be added. */
   | { status: "stopped"; done: number; total: number; found: Found[] }
-  | { status: "error"; message: string };
+  /** Phrased when shown, so it follows a change of language. */
+  | { status: "error"; error: unknown };
 
 interface Props {
   settings: VersionSetting[];
@@ -37,7 +38,8 @@ interface Props {
  * their languages (see discoverVersions). Read-only: adding one is up to them.
  */
 export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
-  const { t, f, num, plural } = useI18n();
+  const i18n = useI18n();
+  const { t, f, num, plural } = i18n;
   const tf = t.versions.find;
   const [scan, setScan] = useState<Scan>({ status: "idle" });
   const [numbering, setNumbering] = useState<ReadonlyMap<number, Numbering>>(new Map());
@@ -88,11 +90,11 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
     } catch (e) {
       if (controller.signal.aborted) {
         setScan((s) => (s.status === "running" ? { status: "stopped", done: s.done, total: s.total, found: s.found } : { status: "idle" }));
-      } else setScan({ status: "error", message: problemText(e) });
+      } else setScan({ status: "error", error: e });
     } finally {
       abort.current = null;
     }
-  }, [settings, localeTag]);
+  }, [settings, localeTag, i18n]);
 
   // Look straight away on a first visit. Once only: settings change as soon
   // as a suggestion is taken, and that mustn't start another scan.
@@ -158,7 +160,7 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
           {scan.total ? f(tf.stopped, { done: num(scan.done), total: num(scan.total) }) : tf.stoppedAtStart}
         </p>
       )}
-      {scan.status === "error" && <p className="text-sm text-red-700 dark:text-red-300">{f(tf.failed, { problem: scan.message })}</p>}
+      {scan.status === "error" && <p className="text-sm text-red-700 dark:text-red-300">{f(tf.failed, { problem: problemText(scan.error, i18n) })}</p>}
       {scan.status === "done" && !found.length && <p className="text-sm text-stone-600 dark:text-stone-400">{tf.none}</p>}
 
       {found.length > 0 && (

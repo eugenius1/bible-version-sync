@@ -128,6 +128,26 @@ describe("YouVersionClient", () => {
     expect(calls.filter((u) => u.includes("bible_id=111"))).toHaveLength(0);
   });
 
+  it("stops at once when neither the read nor the refresh can get through", async () => {
+    // What a rate-limited app key looks like in a browser: YouVersion's 429
+    // has no CORS header, for the token endpoint too.
+    const { f, calls } = fakeFetch(["cors-blocked", "cors-blocked", "cors-blocked", "cors-blocked"]);
+    const c = new YouVersionClient({ appKey: "k", tokens: new MemoryTokens(fresh()), fetch: f, delayMs: 0 });
+    const e = await c.getHighlights(111, "JHN.3").catch((x: unknown) => x);
+    expect(e).toMatchObject({ status: 0 }); // the app phrases it by status
+    // The read and one refresh: more would only extend the lock-out.
+    expect(calls.map((x) => new URL(x.url).pathname)).toEqual(["/v1/highlights", "/auth/token"]);
+  });
+
+  it("hands a long Retry-After back instead of waiting it out", async () => {
+    const { f, calls } = fakeFetch([{ status: 429, body: { message: "slow down" }, headers: { "Retry-After": "300" } }]);
+    const c = new YouVersionClient({ appKey: "k", tokens: new MemoryTokens(fresh()), fetch: f, delayMs: 0 });
+    const t0 = Date.now();
+    await expect(c.getHighlights(111, "JHN.3")).rejects.toMatchObject({ status: 429, retryAfter: 300 });
+    expect(Date.now() - t0).toBeLessThan(500);
+    expect(calls).toHaveLength(1);
+  });
+
   it("refreshes the token once on a 401 and retries", async () => {
     const tokens = new MemoryTokens(fresh());
     const { f, calls } = fakeFetch([

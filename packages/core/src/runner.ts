@@ -66,9 +66,15 @@ export interface RunSummary {
   aborted: boolean;
   /**
    * Set when the run stopped early because YouVersion couldn't be used at all
-   * (sign-in expired or offline); later books were not attempted.
+   * (sign-in expired, offline or rate limited); the rest of the book being
+   * written and later books were not attempted.
    */
-  fatal?: { reason: "auth" | "network"; message: string };
+  fatal?: {
+    reason: "auth" | "network" | "rateLimited";
+    message: string;
+    /** For "rateLimited": seconds YouVersion asked to wait, when it said. */
+    retryAfter?: number;
+  };
   /**
    * Versions (bible ids) left out because their numbering is unsupported:
    * nothing was read or written for them, and their snapshot is untouched.
@@ -125,9 +131,9 @@ export async function runSync(o: RunOptions): Promise<RunSummary> {
       readDone += bookTotal - bookDone;
       summary.books.push(result);
       await o.onBookDone?.(result);
-      if (e.status === 401 || e.status === 0) {
+      if (e.stopsRun) {
         // Every other book would fail the same way; stop instead of hammering.
-        summary.fatal = { reason: e.status === 401 ? "auth" : "network", message: e.message };
+        summary.fatal = fatal(e);
         break;
       }
       continue;
@@ -138,32 +144,38 @@ export async function runSync(o: RunOptions): Promise<RunSummary> {
     const rems = plan.actions.length - sets;
     summary.differences += plan.differences.length;
     // A preview counts what it would do; a run that applies counts only what
-    // it went on to write, so a book held back by the limit isn't reported
-    // as removed.
-    const count = () => {
+    // it went on to write, so a book held back by the limit, or a write that
+    // failed or never went out, isn't reported as done.
+    if (!o.apply) {
       summary.sets += sets;
       summary.removals += rems;
-    };
-
-    if (!o.apply) count();
-    else {
+    } else {
       if (rems && removalsSoFar + rems > maxRemovals && !o.allowRemovals) {
         result.blocked = { removals: rems, limit: maxRemovals };
         summary.blockedBooks++;
       } else {
-        count();
         removalsSoFar += rems;
         let done = 0;
-        result.writeErrors = await applyPlan(o.api, versions, plan, o.state, () => {
+        const applied = await applyPlan(o.api, versions, plan, o.state, () => {
           done++;
           o.onProgress?.({ phase: "writing", book, done, total: plan.actions.length, readDone, readTotal });
         });
+        summary.sets += applied.sets;
+        summary.removals += applied.removals;
+        result.writeErrors = applied.errors;
         summary.writeErrors += result.writeErrors.length;
+        if (applied.stoppedBy) summary.fatal = fatal(applied.stoppedBy);
       }
     }
     summary.books.push(result);
     await o.onBookDone?.(result);
+    if (summary.fatal) break;
   }
   if (o.signal?.aborted) summary.aborted = true;
   return summary;
+}
+
+function fatal(e: ApiError): NonNullable<RunSummary["fatal"]> {
+  const reason = e.status === 401 ? "auth" : e.status === 429 ? "rateLimited" : "network";
+  return { reason, message: e.message, retryAfter: e.retryAfter };
 }

@@ -237,17 +237,38 @@ export type BookHighlights = Record<number, Map<Ref, string>>;
 
 const norm = (c: string | null | undefined) => (c ? c.toLowerCase().replace(/^#/, "") : null);
 
+const stopsRun = (e: unknown) => e instanceof ApiError && e.stopsRun;
+
+/**
+ * Run fn over items, limit at a time. The first failure (or a stop) ends
+ * the whole pool: the other workers take no new item, and the ones in
+ * flight settle before it rejects, so a failure that stops a run (a rate
+ * limit, which every further request seems to extend) isn't followed by
+ * more requests or late progress.
+ */
 async function pool<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R>, signal?: AbortSignal): Promise<R[]> {
   const out: R[] = new Array(items.length);
   let next = 0;
+  let failure: { error: unknown } | undefined;
+  // The first failure, unless one that stops the whole run (a rate limit,
+  // say) settles after it: the runner must see that one, or it would skip
+  // just this book and go on reading the next.
+  const fail = (error: unknown) => {
+    if (!failure || (stopsRun(error) && !stopsRun(failure.error))) failure = { error };
+  };
   const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (next < items.length) {
-      signal?.throwIfAborted();
-      const i = next++;
-      out[i] = await fn(items[i]);
+    while (next < items.length && !failure) {
+      try {
+        signal?.throwIfAborted();
+        const i = next++;
+        out[i] = await fn(items[i]);
+      } catch (error) {
+        fail(error);
+      }
     }
   });
   await Promise.all(workers);
+  if (failure) throw failure.error;
   return out;
 }
 
@@ -480,19 +501,35 @@ export async function applyPlan(
   plan: BookPlan,
   state: SyncState,
   onAction?: () => void,
-): Promise<string[]> {
+): Promise<{ errors: string[]; stoppedBy?: ApiError; sets: number; removals: number }> {
   const byId = new Map(versions.map((v) => [v.bibleId, v]));
   const retry = new Set<Ref>(); // canonical refs to leave for next run
   const rejected = new Map<Ref, Set<number>>(); // canonical ref -> bible ids the API refused
   const errors: string[] = [];
-  for (const a of plan.actions) {
+  let stoppedBy: ApiError | undefined;
+  let sets = 0; // written, not just planned
+  let removals = 0;
+  for (const [i, a] of plan.actions.entries()) {
     const v = byId.get(a.version)!;
     try {
-      if (a.op === "set") await api.setHighlight(v.bibleId, a.local, a.color!);
-      else await api.deleteHighlight(v.bibleId, a.local);
+      if (a.op === "set") {
+        await api.setHighlight(v.bibleId, a.local, a.color!);
+        sets++;
+      } else {
+        await api.deleteHighlight(v.bibleId, a.local);
+        removals++;
+      }
     } catch (e) {
       if (!(e instanceof ApiError)) throw e;
       errors.push(`${v.abbr} ${a.op} ${a.local}: ${e.message}`);
+      if (e.stopsRun) {
+        // The rest would fail the same way, and each request during a rate
+        // limit seems to extend it. This verse and every one not yet written
+        // keep their old snapshot, so the next run tries them again.
+        for (const rest of plan.actions.slice(i)) retry.add(rest.canon);
+        stoppedBy = e;
+        break;
+      }
       if (e.retryable) {
         retry.add(a.canon);
       } else {
@@ -523,5 +560,5 @@ export async function applyPlan(
     if (Object.keys(kept).length) state.verses[canon] = kept;
     else delete state.verses[canon];
   }
-  return errors;
+  return { errors, stoppedBy, sets, removals };
 }
