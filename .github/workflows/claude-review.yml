@@ -36,9 +36,10 @@ jobs:
           # Temporary, to see what the review does. The logs of a public repo
           # are public, so remove this once the reviews are known to work.
           show_full_output: true
-          # The built-in /code-review ran as a forked command here: it printed
-          # its findings to the log and posted nothing. The plugin's version
-          # posts them as inline comments (confirmed: true).
+          # Use the plugin's /code-review, not the built-in one, so that the
+          # findings are posted as inline comments (confirmed: true). The
+          # built-in ran as a forked command here, printed them to the log and
+          # posted nothing.
           plugin_marketplaces: https://github.com/anthropics/claude-code.git
           plugins: code-review@claude-code-plugins
           prompt: /code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }} --comment
