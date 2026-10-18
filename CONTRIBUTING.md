@@ -384,7 +384,9 @@ and 3407. Key anything version-specific by bible id.
 ## Claude review on PRs
 
 `.github/workflows/claude-review.yml` runs Claude's `/code-review` and
-`/security-review` on every non-draft PR from this repo and posts findings as
+`/security-review`, from the shared actions in
+[eugenius1/actions](https://github.com/eugenius1/actions), on every non-draft
+PR from this repo and posts findings as
 inline comments, using the owner's Claude plan through the
 `CLAUDE_CODE_OAUTH_TOKEN` secret (made with `claude setup-token`; renew it
 when it expires). Fork and Dependabot PRs are skipped, since they can't read
@@ -402,6 +404,9 @@ tick, and test a change to the workflow on a later PR that doesn't touch it.
 Because of that, keep a PR that edits the workflow minimal and free of
 production code: it gets no Claude review, so anything else in it gets none
 either. Put the code in its own PR.
+
+A change to the shared actions isn't checked that way: once merged there, it
+runs on every repo's next PR.
 
 ## Things that will bite you elsewhere
 
