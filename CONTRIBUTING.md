@@ -394,11 +394,12 @@ edge (`toYouVersionId`, `fromYouVersionId`), chapter by chapter, using
 bundled gets them from its API index instead (`suffixedFromIndex`, kept on
 `VersionMap.suffixed`), and `resolveVersion` hands them to the client
 (`useSuffixedChapters`). The index gives such a chapter `"id": "1_1"` and
-`"passage_id": "PS2.1_1"` (WEBUS's Psalm 151, seen in October 2026). None
+`"passage_id": "PS2.1_1"` (WEBUS's Psalm 151, seen in October 2026; PS2
+isn't one of the engine's books, so that chapter itself isn't synced). None
 of the five bundled versions' indexes are licensed to the app key (404), so
 for them the bundled list is what counts; a version whose index the app key
-may not read still needs a scan and an `import-survey`. The sync's mapping fingerprint includes
-the suffixed chapters, so such a version is re-added once in those books
+may not read still needs a scan and an `import-survey`. The sync's mapping
+fingerprint includes the suffixed chapters, so such a version is re-added once in those books
 when they first become known, rather than diffed against a snapshot made
 with the plain ids.
 
