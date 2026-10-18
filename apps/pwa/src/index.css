@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* Enter/exit animations for the Radix-based components (shadcn/ui). */
+@import "tw-animate-css";
 
 /* Dark mode follows the .dark class on <html> (set by public/theme.js), so the
    user can override the system setting. */

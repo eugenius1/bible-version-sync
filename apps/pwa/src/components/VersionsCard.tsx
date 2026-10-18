@@ -7,6 +7,7 @@ import type { VersionSetting } from "../lib/db";
 import { versionName, type ResolvedVersion } from "../lib/versions";
 import { AddVersion } from "./AddVersion";
 import { Step } from "./Step";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 const SOURCE_STYLE: Record<ResolvedVersion["source"], { tone: string; Icon: typeof BadgeCheck }> = {
   verified: { tone: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200", Icon: BadgeCheck },
@@ -77,13 +78,27 @@ export function VersionsCard({ settings, resolved, disabled, fresh = false, onCh
                   </span>
                 </div>
                 {src && style ? (
-                  <span
-                    title={src.hint}
-                    className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${style.tone}`}
-                  >
-                    <style.Icon size={12} aria-hidden />
-                    {src.text}
-                  </span>
+                  // Assumed and unsupported spell their hint out below; the rest
+                  // explain themselves on hover or focus, hence a button.
+                  r!.source === "assumed" || r!.source === "unsupported" ? (
+                    <span className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${style.tone}`}>
+                      <style.Icon size={12} aria-hidden />
+                      {src.text}
+                    </span>
+                  ) : (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          className={`mt-1 inline-flex cursor-help items-center gap-1 rounded-full px-2 py-0.5 text-xs focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-amber-600 dark:focus-visible:outline-amber-500 ${style.tone}`}
+                        >
+                          <style.Icon size={12} aria-hidden />
+                          {src.text}
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>{src.hint}</TooltipContent>
+                    </Tooltip>
+                  )
                 ) : (
                   <span className="mt-1 inline-block text-xs text-stone-600 dark:text-stone-400">{tv.checking}</span>
                 )}

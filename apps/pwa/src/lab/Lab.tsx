@@ -6,7 +6,7 @@ import { LIBRARIES, labHref, type LabRoute } from "./route";
 const MantineLab = lazy(() => import("./mantine/MantineLab"));
 const ShadcnLab = lazy(() => import("./shadcn/ShadcnLab"));
 
-const NAMES = { mantine: "Mantine", shadcn: "shadcn/ui" } as const;
+const NAMES = { mantine: "Mantine, app colours", "mantine-default": "Mantine, its own look", shadcn: "shadcn/ui" } as const;
 
 /** Whether the page is dark, following the .dark class the app's theme picker sets. */
 export function useDark(): boolean {
@@ -25,7 +25,11 @@ export function Lab({ route }: { route: LabRoute }) {
     <>
       <LabBar route={route} />
       <Suspense fallback={null}>
-        {route.library === "mantine" ? <MantineLab page={route.page} /> : <ShadcnLab page={route.page} />}
+        {route.library === "shadcn" ? (
+          <ShadcnLab page={route.page} />
+        ) : (
+          <MantineLab page={route.page} native={route.library === "mantine-default"} />
+        )}
       </Suspense>
     </>
   );

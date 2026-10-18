@@ -6,6 +6,7 @@ import {
   Anchor,
   Autocomplete,
   Badge,
+  Box,
   Button,
   Card,
   ColorSwatch,
@@ -51,12 +52,12 @@ import {
   Square,
   X,
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
 import { useI18n } from "../../i18n";
 import { copyrightYears } from "../../lib/copyright";
 import type { ResolvedVersion } from "../../lib/versions";
 import { useDark } from "../Lab";
-import { labHref, type Page } from "../route";
+import { labHref, type Library, type Page } from "../route";
 import { COLOR_HEX, FIND_TOTAL, SAMPLE_CHANGES, swap, useSampleFind, useSampleMain, type Kind, type SampleVersion } from "../sample";
 
 // The app's palette, so the comparison is about components rather than colours:
@@ -94,43 +95,79 @@ const cssVariablesResolver: CSSVariablesResolver = (t) => ({
   dark: { "--mantine-color-body": t.colors.dark[9], "--lab-surface": t.colors.dark[8] },
 });
 
-export default function MantineLab({ page }: { page: Page }) {
+/**
+ * Two looks from one page: "branded" bends Mantine to the app's stone and
+ * amber, "native" leaves Mantine's own theme and idioms alone (blue, upper-case
+ * badges, a segmented control for either/or) to show what it looks like when
+ * it isn't being forced.
+ */
+const Native = createContext(false);
+const useNative = () => useContext(Native);
+
+export default function MantineLab({ page, native = false }: { page: Page; native?: boolean }) {
   const dark = useDark();
+  const scheme = dark ? "dark" : "light";
   return (
-    <MantineProvider theme={theme} cssVariablesResolver={cssVariablesResolver} forceColorScheme={dark ? "dark" : "light"}>
-      {page === "login" ? <SignIn /> : <Main />}
-    </MantineProvider>
+    <Native.Provider value={native}>
+      {native ? (
+        <MantineProvider forceColorScheme={scheme}>{page === "login" ? <SignIn /> : <Main />}</MantineProvider>
+      ) : (
+        <MantineProvider theme={theme} cssVariablesResolver={cssVariablesResolver} forceColorScheme={scheme}>
+          {page === "login" ? <SignIn /> : <Main />}
+        </MantineProvider>
+      )}
+    </Native.Provider>
   );
+}
+
+/** Props that only the branded look sets; the native look gets Mantine's defaults. */
+function useLook() {
+  const native = useNative();
+  return {
+    native,
+    library: (native ? "mantine-default" : "mantine") as Library,
+    /** Badges: Mantine's are upper case and bold; the app's are sentence case. */
+    badge: native ? {} : { tt: "none" as const, fw: 500 },
+    /** The app's primary actions are near-black; Mantine's are its primary colour. */
+    strong: native ? {} : { color: "dark" },
+    accent: native ? {} : { color: "amber" },
+  };
 }
 
 function Shell({ children, account }: { children: ReactNode; account?: ReactNode }) {
   const { t, f } = useI18n();
+  const look = useLook();
   return (
-    <Container size={672} py="xl">
-      <Stack gap="md">
-        <Group gap="sm">
-          <Image src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" w={36} h={36} />
-          <Title order={1} size="h3">
-            Bible Version Sync
-          </Title>
-          <Badge variant="light" color="gray" ml="auto">
-            Mantine
-          </Badge>
-        </Group>
-        {children}
-        <Divider mt="lg" />
-        {account && <Group gap="xs">{account}</Group>}
-        <Text size="xs" c="dimmed" ta="center">
-          {f(t.app.copyright, { years: copyrightYears() })} · <Anchor size="xs" inherit>{t.app.licence}</Anchor> ·{" "}
-          {t.app.notAffiliated}
-        </Text>
-      </Stack>
-    </Container>
+    // Mantine paints only the body, which ends with the content; carry its
+    // colour to the bottom of the window.
+    <Box bg="var(--mantine-color-body)" mih="calc(100dvh - 3rem)">
+      <Container size={672} py="xl">
+        <Stack gap="md">
+          <Group gap="sm">
+            <Image src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" w={36} h={36} />
+            <Title order={1} size="h3">
+              Bible Version Sync
+            </Title>
+            <Badge variant="light" color="gray" ml="auto">
+              {look.native ? "Mantine · default" : "Mantine"}
+            </Badge>
+          </Group>
+          {children}
+          <Divider mt="lg" />
+          {account && <Group gap="xs">{account}</Group>}
+          <Text size="xs" c="dimmed" ta="center">
+            {f(t.app.copyright, { years: copyrightYears() })} · <Anchor size="xs" inherit>{t.app.licence}</Anchor> ·{" "}
+            {t.app.notAffiliated}
+          </Text>
+        </Stack>
+      </Container>
+    </Box>
   );
 }
 
 function SignIn() {
   const { t } = useI18n();
+  const look = useLook();
   const [busy, setBusy] = useState(false);
   return (
     <Shell>
@@ -159,7 +196,7 @@ function SignIn() {
             onClick={() => {
               // Pretend: the lab never signs in, it just moves on to the main page.
               setBusy(true);
-              setTimeout(() => (location.hash = labHref("mantine", "main")), 700);
+              setTimeout(() => (location.hash = labHref(look.library, "main")), 700);
             }}
             style={{ alignSelf: "flex-start" }}
           >
@@ -175,9 +212,10 @@ function SignIn() {
 }
 
 function StepTitle({ n, children }: { n: number; children: ReactNode }) {
+  const look = useLook();
   return (
     <Group gap="xs" wrap="nowrap">
-      <ThemeIcon size={24} radius="xl" color="dark" variant="filled" fw={700} fz="xs">
+      <ThemeIcon size={24} radius="xl" variant={look.native ? "light" : "filled"} {...look.strong} fw={700} fz="xs">
         {n}
       </ThemeIcon>
       <Title order={2} size="h5">
@@ -189,6 +227,7 @@ function StepTitle({ n, children }: { n: number; children: ReactNode }) {
 
 function Main() {
   const { t, f, plural, num, book: bookName } = useI18n();
+  const look = useLook();
   const s = useSampleMain();
   const [remembered, setRemembered] = useState(1284);
   const running = s.run.status === "running";
@@ -210,7 +249,7 @@ function Main() {
         size="compact-xs"
         leftSection={<LogOut size={12} />}
         component="a"
-        href={labHref("mantine", "login")}
+        href={labHref(look.library, "login")}
         ml="auto"
       >
         {t.footer.signOut}
@@ -249,8 +288,7 @@ function Main() {
                           variant="light"
                           color={color}
                           leftSection={<Icon size={12} />}
-                          tt="none"
-                          fw={500}
+                          {...look.badge}
                           style={{ alignSelf: "flex-start" }}
                         >
                           {src.text}
@@ -294,23 +332,37 @@ function Main() {
               {s.byColor ? tp.helpByColor : tp.helpByVersion}
             </Text>
           </div>
-          <Group justify="center" gap="sm">
-            <UnstyledButton onClick={() => s.setByColor(false)} fw={500} fz="sm" c={s.byColor ? "dimmed" : undefined}>
-              {tp.byVersion}
-            </UnstyledButton>
-            <Switch
-              size="md"
-              aria-label={tp.toggle}
-              checked={s.byColor}
-              onChange={(e) => s.setByColor(e.currentTarget.checked)}
+          {look.native ? (
+            // Mantine's own answer to an either/or.
+            <SegmentedControl
+              fullWidth
               disabled={running}
-              // Both sides are a choice, so the track stays coloured either way.
-              styles={{ track: { backgroundColor: "var(--mantine-primary-color-filled)", borderColor: "transparent" } }}
+              value={s.byColor ? "color" : "version"}
+              onChange={(v) => s.setByColor(v === "color")}
+              data={[
+                { value: "version", label: tp.byVersion },
+                { value: "color", label: tp.byColor },
+              ]}
             />
-            <UnstyledButton onClick={() => s.setByColor(true)} fw={500} fz="sm" c={s.byColor ? undefined : "dimmed"}>
-              {tp.byColor}
-            </UnstyledButton>
-          </Group>
+          ) : (
+            <Group justify="center" gap="sm">
+              <UnstyledButton onClick={() => s.setByColor(false)} fw={500} fz="sm" c={s.byColor ? "dimmed" : undefined}>
+                {tp.byVersion}
+              </UnstyledButton>
+              <Switch
+                size="md"
+                aria-label={tp.toggle}
+                checked={s.byColor}
+                onChange={(e) => s.setByColor(e.currentTarget.checked)}
+                disabled={running}
+                // Both sides are a choice, so the track stays coloured either way.
+                styles={{ track: { backgroundColor: "var(--mantine-primary-color-filled)", borderColor: "transparent" } }}
+              />
+              <UnstyledButton onClick={() => s.setByColor(true)} fw={500} fz="sm" c={s.byColor ? undefined : "dimmed"}>
+                {tp.byColor}
+              </UnstyledButton>
+            </Group>
+          )}
           <Stack gap={0}>
             {s.byColor
               ? s.colorOrder.map((id, i) => (
@@ -411,7 +463,7 @@ function Main() {
             </Stack>
           ) : (
             <Group gap="sm">
-              <Button leftSection={<Eye size={16} />} color="dark" onClick={() => s.start(false)}>
+              <Button leftSection={<Eye size={16} />} {...look.strong} onClick={() => s.start(false)}>
                 {ts.preview}
               </Button>
               <Button leftSection={<RefreshCw size={16} />} variant="default" onClick={() => s.start(true)}>
@@ -429,7 +481,7 @@ function Main() {
               <Title order={2} size="h5">
                 {s.run.apply ? t.results.doneTitle : t.results.previewTitle}
               </Title>
-              <Badge variant="light" size="lg" tt="none" fw={500}>
+              <Badge variant="light" size="lg" {...look.badge}>
                 {plural(s.run.apply ? t.results.added : t.results.toAdd, 13)}
               </Badge>
             </Group>
@@ -471,11 +523,12 @@ function FindVersions({
   disabled: boolean;
 }) {
   const { t, f, num, plural } = useI18n();
+  const look = useLook();
   const tf = t.versions.find;
   const find = useSampleFind(versions, setVersions);
   const { scan } = find;
   return (
-    <Alert variant="light" color="amber" icon={<Sparkles size={18} />} title={tf.button}>
+    <Alert variant="light" {...look.accent} icon={<Sparkles size={18} />} title={tf.button}>
       <Stack gap="sm">
         {scan.status === "running" ? (
           <Stack gap={6} role="status">
@@ -495,8 +548,8 @@ function FindVersions({
             <Text size="sm">{tf.help}</Text>
             <Button
               size="xs"
-              variant="white"
-              color="dark"
+              variant={look.native ? "filled" : "white"}
+              {...look.strong}
               leftSection={<Search size={14} />}
               disabled={disabled}
               onClick={find.start}
@@ -536,7 +589,7 @@ function FindVersions({
                       </Text>
                     </div>
                     {find.inList(v.bibleId) ? (
-                      <Badge variant="light" color="gray" leftSection={<Check size={12} />} tt="none" fw={500}>
+                      <Badge variant="light" color="gray" leftSection={<Check size={12} />} {...look.badge}>
                         {tf.inList}
                       </Badge>
                     ) : (
