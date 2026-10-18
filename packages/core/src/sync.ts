@@ -145,6 +145,11 @@ export function mapFingerprint(map: VersionMap, book: string): string {
       h2 = Math.imul(h2 ^ ch, 1597334677);
     }
   };
+  // Where YouVersion ids the chapters BOOK.<n>_1, the snapshot's verses live
+  // under those ids. Before #25 the sync read and wrote BOOK.<n> there, which
+  // reads as empty; folding the suffix in makes such a version a newcomer in
+  // that book once, so nothing recorded then can pass for a removal now.
+  if (map.suffixed[book]) add(`_1:${map.suffixed[book].join(",")};`);
   for (const c of map.chapters(book)) {
     for (let v = 1; v <= map.counts[book][c]; v++) {
       const local = ref(book, c, v);

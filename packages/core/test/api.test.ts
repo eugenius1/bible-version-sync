@@ -4,7 +4,9 @@ import {
   createPkce,
   errorMessage,
   exchangeCode,
+  fromYouVersionId,
   interpretCallback,
+  toYouVersionId,
   YouVersionClient,
   type TokenSet,
   type TokenStore,
@@ -205,6 +207,62 @@ describe("YouVersionClient", () => {
     const c = new YouVersionClient({ appKey: "k", tokens, fetch: f, delayMs: 0 });
     await expect(c.getHighlights(111, "JHN.3")).rejects.toMatchObject({ status: 502 });
     expect(tokens.t?.access_token).toBe("a1");
+  });
+});
+
+describe("chapters YouVersion ids BOOK.<n>_1", () => {
+  // NR2006 (4833) ids its Job and Psalms JOB.1_1…, PSA.1_1…; GNA2025 (67)
+  // its Psalms and Philemon; TUKARA84 (3404) its Matthew; BFC (63) only
+  // Psalms 10 to 147, DHH94I (52) only Psalms 42 and 43 (#25).
+  it("are translated to and from plain ids in the suffixed chapters only", () => {
+    expect(toYouVersionId(4833, "PSA.1")).toBe("PSA.1_1");
+    expect(toYouVersionId(4833, "PSA.119.176")).toBe("PSA.119_1.176");
+    expect(toYouVersionId(4833, "JOB.38.1")).toBe("JOB.38_1.1");
+    expect(toYouVersionId(4833, "PSA.1.1+PSA.1.2")).toBe("PSA.1_1.1+PSA.1_1.2");
+    expect(toYouVersionId(4833, "JHN.3")).toBe("JHN.3");
+    expect(toYouVersionId(67, "PHM.1.5")).toBe("PHM.1_1.5");
+    expect(toYouVersionId(3404, "MAT.28.20")).toBe("MAT.28_1.20");
+    expect(toYouVersionId(111, "PSA.1.5")).toBe("PSA.1.5");
+    expect(["PSA.9.1", "PSA.10.1", "PSA.147.20", "PSA.148.1"].map((p) => toYouVersionId(63, p)))
+      .toEqual(["PSA.9.1", "PSA.10_1.1", "PSA.147_1.20", "PSA.148.1"]);
+    expect(["PSA.41", "PSA.42", "PSA.43.5", "PSA.44"].map((p) => toYouVersionId(52, p)))
+      .toEqual(["PSA.41", "PSA.42_1", "PSA.43_1.5", "PSA.44"]);
+
+    expect(fromYouVersionId(4833, "PSA.1_1.5")).toBe("PSA.1.5");
+    expect(fromYouVersionId(4833, "PSA.1_1.1+PSA.1_1.2")).toBe("PSA.1.1+PSA.1.2");
+    expect(fromYouVersionId(4833, "JHN.3.16")).toBe("JHN.3.16");
+    // Never seen; left as it is, so the engine drops it as unparseable
+    // rather than taking it for another verse.
+    expect(fromYouVersionId(4833, "PSA.1_2.5")).toBe("PSA.1_2.5");
+    expect(fromYouVersionId(3404, "PSA.1_1.5")).toBe("PSA.1_1.5");
+    expect(fromYouVersionId(63, "PSA.9_1.1")).toBe("PSA.9_1.1");
+    expect(fromYouVersionId(63, "PSA.23_1.1")).toBe("PSA.23.1");
+  });
+
+  it("are what the client reads, writes and deletes, while callers see plain ids", async () => {
+    const { f, calls } = fakeFetch([
+      { status: 200, body: { data: [{ bible_id: 4833, passage_id: "PSA.1_1.5", color: "ffe066" }] } },
+      { status: 201, body: {} },
+      { status: 204 },
+      { status: 204 },
+    ]);
+    const c = new YouVersionClient({ appKey: "k", tokens: new MemoryTokens(fresh()), fetch: f, delayMs: 0 });
+    expect(await c.getHighlights(4833, "PSA.1")).toEqual([{ bible_id: 4833, passage_id: "PSA.1.5", color: "ffe066" }]);
+    await c.setHighlight(4833, "PSA.1.2", "a3d9ff");
+    await c.deleteHighlight(4833, "PSA.1.2");
+    await c.getHighlights(4833, "JHN.3");
+    expect(new URL(calls[0].url).searchParams.get("passage_id")).toBe("PSA.1_1");
+    expect(JSON.parse(String(calls[1].init.body)).highlight.passage_id).toBe("PSA.1_1.2");
+    expect(new URL(calls[2].url).pathname).toBe("/v1/highlights/PSA.1_1.2");
+    expect(new URL(calls[3].url).searchParams.get("passage_id")).toBe("JHN.3");
+  });
+
+  it("passes on a highlight without a passage id, and a body without data, for the engine to judge", async () => {
+    const odd = { bible_id: 4833, color: "ffe066" };
+    const { f } = fakeFetch([{ status: 200, body: { data: [odd] } }, { status: 200, body: {} }]);
+    const c = new YouVersionClient({ appKey: "k", tokens: new MemoryTokens(fresh()), fetch: f, delayMs: 0 });
+    expect(await c.getHighlights(4833, "PSA.1")).toEqual([odd]);
+    expect(await c.getHighlights(4833, "PSA.1")).toEqual([]);
   });
 });
 

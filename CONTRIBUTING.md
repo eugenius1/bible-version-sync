@@ -382,6 +382,20 @@ blocking unrelated PRs: run the script, read what changed against this
 section, and commit it. Don't edit the copy by hand; the check fails on
 that too.
 
+**Some versions id chapters `BOOK.<n>_1`.** NR2006's Psalms and Job are
+`PSA.1_1`, `JOB.1_1`…; so are GNA2025's Psalms and Philemon and TUKARA84's
+Matthew, while BFC does it only in Psalms 10–147 and DHH94I only in Psalms
+42–43. Their highlights live under those ids (`PSA.1_1.5`): reading
+`PSA.1` there gives an empty list, not an error, so the rule that a failed
+read skips the book never fires, and writing `PSA.1.2` is a 502. The engine
+speaks plain `BOOK.<n>` throughout, and `YouVersionClient` translates at the
+edge (`toYouVersionId`, `fromYouVersionId`), chapter by chapter, using
+`data/suffixed_chapters.json` from the survey's scan. A version found later
+with the pattern needs a scan and an `import-survey`, nothing else. The
+sync's mapping fingerprint includes the suffixed chapters, so such a version
+was re-added once in those books when the translation came in, rather than
+diffed against a snapshot made with the plain ids.
+
 **Abbreviations aren't unique.** `NVI-S` is both 128 and 2664, `ARC` both 212
 and 3407. Key anything version-specific by bible id.
 

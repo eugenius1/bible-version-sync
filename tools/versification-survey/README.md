@@ -45,6 +45,11 @@ changes the app only through a reviewed diff there.
     "merged": ["JHN.3.1+JHN.3.2"] } }
 ```
 
+`suffixed`, only in versions that have any, lists the chapters YouVersion
+ids `BOOK.<n>_1`, by book. NIV has none; DHH94I (52) has
+`"suffixed": { "PSA": [42, 43] }`. They're counted as chapter `<n>`, and
+the app reads and writes their highlights under the suffixed ids.
+
 `counts` holds the **highest verse number present** in each chapter (0 when
 the chapter doesn't exist), not the number of verses, so an omitted verse
 (NIV Matthew 17:21) doesn't shift anything. `gaps` lists verse numbers missing
