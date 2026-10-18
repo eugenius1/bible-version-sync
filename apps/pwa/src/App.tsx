@@ -1,7 +1,16 @@
-import { emptyState, forgetVersion, runSync, type Progress, type RunSummary, type Scope } from "@bvs/core";
+import {
+  emptyState,
+  forgetVersion,
+  runSync,
+  type HighlightColorId,
+  type Progress,
+  type RunSummary,
+  type Scope,
+} from "@bvs/core";
 import { LogIn, LogOut, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LanguageSwitcher, ThemeSwitcher } from "./components/Pickers";
+import { Priority } from "./components/Priority";
 import { Results } from "./components/Results";
 import { SyncCard } from "./components/SyncCard";
 import { VersionsCard } from "./components/VersionsCard";
@@ -121,17 +130,19 @@ function Main() {
     })();
   }, []);
 
+  // Only the versions: reordering colors shouldn't check every version's numbering again.
+  const chosen = settings?.versions;
   useEffect(() => {
-    if (!settings || auth !== "signed-in") return;
+    if (!chosen || auth !== "signed-in") return;
     let cancelled = false;
     setVersions(null);
-    resolveVersions(settings.versions)
+    resolveVersions(chosen)
       .then((v) => !cancelled && setVersions(v))
       .catch((e: unknown) => !cancelled && setRun({ status: "error", message: String(e) }));
     return () => {
       cancelled = true;
     };
-  }, [settings, auth]);
+  }, [chosen, auth]);
 
   const saveVersions = useCallback(
     async (next: number[], removed?: number) => {
@@ -145,6 +156,17 @@ function Main() {
       setSettings(s);
       setCustomised(true);
       setRun({ status: "idle" });
+    },
+    [settings],
+  );
+
+  const saveColors = useCallback(
+    async (byColor: boolean, colorOrder: HighlightColorId[]) => {
+      const s = { ...settings!, byColor, colorOrder };
+      await store.setSettings(s);
+      setSettings(s);
+      setCustomised(true);
+      setRun({ status: "idle" }); // a preview made under the old order no longer holds
     },
     [settings],
   );
@@ -169,6 +191,7 @@ function Main() {
           apply,
           maxRemovals: settings.maxRemovals,
           allowRemovals,
+          colorOrder: settings.byColor ? settings.colorOrder : undefined,
           signal: controller.signal,
           onProgress: (progress) => setRun({ status: "running", apply, scope, progress }),
           onBookDone: async () => {
@@ -238,6 +261,14 @@ function Main() {
         disabled={running}
         fresh={!customised && remembered === 0}
         onChange={saveVersions}
+      />
+      <Priority
+        versions={settings.versions}
+        byColor={settings.byColor}
+        colorOrder={settings.colorOrder}
+        disabled={running}
+        onVersions={saveVersions}
+        onColors={saveColors}
       />
       <SyncCard
         versions={versions?.filter((v) => v.source !== "unsupported") ?? null}

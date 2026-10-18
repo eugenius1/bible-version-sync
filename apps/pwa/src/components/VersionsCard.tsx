@@ -1,11 +1,13 @@
 import { assumedScheme, loadVersionNames, versionNamesLoaded } from "@bvs/core";
-import { ArrowDown, ArrowUp, BadgeCheck, Ban, CircleAlert, Hash, Info, X } from "lucide-react";
+import { BadgeCheck, Ban, CircleAlert, Hash, Info, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useI18n } from "../i18n";
 import { FindVersions } from "./FindVersions";
+import { Hint } from "./Hint";
 import type { VersionSetting } from "../lib/db";
 import { versionName, type ResolvedVersion } from "../lib/versions";
 import { AddVersion } from "./AddVersion";
+import { Step } from "./Step";
 
 const SOURCE_STYLE: Record<ResolvedVersion["source"], { tone: string; Icon: typeof BadgeCheck }> = {
   verified: { tone: "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200", Icon: BadgeCheck },
@@ -39,21 +41,19 @@ export function VersionsCard({ settings, resolved, disabled, fresh = false, onCh
   }, []);
 
   const ids = settings.map((s) => s.bibleId);
-  const move = (i: number, d: -1 | 1) => {
-    const next = [...ids];
-    [next[i], next[i + d]] = [next[i + d], next[i]];
-    void onChange(next);
-  };
 
   return (
     <section className="card space-y-4" aria-labelledby="versions-title">
       <div>
-        <h2 id="versions-title" className="font-semibold">{tv.title}</h2>
+        <h2 id="versions-title" className="flex items-center gap-2 font-semibold">
+          <Step n={1} />
+          {tv.title}
+        </h2>
         <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">{tv.help}</p>
       </div>
 
-      <ol className="divide-y divide-stone-200 dark:divide-stone-800">
-        {settings.map((v, i) => {
+      <ul className="divide-y divide-stone-200 dark:divide-stone-800">
+        {settings.map((v) => {
           const r = resolved?.find((x) => x.bibleId === v.bibleId);
           const source = r ? tv.source[r.source] : null;
           const src = source && {
@@ -64,7 +64,6 @@ export function VersionsCard({ settings, resolved, disabled, fresh = false, onCh
           const name = versionName(v.bibleId);
           return (
             <li key={v.bibleId} className="flex items-center gap-3 py-2.5">
-              <span className="w-5 text-right text-sm tabular-nums text-stone-500 dark:text-stone-400">{i + 1}</span>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                   <span className="font-medium">{v.abbr}</span>
@@ -79,13 +78,22 @@ export function VersionsCard({ settings, resolved, disabled, fresh = false, onCh
                   </span>
                 </div>
                 {src && style ? (
-                  <span
-                    title={src.hint}
-                    className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${style.tone}`}
-                  >
-                    <style.Icon size={12} aria-hidden />
-                    {src.text}
-                  </span>
+                  // Assumed and unsupported spell their hint out below; the rest
+                  // show it on a tap, click or hover.
+                  r!.source === "assumed" || r!.source === "unsupported" ? (
+                    <span className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${style.tone}`}>
+                      <style.Icon size={12} aria-hidden />
+                      {src.text}
+                    </span>
+                  ) : (
+                    <Hint
+                      hint={src.hint}
+                      className={`mt-1 inline-flex cursor-help items-center gap-1 rounded-full px-2 py-0.5 text-xs focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-amber-600 dark:focus-visible:outline-amber-500 ${style.tone}`}
+                    >
+                      <style.Icon size={12} aria-hidden />
+                      {src.text}
+                    </Hint>
+                  )
                 ) : (
                   <span className="mt-1 inline-block text-xs text-stone-600 dark:text-stone-400">{tv.checking}</span>
                 )}
@@ -93,24 +101,6 @@ export function VersionsCard({ settings, resolved, disabled, fresh = false, onCh
                 {r?.source === "unsupported" && <p className="mt-1 text-xs text-red-700 dark:text-red-300">{src!.hint}</p>}
               </div>
               <div className="flex shrink-0 items-center">
-                <button
-                  className="btn-ghost"
-                  disabled={disabled || i === 0}
-                  onClick={() => move(i, -1)}
-                  aria-label={f(tv.moveUp, { abbr: v.abbr })}
-                  title={f(tv.moveUp, { abbr: v.abbr })}
-                >
-                  <ArrowUp size={16} aria-hidden />
-                </button>
-                <button
-                  className="btn-ghost"
-                  disabled={disabled || i === settings.length - 1}
-                  onClick={() => move(i, 1)}
-                  aria-label={f(tv.moveDown, { abbr: v.abbr })}
-                  title={f(tv.moveDown, { abbr: v.abbr })}
-                >
-                  <ArrowDown size={16} aria-hidden />
-                </button>
                 <button
                   className="btn-ghost"
                   disabled={disabled || settings.length <= 2}
@@ -128,7 +118,7 @@ export function VersionsCard({ settings, resolved, disabled, fresh = false, onCh
             </li>
           );
         })}
-      </ol>
+      </ul>
 
       <FindVersions settings={settings} disabled={disabled} fresh={fresh} onChange={onChange} />
 

@@ -85,3 +85,19 @@ describe("converting a snapshot saved by name", () => {
     expect((saved.get("state") as SyncState).verses["JHN.3.16"]).toEqual({ 93: "ffe066", 111: "ffe066" });
   });
 });
+
+describe("saving the color order", () => {
+  it("leaves an untouched order out, so it follows the default", async () => {
+    const settings = await store.getSettings();
+    await store.setSettings({ ...settings, byColor: true });
+    expect(saved.get("settings")).not.toHaveProperty("colorOrder");
+    expect((await store.getSettings()).colorOrder).toEqual(settings.colorOrder);
+  });
+
+  it("keeps an order the person changed", async () => {
+    const settings = await store.getSettings();
+    const colorOrder = [...settings.colorOrder].reverse();
+    await store.setSettings({ ...settings, colorOrder });
+    expect((await store.getSettings()).colorOrder).toEqual(colorOrder);
+  });
+});

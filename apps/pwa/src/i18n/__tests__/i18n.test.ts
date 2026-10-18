@@ -54,7 +54,7 @@ describe("dictionaries", () => {
 
   it("have no French strings left identical to English by accident", () => {
     // Names, symbols and format-only strings are legitimately shared.
-    const allowed = new Set(["app.copyright", "app.licence", "results.more"]);
+    const allowed = new Set(["app.copyright", "app.licence", "results.more", "priority.names.orange"]);
     const english = new Map(strings(en));
     const identical = strings(fr)
       .filter(([path, value]) => !allowed.has(path) && english.get(path) === value)
