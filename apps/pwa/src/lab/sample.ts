@@ -23,6 +23,77 @@ export const SAMPLE_VERSIONS: SampleVersion[] = [
   { bibleId: 400, abbr: "SYNO", title: "Синодальный перевод", language: "ru", source: "unsupported" },
 ];
 
+/** What a mocked "Find my versions" turns up, and how far into the scan each one appears. */
+export interface SampleFound {
+  version: SampleVersion;
+  verses: number;
+  at: number;
+}
+
+const FOUND: SampleFound[] = [
+  { version: SAMPLE_VERSIONS[0], verses: 42, at: 3 },
+  { version: { bibleId: 59, abbr: "ESV", title: "English Standard Version", language: "en", source: "verified" }, verses: 17, at: 8 },
+  { version: SAMPLE_VERSIONS[2], verses: 9, at: 14 },
+  { version: { bibleId: 116, abbr: "NLT", title: "New Living Translation", language: "en", source: "verified" }, verses: 4, at: 21 },
+  { version: { bibleId: 385, abbr: "CARS", title: "Священное Писание (Восточный перевод)", language: "ru", source: "unsupported" }, verses: 6, at: 27 },
+];
+export const FIND_TOTAL = 36;
+
+export type FakeScan =
+  | { status: "idle" }
+  | { status: "running"; done: number; found: SampleFound[] }
+  | { status: "done"; found: SampleFound[] }
+  | { status: "stopped"; done: number; found: SampleFound[] };
+
+/**
+ * "Find my versions", mocked: ticks through a pretend list of versions in the
+ * reader's languages and turns up a fixed few, as the real scan would.
+ */
+export function useSampleFind(versions: SampleVersion[], setVersions: (v: SampleVersion[]) => void) {
+  const [scan, setScan] = useState<FakeScan>({ status: "idle" });
+  const timer = useRef<ReturnType<typeof setInterval>>(undefined);
+  useEffect(() => () => clearInterval(timer.current), []);
+
+  const start = () => {
+    clearInterval(timer.current);
+    let done = 0;
+    setScan({ status: "running", done, found: [] });
+    timer.current = setInterval(() => {
+      done += 1;
+      const found = FOUND.filter((v) => v.at <= done);
+      if (done >= FIND_TOTAL) {
+        clearInterval(timer.current);
+        setScan({ status: "done", found });
+      } else setScan({ status: "running", done, found });
+    }, 80);
+  };
+  const stop = () => {
+    clearInterval(timer.current);
+    setScan((s) => (s.status === "running" ? { status: "stopped", done: s.done, found: s.found } : s));
+  };
+
+  const found = scan.status === "idle" ? [] : scan.found;
+  const usable = found.filter((v) => v.version.source !== "unsupported");
+  return {
+    scan,
+    start,
+    stop,
+    found,
+    usable,
+    pct: scan.status === "running" ? Math.round((scan.done / FIND_TOTAL) * 100) : 0,
+    inList: (id: number) => versions.some((v) => v.bibleId === id),
+    /** Versions in the list that the finished scan found no highlights in. */
+    missing: scan.status === "done" ? versions.filter((v) => !found.some((x) => x.version.bibleId === v.bibleId)) : [],
+    /** Offer to swap the list for what was found, unless that's already the list. */
+    canReplace:
+      scan.status === "done" &&
+      usable.length >= 2 &&
+      usable.map((v) => v.version.bibleId).join() !== versions.map((v) => v.bibleId).join(),
+    add: (v: SampleVersion) => setVersions([...versions, v]),
+    replaceWithFound: () => setVersions(usable.map((v) => v.version)),
+  };
+}
+
 export const COLOR_HEX = Object.fromEntries(HIGHLIGHT_COLORS.map((c) => [c.id, `#${c.hex}`])) as Record<
   HighlightColorId,
   string

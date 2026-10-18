@@ -16,6 +16,7 @@ import {
   RefreshCw,
   RotateCcw,
   Search,
+  Plus,
   Sparkles,
   Square,
   X,
@@ -25,7 +26,7 @@ import { useI18n } from "../../i18n";
 import { copyrightYears } from "../../lib/copyright";
 import type { ResolvedVersion } from "../../lib/versions";
 import { labHref, type Page } from "../route";
-import { COLOR_HEX, SAMPLE_CHANGES, swap, useSampleMain, type Kind } from "../sample";
+import { COLOR_HEX, FIND_TOTAL, SAMPLE_CHANGES, swap, useSampleFind, useSampleMain, type Kind, type SampleVersion } from "../sample";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -206,16 +207,7 @@ function Main() {
               );
             })}
           </ul>
-          <Alert className="border-brand/30 bg-brand/5">
-            <Sparkles />
-            <AlertTitle>{tv.find.button}</AlertTitle>
-            <AlertDescription>
-              <p>{tv.find.help}</p>
-              <Button size="sm" variant="outline" className="mt-2">
-                {tv.find.button}
-              </Button>
-            </AlertDescription>
-          </Alert>
+          <FindVersions versions={s.versions} setVersions={s.setVersions} disabled={running} />
           <div className="space-y-2">
             <label htmlFor="add-version" className="text-sm font-medium">
               {tv.addLabel}
@@ -415,6 +407,110 @@ function Main() {
         </Card>
       )}
     </Shell>
+  );
+}
+
+function FindVersions({
+  versions,
+  setVersions,
+  disabled,
+}: {
+  versions: SampleVersion[];
+  setVersions: (v: SampleVersion[]) => void;
+  disabled: boolean;
+}) {
+  const { t, f, num, plural } = useI18n();
+  const tf = t.versions.find;
+  const find = useSampleFind(versions, setVersions);
+  const { scan } = find;
+  return (
+    <Alert className="border-brand/30 bg-brand/5">
+      <Sparkles />
+      <AlertTitle>{tf.button}</AlertTitle>
+      <AlertDescription className="w-full gap-3">
+        {scan.status === "running" ? (
+          <div className="w-full space-y-2" role="status">
+            <div className="flex items-center justify-between gap-3">
+              <span className="inline-flex items-center gap-2 text-foreground">
+                <Search className="size-3.5" aria-hidden />
+                {f(tf.progress, { done: num(scan.done), total: num(FIND_TOTAL) })}
+              </span>
+              <Button variant="ghost" size="sm" onClick={find.stop}>
+                <Square />
+                {tf.stop}
+              </Button>
+            </div>
+            <Progress value={find.pct} />
+          </div>
+        ) : (
+          <>
+            <p>{tf.help}</p>
+            <Button size="sm" variant="outline" disabled={disabled} onClick={find.start}>
+              <Search />
+              {scan.status === "idle" ? tf.button : tf.again}
+            </Button>
+          </>
+        )}
+        {scan.status === "stopped" && <p>{f(tf.stopped, { done: num(scan.done), total: num(FIND_TOTAL) })}</p>}
+        {find.found.length > 0 && (
+          <div className="w-full rounded-md border bg-card px-3 text-card-foreground">
+            <p className="pt-3 text-sm font-medium">{tf.foundTitle}</p>
+            <ul>
+              {find.found.map(({ version: v, verses }, i) => {
+                const unsupported = v.source === "unsupported";
+                return (
+                  <Fragment key={v.bibleId}>
+                    {i > 0 && <Separator />}
+                    <li className="flex items-center gap-3 py-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{v.abbr}</span>
+                          <span className="truncate text-sm text-muted-foreground" lang={v.language} dir="auto">
+                            {v.title}
+                          </span>
+                        </div>
+                        <p className={cn("text-xs", unsupported ? "text-destructive" : "text-muted-foreground")}>
+                          {unsupported ? tf.unsupported : plural(tf.verses, verses)}
+                        </p>
+                      </div>
+                      {find.inList(v.bibleId) ? (
+                        <Badge variant="secondary">
+                          <Check />
+                          {tf.inList}
+                        </Badge>
+                      ) : (
+                        !unsupported && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={disabled}
+                            aria-label={f(tf.add, { abbr: v.abbr })}
+                            onClick={() => find.add(v)}
+                          >
+                            <Plus />
+                            {t.versions.add}
+                          </Button>
+                        )
+                      )}
+                    </li>
+                  </Fragment>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+        {find.missing.length > 0 && (
+          <p className="text-xs">
+            {f(tf.notFound, { list: new Intl.ListFormat(t.meta.localeTag).format(find.missing.map((v) => v.abbr)) })}
+          </p>
+        )}
+        {find.canReplace && (
+          <Button size="sm" disabled={disabled} onClick={find.replaceWithFound}>
+            {plural(tf.useThese, find.usable.length)}
+          </Button>
+        )}
+      </AlertDescription>
+    </Alert>
   );
 }
 

@@ -28,6 +28,7 @@ import {
   Title,
   Tooltip,
   UnstyledButton,
+  type CSSVariablesResolver,
   type MantineColor,
 } from "@mantine/core";
 import {
@@ -45,6 +46,7 @@ import {
   RefreshCw,
   RotateCcw,
   Search,
+  Plus,
   Sparkles,
   Square,
   X,
@@ -55,11 +57,18 @@ import { copyrightYears } from "../../lib/copyright";
 import type { ResolvedVersion } from "../../lib/versions";
 import { useDark } from "../Lab";
 import { labHref, type Page } from "../route";
-import { COLOR_HEX, SAMPLE_CHANGES, swap, useSampleMain, type Kind } from "../sample";
+import { COLOR_HEX, FIND_TOTAL, SAMPLE_CHANGES, swap, useSampleFind, useSampleMain, type Kind, type SampleVersion } from "../sample";
 
 // The app's palette, so the comparison is about components rather than colours:
 // stone for neutrals (Mantine's "dark" scale drives dark mode) and amber as the accent.
 const theme = createTheme({
+  // Cards and papers sit on the page colour by default, which in dark mode
+  // leaves them with only a border to tell them apart. Give them a surface of
+  // their own: white on stone-50 by day, stone-900 on stone-950 by night.
+  components: {
+    Card: Card.extend({ defaultProps: { bg: "var(--lab-surface)" } }),
+    Paper: Paper.extend({ defaultProps: { bg: "var(--lab-surface)" } }),
+  },
   primaryColor: "amber",
   primaryShade: { light: 7, dark: 5 },
   defaultRadius: "md",
@@ -79,10 +88,16 @@ const SOURCE: Record<ResolvedVersion["source"], { color: MantineColor; Icon: typ
   unsupported: { color: "red", Icon: Ban },
 };
 
+const cssVariablesResolver: CSSVariablesResolver = (t) => ({
+  variables: {},
+  light: { "--mantine-color-body": "#fafaf9", "--lab-surface": t.white },
+  dark: { "--mantine-color-body": t.colors.dark[9], "--lab-surface": t.colors.dark[8] },
+});
+
 export default function MantineLab({ page }: { page: Page }) {
   const dark = useDark();
   return (
-    <MantineProvider theme={theme} forceColorScheme={dark ? "dark" : "light"}>
+    <MantineProvider theme={theme} cssVariablesResolver={cssVariablesResolver} forceColorScheme={dark ? "dark" : "light"}>
       {page === "login" ? <SignIn /> : <Main />}
     </MantineProvider>
   );
@@ -259,12 +274,7 @@ function Main() {
               );
             })}
           </Stack>
-          <Alert variant="light" color="amber" icon={<Sparkles size={18} />} title={tv.find.button}>
-            <Text size="sm">{tv.find.help}</Text>
-            <Button size="xs" variant="white" color="dark" mt="sm">
-              {tv.find.button}
-            </Button>
-          </Alert>
+          <FindVersions versions={s.versions} setVersions={s.setVersions} disabled={running} />
           <Autocomplete
             label={tv.addLabel}
             placeholder={tv.addPlaceholder}
@@ -448,6 +458,119 @@ function Main() {
         </Card>
       )}
     </Shell>
+  );
+}
+
+function FindVersions({
+  versions,
+  setVersions,
+  disabled,
+}: {
+  versions: SampleVersion[];
+  setVersions: (v: SampleVersion[]) => void;
+  disabled: boolean;
+}) {
+  const { t, f, num, plural } = useI18n();
+  const tf = t.versions.find;
+  const find = useSampleFind(versions, setVersions);
+  const { scan } = find;
+  return (
+    <Alert variant="light" color="amber" icon={<Sparkles size={18} />} title={tf.button}>
+      <Stack gap="sm">
+        {scan.status === "running" ? (
+          <Stack gap={6} role="status">
+            <Group justify="space-between" wrap="nowrap">
+              <Group gap="xs" wrap="nowrap">
+                <Search size={14} />
+                <Text size="sm">{f(tf.progress, { done: num(scan.done), total: num(FIND_TOTAL) })}</Text>
+              </Group>
+              <Button variant="subtle" color="gray" size="compact-sm" leftSection={<Square size={14} />} onClick={find.stop}>
+                {tf.stop}
+              </Button>
+            </Group>
+            <Progress value={find.pct} />
+          </Stack>
+        ) : (
+          <>
+            <Text size="sm">{tf.help}</Text>
+            <Button
+              size="xs"
+              variant="white"
+              color="dark"
+              leftSection={<Search size={14} />}
+              disabled={disabled}
+              onClick={find.start}
+              style={{ alignSelf: "flex-start" }}
+            >
+              {scan.status === "idle" ? tf.button : tf.again}
+            </Button>
+          </>
+        )}
+        {scan.status === "stopped" && (
+          <Text size="sm" c="dimmed">
+            {f(tf.stopped, { done: num(scan.done), total: num(FIND_TOTAL) })}
+          </Text>
+        )}
+        {find.found.length > 0 && (
+          <Paper withBorder radius="md" px="sm">
+            <Text size="sm" fw={600} pt="sm">
+              {tf.foundTitle}
+            </Text>
+            {find.found.map(({ version: v, verses }, i) => {
+              const unsupported = v.source === "unsupported";
+              return (
+                <div key={v.bibleId}>
+                  {i > 0 && <Divider />}
+                  <Group py="xs" wrap="nowrap">
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <Group gap="xs" wrap="nowrap">
+                        <Text fw={600} size="sm">
+                          {v.abbr}
+                        </Text>
+                        <Text size="sm" c="dimmed" truncate lang={v.language} dir="auto">
+                          {v.title}
+                        </Text>
+                      </Group>
+                      <Text size="xs" c={unsupported ? "red" : "dimmed"}>
+                        {unsupported ? tf.unsupported : plural(tf.verses, verses)}
+                      </Text>
+                    </div>
+                    {find.inList(v.bibleId) ? (
+                      <Badge variant="light" color="gray" leftSection={<Check size={12} />} tt="none" fw={500}>
+                        {tf.inList}
+                      </Badge>
+                    ) : (
+                      !unsupported && (
+                        <Button
+                          size="compact-sm"
+                          variant="light"
+                          leftSection={<Plus size={14} />}
+                          disabled={disabled}
+                          aria-label={f(tf.add, { abbr: v.abbr })}
+                          onClick={() => find.add(v)}
+                        >
+                          {t.versions.add}
+                        </Button>
+                      )
+                    )}
+                  </Group>
+                </div>
+              );
+            })}
+          </Paper>
+        )}
+        {find.missing.length > 0 && (
+          <Text size="xs" c="dimmed">
+            {f(tf.notFound, { list: new Intl.ListFormat(t.meta.localeTag).format(find.missing.map((v) => v.abbr)) })}
+          </Text>
+        )}
+        {find.canReplace && (
+          <Button size="sm" disabled={disabled} onClick={find.replaceWithFound} style={{ alignSelf: "flex-start" }}>
+            {plural(tf.useThese, find.usable.length)}
+          </Button>
+        )}
+      </Stack>
+    </Alert>
   );
 }
 
