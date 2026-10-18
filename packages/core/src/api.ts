@@ -66,23 +66,34 @@ export interface ClientOptions {
   fetch?: typeof fetch;
 }
 
+/** The chapters a version ids BOOK.<n>_1, by book (see suffixedChapters). */
+export type SuffixedChapters = Readonly<Record<string, readonly number[]>>;
+
 /**
  * A passage id as YouVersion ids it in this version. A few versions id some
  * chapters BOOK.<n>_1 (NR2006's Psalms are PSA.1_1, its verses PSA.1_1.5),
  * and their highlights are stored under those ids: reading PSA.1 there gives
  * an empty list, not an error, and writing PSA.1.2 is a 502 (#25). The rest
- * of the app speaks plain BOOK.<n>; the client translates.
+ * of the app speaks plain BOOK.<n>; the client translates. Which chapters are
+ * suffixed is bundled for scanned versions; for others it comes from the API
+ * index, passed as `suffixed`.
  */
-export function toYouVersionId(bibleId: number, passageId: string): string {
-  const suffixed = suffixedChapters(bibleId);
+export function toYouVersionId(
+  bibleId: number,
+  passageId: string,
+  suffixed: SuffixedChapters = suffixedChapters(bibleId),
+): string {
   return passageId.replace(/(^|\+)([0-9A-Z]{3})\.(\d+)(?=[.+]|$)/g, (m, start, book, ch) =>
     suffixed[book]?.includes(Number(ch)) ? `${start}${book}.${ch}_1` : m,
   );
 }
 
 /** The reverse of toYouVersionId: "PSA.1_1.5" -> "PSA.1.5" where that chapter is suffixed. */
-export function fromYouVersionId(bibleId: number, passageId: string): string {
-  const suffixed = suffixedChapters(bibleId);
+export function fromYouVersionId(
+  bibleId: number,
+  passageId: string,
+  suffixed: SuffixedChapters = suffixedChapters(bibleId),
+): string {
   return passageId.replace(/(^|\+)([0-9A-Z]{3})\.(\d+)_1(?=[.+]|$)/g, (m, start, book, ch) =>
     suffixed[book]?.includes(Number(ch)) ? `${start}${book}.${ch}` : m,
   );
@@ -169,6 +180,8 @@ export class YouVersionClient implements HighlightsApi {
   private readonly fetchImpl: typeof fetch;
   private pauseUntil = 0; // shared back-off when the API rate-limits us
   private refreshing?: Promise<void>;
+  /** Suffixed chapters read from the API index, for versions that aren't bundled. */
+  private suffixed = new Map<number, SuffixedChapters>();
 
   constructor(opts: ClientOptions) {
     this.appKey = opts.appKey;
@@ -296,6 +309,19 @@ export class YouVersionClient implements HighlightsApi {
     return this.refreshing;
   }
 
+  /**
+   * Use these suffixed chapters for a version, in place of the bundled ones:
+   * a version map built from the API index knows them (VersionMap.suffixed),
+   * the bundled data doesn't.
+   */
+  useSuffixedChapters(bibleId: number, suffixed: SuffixedChapters): void {
+    this.suffixed.set(bibleId, suffixed);
+  }
+
+  private chapterIds(bibleId: number): SuffixedChapters {
+    return this.suffixed.get(bibleId) ?? suffixedChapters(bibleId);
+  }
+
   // -- endpoints -------------------------------------------------------------
 
   async getBible(bibleId: number): Promise<Record<string, unknown>> {
@@ -308,29 +334,32 @@ export class YouVersionClient implements HighlightsApi {
 
   /** Highlights for one whole chapter (e.g. "JHN.3"); the API rejects single verses. */
   async getHighlights(bibleId: number, passageId: string, opts: { signal?: AbortSignal } = {}): Promise<Highlight[]> {
+    const suffixed = this.chapterIds(bibleId);
     const { status, body } = await this.request("GET", "/v1/highlights", {
       auth: true,
       signal: opts.signal,
-      params: { bible_id: bibleId, passage_id: toYouVersionId(bibleId, passageId) },
+      params: { bible_id: bibleId, passage_id: toYouVersionId(bibleId, passageId, suffixed) },
     });
     if (status === 204 || !body) return [];
     const data = (body as { data?: Highlight[] }).data ?? [];
-    return data.map((h) => (h?.passage_id ? { ...h, passage_id: fromYouVersionId(bibleId, h.passage_id) } : h));
+    return data.map((h) => (h?.passage_id ? { ...h, passage_id: fromYouVersionId(bibleId, h.passage_id, suffixed) } : h));
   }
 
   async setHighlight(bibleId: number, passageId: string, color: string): Promise<void> {
+    const id = toYouVersionId(bibleId, passageId, this.chapterIds(bibleId));
     await this.request("POST", "/v1/highlights", {
       auth: true,
       ignoreBody: true,
       json: {
         request_id: crypto.randomUUID(),
-        highlight: { bible_id: bibleId, passage_id: toYouVersionId(bibleId, passageId), color },
+        highlight: { bible_id: bibleId, passage_id: id, color },
       },
     });
   }
 
   async deleteHighlight(bibleId: number, passageId: string): Promise<void> {
-    await this.request("DELETE", `/v1/highlights/${encodeURIComponent(toYouVersionId(bibleId, passageId))}`, {
+    const id = toYouVersionId(bibleId, passageId, this.chapterIds(bibleId));
+    await this.request("DELETE", `/v1/highlights/${encodeURIComponent(id)}`, {
       auth: true,
       ignoreBody: true,
       params: { bible_id: bibleId },

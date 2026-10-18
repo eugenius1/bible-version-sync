@@ -257,6 +257,29 @@ describe("chapters YouVersion ids BOOK.<n>_1", () => {
     expect(new URL(calls[3].url).searchParams.get("passage_id")).toBe("JHN.3");
   });
 
+  it("are taken from the API index for a version that isn't bundled", async () => {
+    const suffixed = { PSA: [23] };
+    expect(toYouVersionId(999999, "PSA.23.1", suffixed)).toBe("PSA.23_1.1");
+    expect(fromYouVersionId(999999, "PSA.23_1.1", suffixed)).toBe("PSA.23.1");
+    const { f, calls } = fakeFetch([
+      { status: 200, body: { data: [{ bible_id: 999999, passage_id: "PSA.23_1.1", color: "ffe066" }] } },
+      { status: 201, body: {} },
+      { status: 204 },
+      { status: 204 },
+    ]);
+    const c = new YouVersionClient({ appKey: "k", tokens: new MemoryTokens(fresh()), fetch: f, delayMs: 0 });
+    c.useSuffixedChapters(999999, suffixed);
+    c.useSuffixedChapters(4833, {}); // in place of the bundled ones, not beside them
+    expect(await c.getHighlights(999999, "PSA.23")).toEqual([{ bible_id: 999999, passage_id: "PSA.23.1", color: "ffe066" }]);
+    await c.setHighlight(999999, "PSA.23.2", "a3d9ff");
+    await c.deleteHighlight(999999, "PSA.23.2");
+    await c.getHighlights(4833, "PSA.1");
+    expect(new URL(calls[0].url).searchParams.get("passage_id")).toBe("PSA.23_1");
+    expect(JSON.parse(String(calls[1].init.body)).highlight.passage_id).toBe("PSA.23_1.2");
+    expect(new URL(calls[2].url).pathname).toBe("/v1/highlights/PSA.23_1.2");
+    expect(new URL(calls[3].url).searchParams.get("passage_id")).toBe("PSA.1");
+  });
+
   it("passes on a highlight without a passage id, and a body without data, for the engine to judge", async () => {
     const odd = { bible_id: 4833, color: "ffe066" };
     const { f } = fakeFetch([{ status: 200, body: { data: [odd] } }, { status: 200, body: {} }]);

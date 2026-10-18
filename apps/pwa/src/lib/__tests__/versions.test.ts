@@ -3,7 +3,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const getIndex = vi.fn();
 const cached = new Map<number, unknown>();
-vi.mock("../auth", () => ({ client: { getIndex: (id: number) => getIndex(id) } }));
+const useSuffixedChapters = vi.fn();
+vi.mock("../auth", () => ({
+  client: {
+    getIndex: (id: number) => getIndex(id),
+    useSuffixedChapters: (id: number, s: unknown) => useSuffixedChapters(id, s),
+  },
+}));
 vi.mock("../db", () => ({
   store: {
     getIndex: async (id: number) => cached.get(id),
@@ -16,6 +22,7 @@ const { resolveVersions } = await import("../versions");
 describe("resolveVersions", () => {
   beforeEach(() => {
     getIndex.mockReset();
+    useSuffixedChapters.mockReset();
     cached.clear();
   });
 
@@ -27,6 +34,21 @@ describe("resolveVersions", () => {
     ]);
     expect(out.map((v) => v.source)).toEqual(["verified", "scanned", "scanned"]);
     expect(getIndex).not.toHaveBeenCalled();
+  });
+
+  it("tells the client which chapters YouVersion ids BOOK.<n>_1", async () => {
+    // Bundled for NR2006; for a version that isn't, only its index says.
+    getIndex.mockResolvedValue({ books: [{ id: "PSA", chapters: [{ id: "23_1", verses: [1, 2, 3, 4, 5, 6] }] }] });
+    const [nr2006, other] = await resolveVersions([
+      { abbr: "NR2006", bibleId: 4833 },
+      { abbr: "X", bibleId: 999999 },
+    ]);
+    expect(other.source).toBe("api-index");
+    expect(useSuffixedChapters.mock.calls).toEqual([
+      [4833, nr2006.map.suffixed],
+      [999999, { PSA: [23] }],
+    ]);
+    expect(Object.keys(nr2006.map.suffixed)).toEqual(["JOB", "PSA"]);
   });
 
   it("keeps settings saved under any name", async () => {
