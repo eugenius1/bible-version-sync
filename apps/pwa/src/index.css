@@ -72,3 +72,17 @@
     @apply bg-white text-stone-900 dark:bg-stone-900 dark:text-stone-100;
   }
 }
+
+/* The popover of a Hint: the inverse of the page, like the primary button,
+   just above the badge that opened it, or below when there's no room above.
+   Without anchor positioning it stays the browser's centred popover. */
+@utility hint-popover {
+  @apply w-max max-w-72 rounded-lg border-0 bg-stone-900 px-3 py-1.5 text-xs text-balance text-white shadow-md
+    dark:bg-stone-100 dark:text-stone-900;
+  @supports (anchor-name: --a) {
+    inset: auto;
+    margin: 6px 0;
+    position-area: top span-right;
+    position-try-fallbacks: flip-block;
+  }
+}

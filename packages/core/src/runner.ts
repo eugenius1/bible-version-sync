@@ -12,13 +12,14 @@ import {
   readBook,
   supported,
   type BookPlan,
+  type PlanOptions,
   type SyncState,
   type SyncVersion,
 } from "./sync";
 
 export type Scope = { kind: "books"; books: string[] } | { kind: "chapter"; book: string; chapter: number };
 
-export interface RunOptions {
+export interface RunOptions extends PlanOptions {
   api: HighlightsApi;
   versions: SyncVersion[];
   scope: Scope;
@@ -110,7 +111,7 @@ export async function runSync(o: RunOptions): Promise<RunSummary> {
         },
       });
       // All of them: planBook keeps the refused versions' snapshot.
-      result.plan = planBook(book, o.versions, current, o.state, scope?.canon);
+      result.plan = planBook(book, o.versions, current, o.state, scope?.canon, { colorOrder: o.colorOrder });
     } catch (e) {
       // Stopped mid-read: nothing of this book was planned or written, and it
       // isn't reported, so a half-read book can never look like removals.
