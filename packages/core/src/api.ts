@@ -21,6 +21,11 @@ export class ApiError extends Error {
   get retryable(): boolean {
     return this.status === 0 || this.status === 429 || this.status >= 500;
   }
+
+  /** Sign-in expired, YouVersion unreachable or rate limited: every other request would fail the same way. */
+  get stopsRun(): boolean {
+    return this.status === 401 || this.status === 0 || this.status === 429;
+  }
 }
 
 export interface TokenSet {
@@ -253,7 +258,7 @@ export class YouVersionClient implements HighlightsApi {
       // isn't about the sign-in: YouVersion is unreachable, or is rate
       // limiting this app key with a 429 that has no CORS header. Retrying
       // only extends the lock-out, so stop here.
-      if (e instanceof ApiError && e.status === 0) throw new ApiError(0, "YouVersion isn't answering", path);
+      if (e instanceof ApiError && e.status === 0) throw new ApiError(0, e.detail, path);
       throw e;
     }
   }

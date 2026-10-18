@@ -308,6 +308,39 @@ describe("runSync", () => {
     expect(api.writes).toBe(0);
   });
 
+  it("stops writing when rate limited mid-book, and the next run writes the rest", async () => {
+    for (const v of [16, 17, 18]) api.hl("NIV", `RUT.1.${v}`, "ffe066");
+    const orig = api.setHighlight.bind(api);
+    let attempts = 0;
+    api.setHighlight = async (id, p, c) => {
+      if (++attempts === 2) {
+        const e = new ApiError(429, "too many requests", p);
+        e.retryAfter = 300;
+        throw e;
+      }
+      return orig(id, p, c);
+    };
+    const s = await runSync({ api, versions: VERSIONS, scope: { kind: "books", books: ["RUT", "JHN"] }, state, apply: true });
+    expect(s.fatal).toMatchObject({ reason: "rateLimited", retryAfter: 300 });
+    expect(attempts).toBe(2); // no request after the 429
+    expect(s.books.map((b) => b.book)).toEqual(["RUT"]); // JHN not attempted
+
+    api.setHighlight = orig;
+    await runSync({ api, versions: VERSIONS, scope: { kind: "books", books: ["RUT"] }, state, apply: true });
+    for (const v of [16, 17, 18]) expect(every(`RUT.1.${v}`)).toEqual({ AMP: "ffe066", NIV: "ffe066", LSG: "ffe066", S21: "ffe066" });
+  });
+
+  it("doesn't mark a verse unwritable when the sign-in expires mid-write", async () => {
+    api.hl("NIV", "RUT.1.16", "ffe066");
+    api.setHighlight = async (_id, p) => {
+      throw new ApiError(401, "sign-in expired", p);
+    };
+    const s = await runSync({ api, versions: VERSIONS, scope: { kind: "books", books: ["RUT"] }, state, apply: true });
+    expect(s.fatal?.reason).toBe("auth");
+    expect(s.books[0].writeErrors).toHaveLength(1);
+    expect(Object.values(state.unwritable).flat()).toEqual([]);
+  });
+
   it("blocks books that exceed the removal limit", async () => {
     for (let v = 1; v <= 5; v++) api.hl("NIV", `RUT.1.${v}`, "ffe066");
     await runSync({ api, versions: VERSIONS, scope: { kind: "books", books: ["RUT"] }, state, apply: true });

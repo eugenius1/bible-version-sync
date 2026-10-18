@@ -65,7 +65,8 @@ export interface RunSummary {
   aborted: boolean;
   /**
    * Set when the run stopped early because YouVersion couldn't be used at all
-   * (sign-in expired or offline); later books were not attempted.
+   * (sign-in expired, offline or rate limited); the rest of the book being
+   * written and later books were not attempted.
    */
   fatal?: {
     reason: "auth" | "network" | "rateLimited";
@@ -129,10 +130,9 @@ export async function runSync(o: RunOptions): Promise<RunSummary> {
       readDone += bookTotal - bookDone;
       summary.books.push(result);
       await o.onBookDone?.(result);
-      if (e.status === 401 || e.status === 0 || e.status === 429) {
+      if (e.stopsRun) {
         // Every other book would fail the same way; stop instead of hammering.
-        const reason = e.status === 401 ? "auth" : e.status === 429 ? "rateLimited" : "network";
-        summary.fatal = { reason, message: e.message, retryAfter: e.retryAfter };
+        summary.fatal = fatal(e);
         break;
       }
       continue;
@@ -159,16 +159,24 @@ export async function runSync(o: RunOptions): Promise<RunSummary> {
         count();
         removalsSoFar += rems;
         let done = 0;
-        result.writeErrors = await applyPlan(o.api, versions, plan, o.state, () => {
+        const applied = await applyPlan(o.api, versions, plan, o.state, () => {
           done++;
           o.onProgress?.({ phase: "writing", book, done, total: plan.actions.length, readDone, readTotal });
         });
+        result.writeErrors = applied.errors;
         summary.writeErrors += result.writeErrors.length;
+        if (applied.stoppedBy) summary.fatal = fatal(applied.stoppedBy);
       }
     }
     summary.books.push(result);
     await o.onBookDone?.(result);
+    if (summary.fatal) break;
   }
   if (o.signal?.aborted) summary.aborted = true;
   return summary;
+}
+
+function fatal(e: ApiError): NonNullable<RunSummary["fatal"]> {
+  const reason = e.status === 401 ? "auth" : e.status === 429 ? "rateLimited" : "network";
+  return { reason, message: e.message, retryAfter: e.retryAfter };
 }

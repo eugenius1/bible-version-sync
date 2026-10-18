@@ -457,12 +457,13 @@ export async function applyPlan(
   plan: BookPlan,
   state: SyncState,
   onAction?: () => void,
-): Promise<string[]> {
+): Promise<{ errors: string[]; stoppedBy?: ApiError }> {
   const byId = new Map(versions.map((v) => [v.bibleId, v]));
   const retry = new Set<Ref>(); // canonical refs to leave for next run
   const rejected = new Map<Ref, Set<number>>(); // canonical ref -> bible ids the API refused
   const errors: string[] = [];
-  for (const a of plan.actions) {
+  let stoppedBy: ApiError | undefined;
+  for (const [i, a] of plan.actions.entries()) {
     const v = byId.get(a.version)!;
     try {
       if (a.op === "set") await api.setHighlight(v.bibleId, a.local, a.color!);
@@ -470,6 +471,14 @@ export async function applyPlan(
     } catch (e) {
       if (!(e instanceof ApiError)) throw e;
       errors.push(`${v.abbr} ${a.op} ${a.local}: ${e.message}`);
+      if (e.stopsRun) {
+        // The rest would fail the same way, and each request during a rate
+        // limit seems to extend it. This verse and every one not yet written
+        // keep their old snapshot, so the next run tries them again.
+        for (const rest of plan.actions.slice(i)) retry.add(rest.canon);
+        stoppedBy = e;
+        break;
+      }
       if (e.retryable) {
         retry.add(a.canon);
       } else {
@@ -500,5 +509,5 @@ export async function applyPlan(
     if (Object.keys(kept).length) state.verses[canon] = kept;
     else delete state.verses[canon];
   }
-  return errors;
+  return { errors, stoppedBy };
 }

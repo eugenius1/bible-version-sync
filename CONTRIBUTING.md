@@ -310,7 +310,8 @@ expired token: refresh once and retry; if the refresh is rejected, report
 sign-in (a stale refresh token gets a readable 400), so stop at once as
 unreachable; after three network failures, give up. The runner stops the
 whole run on the first auth, network or rate-limit failure rather than
-failing every book.
+failing every book. A write that fails that way stops the rest of its book
+too, and those verses keep their old snapshot so the next run retries them.
 
 **The rate limit is small, and in a browser it's invisible.** In Oct 2026 an
 app key got a 429 with `Retry-After: 300` after about 120 requests, whether

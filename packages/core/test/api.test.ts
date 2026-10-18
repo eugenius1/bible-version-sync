@@ -132,7 +132,7 @@ describe("YouVersionClient", () => {
     const { f, calls } = fakeFetch(["cors-blocked", "cors-blocked", "cors-blocked", "cors-blocked"]);
     const c = new YouVersionClient({ appKey: "k", tokens: new MemoryTokens(fresh()), fetch: f, delayMs: 0 });
     const e = await c.getHighlights(111, "JHN.3").catch((x: unknown) => x);
-    expect(e).toMatchObject({ status: 0, detail: "YouVersion isn't answering" });
+    expect(e).toMatchObject({ status: 0 }); // the app phrases it by status
     // The read and one refresh: more would only extend the lock-out.
     expect(calls.map((x) => new URL(x.url).pathname)).toEqual(["/v1/highlights", "/auth/token"]);
   });

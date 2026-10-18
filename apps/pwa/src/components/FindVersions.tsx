@@ -21,7 +21,8 @@ type Scan =
   | { status: "done"; found: Found[] }
   /** Stopped on request: what was found so far stays, to be added. */
   | { status: "stopped"; done: number; total: number; found: Found[] }
-  | { status: "error"; message: string };
+  /** Phrased when shown, so it follows a change of language. */
+  | { status: "error"; error: unknown };
 
 interface Props {
   settings: VersionSetting[];
@@ -89,7 +90,7 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
     } catch (e) {
       if (controller.signal.aborted) {
         setScan((s) => (s.status === "running" ? { status: "stopped", done: s.done, total: s.total, found: s.found } : { status: "idle" }));
-      } else setScan({ status: "error", message: problemText(e, i18n) });
+      } else setScan({ status: "error", error: e });
     } finally {
       abort.current = null;
     }
@@ -159,7 +160,7 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
           {scan.total ? f(tf.stopped, { done: num(scan.done), total: num(scan.total) }) : tf.stoppedAtStart}
         </p>
       )}
-      {scan.status === "error" && <p className="text-sm text-red-700 dark:text-red-300">{f(tf.failed, { problem: scan.message })}</p>}
+      {scan.status === "error" && <p className="text-sm text-red-700 dark:text-red-300">{f(tf.failed, { problem: problemText(scan.error, i18n) })}</p>}
       {scan.status === "done" && !found.length && <p className="text-sm text-stone-600 dark:text-stone-400">{tf.none}</p>}
 
       {found.length > 0 && (
