@@ -111,6 +111,14 @@ def add(vids):
         entry = {"abbr": d["abbr"], "local_abbr": d["local_abbr"], "title": d["title"], "lang": d["lang"], "vrs": d["vrs"],
                  "counts": {}, "gaps": {}, "merged": []}
         chapters = plain_chapters(vid, d["chapters"])
+        # The chapters YouVersion ids BOOK.<n>_1, by book: a whole book in
+        # NR2006, only Psalms 42 and 43 in DHH94I. Their highlights are stored
+        # under those ids too (#25), so the app translates.
+        suffixed = {}
+        for u, r in d["chapters"].items():
+            m = SUFFIXED.match(u)
+            if m and r and r["verses"]: suffixed.setdefault(m[1], []).append(int(m[2]))
+        if suffixed: entry["suffixed"] = {b: sorted(cs) for b, cs in sorted(suffixed.items())}
         for b in d["books"]:
             chs = sorted((int(u.split(".")[1]), r) for u, r in chapters.items() if u.split(".")[0] == b)
             # By position, to the book's full length: a version may have only

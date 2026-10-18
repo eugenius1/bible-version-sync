@@ -296,10 +296,13 @@ to be ordinary chapters with a `_1` suffix (GNA2025 does the same in its
 Psalms and Philemon, NR2006 in its Psalms and Job, where an empty `PSA.1`,
 `PSA.73`, `PSA.90` and `PSA.107` hold only a heading, "Libro primo" and so
 on), so `scan.py` now counts `MAT.1_1` as Matthew 1
-and TUKARA84 is scanned too. Whether YouVersion stores a highlight in such a
-chapter under `MAT.1.5` or `MAT.1_1.5` hasn't been tested; if the latter,
-the app's reads of those chapters find nothing, as for a version assumed
-English.
+and TUKARA84 is scanned too. YouVersion stores a highlight in such a
+chapter under the suffixed id (`MAT.1_1.5`): reading `MAT.1` gives an
+empty list and writing `MAT.1.5` is a 502 (checked in October 2026 in all
+three, and in DHH94I's Psalm 42,
+[#25](https://github.com/eugenius1/bible-version-sync/issues/25)).
+`scan.py --add` records the suffixed chapters, and the app's API client
+translates those ids.
 
 `survey.test.ts` checks each unlabelled scan against all six systems:
 wherever another system fits a chapter's count, would map it differently,

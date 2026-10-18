@@ -28,6 +28,7 @@ import {
   RSC_VRS,
   RSO_VRS,
   SHARED_OVERRIDES,
+  SUFFIXED_CHAPTERS,
   VERIFIED_VERSIONS,
   VRS_LABEL_IDS,
   VUL_VRS,
@@ -227,6 +228,8 @@ export interface BuildOptions {
   label?: StdScheme;
   /** Explicit local ref -> canonical ref for chapters following neither system. */
   overrides?: Map<Ref, Ref>;
+  /** The chapters YouVersion ids BOOK.<n>_1 in this version, by book (see suffixedChapters). */
+  suffixed?: Readonly<Record<string, readonly number[]>>;
 }
 
 /** Maps one version's verse numbers to canonical (org) refs and back. */
@@ -244,6 +247,12 @@ export class VersionMap {
    * nothing for it.
    */
   unsupported = false;
+  /**
+   * The chapters YouVersion ids BOOK.<n>_1, by book. The map itself is in
+   * plain BOOK.<n>; this only tells the sync's fingerprint that those verses
+   * live under other ids at YouVersion.
+   */
+  suffixed: Readonly<Record<string, readonly number[]>> = {};
 
   private constructor(readonly abbr: string) {}
 
@@ -305,6 +314,7 @@ export class VersionMap {
 
     const vm = new VersionMap(abbr);
     vm.overrides = overrides;
+    vm.suffixed = opts.suffixed ?? {};
     for (const book of BOOKS) {
       const actual = known[book] ?? {};
       const actualChapters = Object.keys(actual).map(Number);
@@ -646,6 +656,16 @@ export function hasKnownCounts(bibleId: number): boolean {
  */
 export type NumberingSource = "verified" | "scanned" | "api-index" | "assumed" | "unsupported";
 
+/**
+ * The chapters YouVersion ids BOOK.<n>_1 rather than BOOK.<n> in a version,
+ * by book, bundled from the survey's scan: all of NR2006's Job and Psalms
+ * (JOB.1_1…, PSA.1_1…), only Psalms 10 to 147 in BFC. Their highlights are
+ * stored under those ids (#25); the API client translates.
+ */
+export function suffixedChapters(bibleId: number): Readonly<Record<string, readonly number[]>> {
+  return Object.hasOwn(SUFFIXED_CHAPTERS, bibleId) ? SUFFIXED_CHAPTERS[bibleId] : {};
+}
+
 /** Convert a /v1/bibles/{id}/index response into {book: {chapter: count}}. */
 export function countsFromIndex(index: unknown): ChapterCounts {
   const out: ChapterCounts = {};
@@ -750,7 +770,8 @@ export function buildVersionMap(
 ): { map: VersionMap; source: NumberingSource; unfit?: number } {
   const std = Standard.load();
   const label = versificationLabel(bibleId);
-  const base = { overrides: builtinOverrides(bibleId), defaultScheme, label };
+  const suffixed = suffixedChapters(bibleId);
+  const base = { overrides: builtinOverrides(bibleId), defaultScheme, label, suffixed };
   const known = apiIndex ? countsFromIndex(apiIndex) : builtinCounts(bibleId);
   if (!known) return { map: VersionMap.build(abbr, std, base), source: "assumed" };
   const unfit = unfitChapters(known, base.overrides);

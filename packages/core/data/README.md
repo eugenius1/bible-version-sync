@@ -26,6 +26,10 @@ are keyed by bible id throughout; abbreviations aren't unique.
   languages (Sept 2026), by bible id; the one popularity signal YouVersion
   publishes. Ranks those versions first when looking for the person's
   versions, after the hand-made ranking in `scripts/popular.mjs`.
+- `suffixed_chapters.json`: the chapters YouVersion ids `BOOK.<n>_1`
+  (`PSA.1_1`), by bible id and book, from the survey's scan. Their
+  highlights are stored under those ids, so the API client translates them
+  to and from `BOOK.<n>`.
 - `overrides/<bible id>.map`: hand-checked corrections for chapters that follow
   no system. Format: `LOCAL = CANONICAL` (canonical = org numbering), plus
   `use <name>` lines naming shared tables.
@@ -34,7 +38,7 @@ are keyed by bible id throughout; abbreviations aren't unique.
   at 17). A version gets one only through a `use` line, once its text has
   been read.
 
-`known_counts.json` (for scanned versions), `labels.json`, `names.json` and
-`defaults.json` are written by `npm run import-survey -w @bvs/core` from the survey's
+`known_counts.json` (for scanned versions), `suffixed_chapters.json`,
+`labels.json`, `names.json` and `defaults.json` are written by `npm run import-survey -w @bvs/core` from the survey's
 `counts.json` and `candidates.json`. After editing anything here, run `npm run gen -w @bvs/core`
 to regenerate `src/data.generated.ts` and `src/names.generated.ts`.
