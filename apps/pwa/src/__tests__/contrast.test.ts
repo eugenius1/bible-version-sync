@@ -138,6 +138,10 @@ const PAIRS: Array<[Pair, Pair]> = [
     { label: "progress bar in its track", fg: "amber-700", bg: "stone-200", need: 3 },
     { label: "progress bar in its track", fg: "amber-500", bg: "stone-800", need: 3 },
   ],
+  [
+    { label: "badge hint text", fg: "white", bg: "stone-900", need: 4.5 },
+    { label: "badge hint text", fg: "stone-900", bg: "stone-100", need: 4.5 },
+  ],
 ];
 
 describe.each([
