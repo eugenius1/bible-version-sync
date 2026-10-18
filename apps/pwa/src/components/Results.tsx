@@ -95,9 +95,13 @@ export function Results({ run, names, onApply, onApplyAllowingRemovals, onSignIn
             {s.fatal.retryAfter ? plural(tr.rateLimited, Math.ceil(s.fatal.retryAfter / 60)) : tr.rateLimitedSoon}
           </Notice>
         )}
-        {(authExpired || s.fatal?.reason === "network") && (
+        {/* A run stops as "network" only once even the token refresh couldn't
+            get through (YouVersion unreachable, or a 429 the browser hides),
+            so signing in again, through YouVersion too, wouldn't help. */}
+        {s.fatal?.reason === "network" && !authExpired && <Notice tone="warn">{tr.network}</Notice>}
+        {authExpired && (
           <Notice tone="warn">
-            <p>{authExpired ? tr.authExpired : tr.network}</p>
+            <p>{tr.authExpired}</p>
             <button className="btn-secondary" onClick={onSignInAgain}>
               <LogIn size={16} aria-hidden />
               {tr.signInAgain}
