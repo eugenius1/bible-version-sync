@@ -20,6 +20,9 @@ export function Hint({ hint, className, children }: { hint: string; className: s
       <button
         type="button"
         popoverTarget={id}
+        // popoverTarget links the popover as details, not a description, so
+        // without this a screen reader never reads the hint on focus.
+        aria-describedby={id}
         className={className}
         style={{ anchorName: anchor }}
         onPointerEnter={(e) => {
