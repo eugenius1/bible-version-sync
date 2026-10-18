@@ -372,6 +372,16 @@ describe("an API index with chapters YouVersion ids BOOK.<n>_1", () => {
     expect(map.chapters("PSA").slice(0, 4)).toEqual([1, 2, 3, 4]);
   });
 
+  it("read as the live API gives them", () => {
+    // WEBUS's (206) Psalm 151, trimmed, as /v1/bibles/206/index returned it
+    // in October 2026, moved to Philemon since the engine has no PS2. None of
+    // the five bundled versions' indexes are licensed to the app key.
+    const verse = (n: number) => ({ id: String(n), passage_id: `PHM.1_1.${n}`, title: String(n) });
+    const i = index([{ id: "1_1", passage_id: "PHM.1_1", title: "151", verses: [1, 2, 3, 4, 5, 6, 7].map(verse) }], "PHM");
+    expect(countsFromIndex(i)).toEqual({ PHM: { 1: 7 } });
+    expect(suffixedFromIndex(i)).toEqual({ PHM: [1] });
+  });
+
   it("keeps a plain chapter that has verses, and leaves out any other suffix", () => {
     const i = index([
       { id: "1", verses: v(6) },
