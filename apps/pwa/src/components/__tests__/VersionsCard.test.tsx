@@ -10,7 +10,11 @@ import type { VersionSetting } from "../../lib/db";
 const getHighlights = vi.fn();
 const getIndex = vi.fn();
 vi.mock("../../lib/auth", () => ({
-  client: { getHighlights: (...a: unknown[]) => getHighlights(...a), getIndex: (id: number) => getIndex(id) },
+  client: {
+    getHighlights: (...a: unknown[]) => getHighlights(...a),
+    getIndex: (id: number) => getIndex(id),
+    useSuffixedChapters: () => {},
+  },
 }));
 vi.mock("../../lib/db", async (actual) => ({
   ...(await actual<typeof import("../../lib/db")>()),

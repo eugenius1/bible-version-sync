@@ -7,6 +7,7 @@ import {
   VersionMap,
   buildVersionMap,
   builtinOverrides,
+  countsFromIndex,
   hasKnownCounts,
   isVerifiedVersion,
   parseRef,
@@ -19,6 +20,8 @@ import {
   byPopularity,
   mostUsedVersions,
   searchVersions,
+  suffixedChapters,
+  suffixedFromIndex,
 } from "../src";
 import { KNOWN_COUNTS, OVERRIDES, VERIFIED_VERSIONS } from "../src/data.generated";
 
@@ -343,6 +346,66 @@ describe("shared correction tables", () => {
     const m = buildVersionMap("NIV", 111, index).map;
     expect(m.skippedChapters("REV")).toEqual([12]);
     expect(m.toCanon.has("REV.12.1")).toBe(false);
+  });
+});
+
+describe("an API index with chapters YouVersion ids BOOK.<n>_1", () => {
+  const v = (n: number) => Array.from({ length: n }, (_, i) => i + 1);
+  const index = (chapters: unknown[], id = "PSA") => ({ books: [{ id, chapters }] });
+
+  it("counts them as their chapter and records them as suffixed", () => {
+    // The id bare or after its book, and an empty plain chapter beside it in
+    // either order, as NR2006 lists PSA.1 beside PSA.1_1.
+    const i = index([
+      { id: "1", verses: [] },
+      { id: "1_1", verses: v(6) },
+      { passage_id: "PSA.2_1", verses: v(12) },
+      { id: "PSA.3_1", verses: v(8) },
+      { id: "3", verses: [] },
+      { id: "4", verses: v(8) },
+    ]);
+    expect(countsFromIndex(i)).toEqual({ PSA: { 1: 6, 2: 12, 3: 8, 4: 8 } });
+    expect(suffixedFromIndex(i)).toEqual({ PSA: [1, 2, 3] });
+    const { map, source } = buildVersionMap("X", 999999, i);
+    expect(source).toBe("api-index");
+    expect(map.suffixed).toEqual({ PSA: [1, 2, 3] });
+    expect(map.chapters("PSA").slice(0, 4)).toEqual([1, 2, 3, 4]);
+  });
+
+  it("read as the live API gives them", () => {
+    // WEBUS's (206) Psalm 151, trimmed, as /v1/bibles/206/index returned it
+    // in October 2026, moved to Philemon since the engine has no PS2. None of
+    // the five bundled versions' indexes are licensed to the app key.
+    const verse = (n: number) => ({ id: String(n), passage_id: `PHM.1_1.${n}`, title: String(n) });
+    const i = index([{ id: "1_1", passage_id: "PHM.1_1", title: "151", verses: [1, 2, 3, 4, 5, 6, 7].map(verse) }], "PHM");
+    expect(countsFromIndex(i)).toEqual({ PHM: { 1: 7 } });
+    expect(suffixedFromIndex(i)).toEqual({ PHM: [1] });
+  });
+
+  it("keeps a plain chapter that has verses, and leaves out any other suffix", () => {
+    const i = index([
+      { id: "1", verses: v(6) },
+      { id: "1_1", verses: v(6) },
+      { id: "2_1", verses: v(12) },
+      { id: "2", verses: v(12) },
+      { id: "3_1", verses: [] },
+      { id: "4_2", verses: v(8) },
+      { id: "intro", verses: [] },
+      { verses: v(3) },
+    ]);
+    expect(countsFromIndex(i)).toEqual({ PSA: { 1: 6, 2: 12 } });
+    expect(suffixedFromIndex(i)).toEqual({});
+  });
+
+  it("joins a book listed twice", () => {
+    const i = { books: [index([{ id: "1", verses: [] }]).books[0], index([{ id: "1_1", verses: v(6) }]).books[0]] };
+    expect(countsFromIndex(i)).toEqual({ PSA: { 1: 6 } });
+    expect(suffixedFromIndex(i)).toEqual({ PSA: [1] });
+  });
+
+  it("are the bundled ones for a bundled version, and none for an index without any", () => {
+    expect(buildVersionMap("NR2006", 4833).map.suffixed).toEqual(suffixedChapters(4833));
+    expect(buildVersionMap("X", 999999, index([{ id: "1", verses: v(6) }])).map.suffixed).toEqual({});
   });
 });
 

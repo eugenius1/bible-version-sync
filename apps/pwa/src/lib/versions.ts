@@ -60,6 +60,9 @@ export async function resolveVersion(v: VersionSetting): Promise<ResolvedVersion
     }
   }
   const { map, source, unfit } = buildVersionMap(v.abbr, v.bibleId, index ?? undefined);
+  // An unbundled version's suffixed chapters (#25) are known only from its
+  // index, so the client must hear them from the map.
+  client.useSuffixedChapters(v.bibleId, map.suffixed);
   return { abbr: v.abbr, bibleId: v.bibleId, map, source, unfit };
 }
 

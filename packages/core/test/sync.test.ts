@@ -653,7 +653,7 @@ describe("a version whose chapters YouVersion ids PSA.1_1", () => {
   // when checked (#25): a plain chapter of those books reads as empty, and a
   // plain write there is a 502.
   class YouVersion {
-    store: Record<number, Record<string, string>> = { 111: {}, 4833: {} };
+    store: Record<number, Record<string, string>> = { 111: {}, 4833: {}, 999999: {} };
     readonly fetch = (async (url: string, init: RequestInit) => {
       const u = new URL(url);
       const id = Number(u.searchParams.get("bible_id"));
@@ -666,7 +666,7 @@ describe("a version whose chapters YouVersion ids PSA.1_1", () => {
       }
       if (init.method === "POST") {
         const { highlight: h } = JSON.parse(String(init.body));
-        if (h.bible_id === 4833 && /^(PSA|JOB)\.\d+\./.test(h.passage_id)) {
+        if ((h.bible_id === 4833 && /^(PSA|JOB)\.\d+\./.test(h.passage_id)) || (h.bible_id === 999999 && /^PSA\.23\./.test(h.passage_id))) {
           return Response.json({ message: "Unexpected response from highlights backend" }, { status: 502 });
         }
         this.store[h.bible_id][h.passage_id] = h.color;
@@ -739,6 +739,22 @@ describe("a version whose chapters YouVersion ids PSA.1_1", () => {
 
     // Only once: the next sync diffs as usual.
     expect((await run("PSA")).remapped).toEqual([]);
+  });
+
+  it("is read and written under its own ids when only its API index says so", async () => {
+    // A version that isn't bundled, whose index ids Psalm 23 PSA.23_1 and
+    // lists an empty PSA.23 beside it, as NR2006's lists PSA.1.
+    const verses = Array.from({ length: 6 }, (_, i) => i + 1);
+    const index = { books: [{ id: "PSA", chapters: [{ id: "23", verses: [] }, { id: "23_1", verses }] }] };
+    const X: SyncVersion = { abbr: "X", bibleId: 999999, map: buildVersionMap("X", 999999, index).map };
+    expect(X.map.suffixed).toEqual({ PSA: [23] });
+    expect(X.map.chapters("PSA")).toContain(23);
+    client.useSuffixedChapters(X.bibleId, X.map.suffixed);
+    yv.store[999999]["PSA.23_1.1"] = "ffe066";
+    yv.store[111]["PSA.23.2"] = "a3d9ff";
+    await run("PSA", [NIV, X]);
+    expect(yv.store[111]["PSA.23.1"]).toBe("ffe066");
+    expect(yv.store[999999]).toEqual({ "PSA.23_1.1": "ffe066", "PSA.23_1.2": "a3d9ff" });
   });
 });
 

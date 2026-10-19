@@ -409,11 +409,18 @@ Matthew, while BFC does it only in Psalms 10–147 and DHH94I only in Psalms
 read skips the book never fires, and writing `PSA.1.2` is a 502. The engine
 speaks plain `BOOK.<n>` throughout, and `YouVersionClient` translates at the
 edge (`toYouVersionId`, `fromYouVersionId`), chapter by chapter, using
-`data/suffixed_chapters.json` from the survey's scan. A version found later
-with the pattern needs a scan and an `import-survey`, nothing else. The
-sync's mapping fingerprint includes the suffixed chapters, so such a version
-was re-added once in those books when the translation came in, rather than
-diffed against a snapshot made with the plain ids.
+`data/suffixed_chapters.json` from the survey's scan. A version that isn't
+bundled gets them from its API index instead (`suffixedFromIndex`, kept on
+`VersionMap.suffixed`), and `resolveVersion` hands them to the client
+(`useSuffixedChapters`). The index gives such a chapter `"id": "1_1"` and
+`"passage_id": "PS2.1_1"` (WEBUS's Psalm 151, seen in October 2026; PS2
+isn't one of the engine's books, so that chapter itself isn't synced). None
+of the five bundled versions' indexes are licensed to the app key (404), so
+for them the bundled list is what counts; a version whose index the app key
+may not read still needs a scan and an `import-survey`. The sync's mapping
+fingerprint includes the suffixed chapters, so such a version is re-added once in those books
+when they first become known, rather than diffed against a snapshot made
+with the plain ids.
 
 **Abbreviations aren't unique.** `NVI-S` is both 128 and 2664, `ARC` both 212
 and 3407. Key anything version-specific by bible id.

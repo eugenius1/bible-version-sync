@@ -666,15 +666,31 @@ export function suffixedChapters(bibleId: number): Readonly<Record<string, reado
   return Object.hasOwn(SUFFIXED_CHAPTERS, bibleId) ? SUFFIXED_CHAPTERS[bibleId] : {};
 }
 
-/** Convert a /v1/bibles/{id}/index response into {book: {chapter: count}}. */
-export function countsFromIndex(index: unknown): ChapterCounts {
-  const out: ChapterCounts = {};
+/**
+ * Each book's chapters in a /v1/bibles/{id}/index response, by number, with
+ * their highest verse and whether YouVersion ids them BOOK.<n>_1.
+ *
+ * A chapter id may be "1" or "1_1", bare or after its book ("PSA.1_1"). A
+ * suffixed chapter is an ordinary chapter <n>; only its id differs (#25). As
+ * in the survey's scan, an empty plain chapter beside it is no chapter at all
+ * (NR2006 lists PSA.1 with no verses beside PSA.1_1). Should a plain chapter
+ * with verses sit beside a suffixed one, the plain one is kept, as before
+ * suffixes were read. Any other suffix (a "_2" could be half a chapter) and
+ * intros are left out.
+ */
+function indexChapters(index: unknown): Map<string, Map<number, { count: number; suffixed: boolean }>> {
+  const out = new Map<string, Map<number, { count: number; suffixed: boolean }>>();
   const books = (index as { books?: unknown[] })?.books ?? [];
   for (const book of books as Array<{ id?: string; chapters?: unknown[] }>) {
     if (!book.id || !BOOKS.includes(book.id)) continue;
-    for (const ch of (book.chapters ?? []) as Array<{ id?: unknown; verses?: unknown[] }>) {
-      const c = Number(ch.id);
-      if (!Number.isInteger(c)) continue; // intros etc.
+    const chapters = out.get(book.id) ?? new Map<number, { count: number; suffixed: boolean }>();
+    out.set(book.id, chapters);
+    for (const ch of (book.chapters ?? []) as Array<{ id?: unknown; passage_id?: unknown; verses?: unknown[] }>) {
+      const chId = String(ch.id ?? ch.passage_id ?? "");
+      const m = /^(\d+)(_1)?$/.exec(chId.slice(chId.lastIndexOf(".") + 1));
+      if (!m) continue;
+      const c = Number(m[1]);
+      const suffixed = m[2] !== undefined;
       const verses = ch.verses ?? [];
       let max = 0;
       for (const v of verses) {
@@ -686,8 +702,34 @@ export function countsFromIndex(index: unknown): ChapterCounts {
         const n = Number(String(id).split("-").pop());
         if (Number.isInteger(n)) max = Math.max(max, n);
       }
-      (out[book.id] ??= {})[c] = max || verses.length;
+      const count = max || verses.length;
+      const seen = chapters.get(c);
+      if (suffixed && (count === 0 || (seen && seen.count > 0 && !seen.suffixed))) continue;
+      if (!suffixed && seen?.suffixed && count === 0) continue;
+      chapters.set(c, { count, suffixed });
     }
+  }
+  return out;
+}
+
+/** Convert a /v1/bibles/{id}/index response into {book: {chapter: count}}. */
+export function countsFromIndex(index: unknown): ChapterCounts {
+  const out: ChapterCounts = {};
+  for (const [book, chapters] of indexChapters(index)) {
+    for (const [c, { count }] of chapters) (out[book] ??= {})[c] = count;
+  }
+  return out;
+}
+
+/**
+ * The chapters a /v1/bibles/{id}/index response ids BOOK.<n>_1, by book, as
+ * suffixedChapters gives them for a bundled version.
+ */
+export function suffixedFromIndex(index: unknown): Record<string, number[]> {
+  const out: Record<string, number[]> = {};
+  for (const [book, chapters] of indexChapters(index)) {
+    const cs = [...chapters].filter(([, ch]) => ch.suffixed).map(([c]) => c);
+    if (cs.length) out[book] = cs.sort((a, b) => a - b);
   }
   return out;
 }
@@ -770,7 +812,7 @@ export function buildVersionMap(
 ): { map: VersionMap; source: NumberingSource; unfit?: number } {
   const std = Standard.load();
   const label = versificationLabel(bibleId);
-  const suffixed = suffixedChapters(bibleId);
+  const suffixed = apiIndex ? suffixedFromIndex(apiIndex) : suffixedChapters(bibleId);
   const base = { overrides: builtinOverrides(bibleId), defaultScheme, label, suffixed };
   const known = apiIndex ? countsFromIndex(apiIndex) : builtinCounts(bibleId);
   if (!known) return { map: VersionMap.build(abbr, std, base), source: "assumed" };
