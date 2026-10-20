@@ -141,7 +141,9 @@ look unread, and so removed, when the other book syncs.
 `packages/core/test/survey.test.ts` runs the engine over all 353 scanned
 versions and pins what each one skips.
 
-**A version no system explains is refused.** Without a label, only `eng`
+### A version no system explains is refused
+
+Without a label, only `eng`
 and `org` are candidates, and counts can't say which of the other four a
 version follows (UBIO fits `lxx` in 131 chapters and `rsc` in 130), so an
 unlabelled Synodal or Septuagint version would have its Psalms land one
@@ -157,7 +159,9 @@ add form refuses one, and a saved one shows "Numbering not supported". A
 version with no counts at all can't be checked, and is assumed English as
 before.
 
-Verse counts come from, in order: `packages/core/data/known_counts.json`
+### Where the verse counts come from
+
+They come from, in order: `packages/core/data/known_counts.json`
 (the verified versions in `scripts/verified.mjs` and the ones scanned for the
 survey, listed in [its README](tools/versification-survey/README.md)), then the
 YouVersion API's `/v1/bibles/{id}/index` (only for versions the app key may
@@ -176,15 +180,43 @@ system anyway, which keeps the 353 versions to about 36,500 entries.
 widely used versions in 20 languages fared against the original
 `eng`/`org` engine; it's why `rso`, `rsc`, `lxx` and `vul` were added. The scanner and data behind it are in [tools/versification-survey](tools/versification-survey/README.md).
 
-**Adding a version's counts.** Scan it (`tools/versification-survey/scan.py`),
-add it to the survey's `data/counts.json` (`scan.py --add`), and run
-`npm run import-survey -w @bvs/core`, which rewrites the files listed in
-[`packages/core/data`'s README](packages/core/data/README.md). Review the diff: the app never reads `tools/` itself, so
-what ships is exactly what's in `packages/core/data`. `survey.test.ts` fails if
-the bundle stops reproducing the scan. The version then shows "Verse counts
-known".
+## Adding or verifying a version
 
-**Version names.** The official API doesn't name most versions (their text
+To add a version's verse counts, so it shows "Verse counts known":
+
+1. Scan it with `tools/versification-survey/scan.py`, and add it to the
+   survey's `data/counts.json` with `scan.py --add`.
+2. Run `npm run import-survey -w @bvs/core`, which rewrites the files listed
+   in [`packages/core/data`'s README](packages/core/data/README.md).
+3. Review the diff: the app never reads `tools/` itself, so what ships is
+   exactly what's in `packages/core/data`. `survey.test.ts` fails if the
+   bundle stops reproducing the scan.
+
+To verify its numbering, so it shows "Verified numbering", also:
+
+4. Add an entry to `VERIFIED` in `packages/core/scripts/verified.mjs`.
+5. For each chapter that matches neither system, write the correction table.
+   First check whether a shared table in `overrides/shared/` describes it, by
+   reading the verses at its boundaries in the version (not just comparing
+   counts), and `use` it if so. Matching counts aren't enough: RVR1960
+   numbers Psalm 47 the English way in Hebrew's 10 verses, and was mapped a
+   verse off until its text was read. The survey's `text.py`, `sheets.ts` and
+   `REVIEW.md` do the reading (see
+   [its README](tools/versification-survey/README.md#verifying-a-versions-numbering)).
+   Bible text isn't committed, and comments quote only public-domain text
+   (KJV, Douay-Rheims).
+6. Add test cases to `packages/core/test/versification.test.ts` for the
+   verses you checked by eye, and run `npm run check`. A verified version
+   maps every chapter it has; a test checks that.
+
+The LSG tables were first built by aligning the text verse by verse with S21
+(by word overlap), then against NIV.
+
+## Version names and discovery
+
+### Version names
+
+The official API doesn't name most versions (their text
 isn't licensed to the app key), so `names.json` has the abbreviation, title
 and language bible.com shows for all 3,864 versions YouVersion lists. That's
 100 KB gzipped, more than half the rest of the app, so it isn't in the main
@@ -219,7 +251,9 @@ title, accents and case aside; an exact number comes first, then the
 reader's languages in their order, then exact and leading abbreviation
 matches, then popularity. A number bible.com doesn't name is still offered.
 
-**Finding the person's versions.** There's no "list my highlights", so
+### Finding the person's versions
+
+There's no "list my highlights", so
 `discoverVersions` (`packages/core/src/discover.ts`) reads three
 often-highlighted chapters (Isaiah 41, Philippians 4, John 3, none
 of which moves between numbering systems, most highlighted first by
@@ -241,30 +275,14 @@ language has only its default version, the one bible.com opens for it
 default that a hand-made list leaves out ranks just after it. Both ride in
 the names chunk.
 
-**The example list** shown before the person chooses (`defaultVersions` in
+### The example list
+
+The example list shown before the person chooses (`defaultVersions` in
 `apps/pwa/src/lib/db.ts`) is the most used version of each of the browser's
 first seven languages, padded to the two a sync needs with the next most used
 in the same language, and NIV and AMP when nothing else fits. Converting a
 snapshot saved by name still uses the old rule (first three languages, then
 AMP), since that's the list whose names it holds.
-
-**Verifying a version.** Also add an entry to `VERIFIED` in
-`packages/core/scripts/verified.mjs`, and for each chapter that matches neither
-system, write the correction table: first check whether a shared table in
-`overrides/shared/` describes it, by reading the verses at its boundaries in
-the version (not just comparing counts), and `use` it if so. Matching counts
-aren't enough: RVR1960 numbers Psalm 47 the English way in Hebrew's 10
-verses, and was mapped a verse off until its text was read. The survey's
-`text.py`, `sheets.ts` and `REVIEW.md` do the reading (see
-[its README](tools/versification-survey/README.md#verifying-a-versions-numbering)):
-every verse where the numbering could go wrong, beside the NIV and LSG
-verses the engine pairs it with, plus the stretches a verse-length aligner
-suspects. The LSG tables were first built by aligning the text verse by verse
-with S21 (by word overlap), then against NIV. Bible text isn't committed,
-and comments quote only public-domain text (KJV, Douay-Rheims). Then add
-test cases to `packages/core/test/versification.test.ts` for the verses you
-checked by eye, and run `npm run check`. A verified version maps every
-chapter it has; a test checks that.
 
 ## The sync rules
 
@@ -426,55 +444,6 @@ with the plain ids.
 **Abbreviations aren't unique.** `NVI-S` is both 128 and 2664, `ARC` both 212
 and 3407. Key anything version-specific by bible id.
 
-## The vendored YouVersion skill
-
-`.agents/skills/youversion-platform-api` is copied from
-[youversion/platform-skills](https://github.com/youversion/platform-skills)
-(Apache-2.0, its `LICENSE` alongside, the commit in `.upstream`). Skills live
-in `.agents/skills`, which Codex and other agents read, and `.claude/skills`
-is a symlink to it because Claude Code reads only that; add new skills to
-`.agents/skills`. The SDK and React skills upstream aren't copied, since the
-app calls the API with plain `fetch` and shows no Bible text.
-
-**The API section above overrides it.** The skill covers only `/v1/bibles`
-and passages, not highlights or sign-in, and it's written for apps that show
-text: it treats `/v1/bibles` as the only source of version ids, where here
-the list is a subset and versions are bundled.
-
-`tools/youversion-skill.sh` refreshes the copy, and `--check` fails when
-upstream has changed it; the "YouVersion skill / Up to date" check runs that on
-every PR. It isn't a required check, so an upstream change shows red without
-blocking unrelated PRs: run the script, read what changed against the API
-section, and commit it. Don't edit the copy by hand; the check fails on that
-too.
-
-## Claude review on PRs
-
-`.github/workflows/claude-review.yml` runs Claude's `/code-review` and
-`/security-review`, from the shared actions in
-[eugenius1/actions](https://github.com/eugenius1/actions), on every non-draft
-PR from this repo and posts findings as
-inline comments, using the owner's Claude plan through the
-`CLAUDE_CODE_OAUTH_TOKEN` secret (made with `claude setup-token`; renew it
-when it expires). Fork and Dependabot PRs are skipped, since they can't read
-the secret. It reports but isn't a required check: a job that fails because
-the token expired or the plan's usage ran out would block every merge, and a
-finding is advice, not a pass or fail.
-
-**A green tick on a PR that edits `claude-review.yml` means nothing.** The
-action refuses to run when the workflow file differs from the one on `main`
-("Workflow validation failed"), and then exits successfully having done
-nothing, in about ten seconds. So the PR that changes the workflow, including
-the one that added it, is never reviewed by it, and neither is a PR that
-touches the file later. Check the job log for that message before trusting the
-tick, and test a change to the workflow on a later PR that doesn't touch it.
-Because of that, keep a PR that edits the workflow minimal and free of
-production code: it gets no Claude review, so anything else in it gets none
-either. Put the code in its own PR.
-
-A change to the shared actions isn't checked that way: once merged there, it
-runs on every repo's next PR.
-
 ## Things that will bite you elsewhere
 
 **Nahum is `NAM`, not `NAH`.** Use the USFM book codes exactly as `BOOKS` in
@@ -548,3 +517,52 @@ accent. `apps/pwa/src/__tests__/contrast.test.ts` reads Tailwind's own values
 and checks every text/background pairing the components use against WCAG AA,
 in both themes. It's why light mode uses amber-600 for focus rings and amber-700
 for the progress bar. Add a pairing there when you add a colour.
+
+## The vendored YouVersion skill
+
+`.agents/skills/youversion-platform-api` is copied from
+[youversion/platform-skills](https://github.com/youversion/platform-skills)
+(Apache-2.0, its `LICENSE` alongside, the commit in `.upstream`). Skills live
+in `.agents/skills`, which Codex and other agents read, and `.claude/skills`
+is a symlink to it because Claude Code reads only that; add new skills to
+`.agents/skills`. The SDK and React skills upstream aren't copied, since the
+app calls the API with plain `fetch` and shows no Bible text.
+
+**The API section overrides it.** The skill covers only `/v1/bibles`
+and passages, not highlights or sign-in, and it's written for apps that show
+text: it treats `/v1/bibles` as the only source of version ids, where here
+the list is a subset and versions are bundled.
+
+`tools/youversion-skill.sh` refreshes the copy, and `--check` fails when
+upstream has changed it; the "YouVersion skill / Up to date" check runs that on
+every PR. It isn't a required check, so an upstream change shows red without
+blocking unrelated PRs: run the script, read what changed against the API
+section, and commit it. Don't edit the copy by hand; the check fails on that
+too.
+
+## Claude review on PRs
+
+`.github/workflows/claude-review.yml` runs Claude's `/code-review` and
+`/security-review`, from the shared actions in
+[eugenius1/actions](https://github.com/eugenius1/actions), on every non-draft
+PR from this repo and posts findings as
+inline comments, using the owner's Claude plan through the
+`CLAUDE_CODE_OAUTH_TOKEN` secret (made with `claude setup-token`; renew it
+when it expires). Fork and Dependabot PRs are skipped, since they can't read
+the secret. It reports but isn't a required check: a job that fails because
+the token expired or the plan's usage ran out would block every merge, and a
+finding is advice, not a pass or fail.
+
+**A green tick on a PR that edits `claude-review.yml` means nothing.** The
+action refuses to run when the workflow file differs from the one on `main`
+("Workflow validation failed"), and then exits successfully having done
+nothing, in about ten seconds. So the PR that changes the workflow, including
+the one that added it, is never reviewed by it, and neither is a PR that
+touches the file later. Check the job log for that message before trusting the
+tick, and test a change to the workflow on a later PR that doesn't touch it.
+Because of that, keep a PR that edits the workflow minimal and free of
+production code: it gets no Claude review, so anything else in it gets none
+either. Put the code in its own PR.
+
+A change to the shared actions isn't checked that way: once merged there, it
+runs on every repo's next PR.
