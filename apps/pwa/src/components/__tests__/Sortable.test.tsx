@@ -25,8 +25,10 @@ function renderList(items = ["a", "b", "c", "d"], disabled = false) {
 }
 
 const order = () => screen.getAllByRole("listitem").map((li) => li.textContent?.replace(/^\d+/, ""));
-const pointer = (type: string, clientY: number) =>
-  act(() => void window.dispatchEvent(Object.assign(new Event(type), { clientY })));
+const pointer = (type: string, clientY: number, pointerId = 1) =>
+  act(() => void window.dispatchEvent(Object.assign(new Event(type), { clientY, pointerId })));
+const press = (name: string, pointerId = 1) =>
+  fireEvent.pointerDown(screen.getByRole("button", { name }), { button: 0, pointerId });
 
 describe("move", () => {
   it("takes an item out and puts it back at the new index", () => {
@@ -38,7 +40,7 @@ describe("move", () => {
 describe("SortableList", () => {
   it("reorders live while dragging and saves once, on release", () => {
     const { onReorder } = renderList();
-    fireEvent.pointerDown(screen.getByRole("button", { name: "Reorder a" }), { button: 0 });
+    press("Reorder a");
     pointer("pointermove", 1.6 * ROW);
     expect(order()).toEqual(["b", "a", "c", "d"]);
     pointer("pointermove", 2.6 * ROW);
@@ -52,7 +54,7 @@ describe("SortableList", () => {
 
   it("ends a drag released before the next render", () => {
     const { onReorder } = renderList();
-    fireEvent.pointerDown(screen.getByRole("button", { name: "Reorder a" }), { button: 0 });
+    press("Reorder a");
     pointer("pointerup", 0);
     expect(onReorder).not.toHaveBeenCalled();
     expect(screen.getAllByRole("listitem").some((li) => li.dataset.dragging)).toBe(false);
@@ -60,12 +62,24 @@ describe("SortableList", () => {
 
   it("puts the order back when the drag is cancelled", () => {
     const { onReorder } = renderList();
-    fireEvent.pointerDown(screen.getByRole("button", { name: "Reorder d" }), { button: 0 });
+    press("Reorder d");
     pointer("pointermove", 0);
     expect(order()).toEqual(["d", "a", "b", "c"]);
     pointer("pointercancel", 0);
     expect(order()).toEqual(["a", "b", "c", "d"]);
     expect(onReorder).not.toHaveBeenCalled();
+  });
+
+  it("follows only the pointer that started the drag", () => {
+    const { onReorder } = renderList();
+    press("Reorder a", 1);
+    press("Reorder c", 2); // a second finger, ignored
+    pointer("pointermove", 3.6 * ROW, 2);
+    pointer("pointerup", 3.6 * ROW, 2);
+    expect(onReorder).not.toHaveBeenCalled();
+    pointer("pointermove", 1.6 * ROW, 1);
+    pointer("pointerup", 1.6 * ROW, 1);
+    expect(onReorder).toHaveBeenCalledExactlyOnceWith(["b", "a", "c", "d"]);
   });
 
   it("moves with the arrow keys, and not past either end", async () => {

@@ -48,15 +48,18 @@ export function SortableList<T>({ items, keyOf, label, disabled, onReorder, chil
   };
 
   // Followed on the window rather than with pointer capture: reordering moves
-  // the dragged row's element, and moving an element drops its capture.
+  // the dragged row's element, and moving an element drops its capture. One
+  // pointer at a time: a second finger on another handle is ignored, or the
+  // two drags would each commit their own order.
   const start = (i: number) => (e: PointerEvent<HTMLButtonElement>) => {
-    if (disabled || e.button !== 0) return;
+    if (disabled || e.button !== 0 || dragRef.current) return;
     e.preventDefault();
     const base = settled;
+    const pointer = e.pointerId;
     setDrag({ from: i, over: i });
     const moveTo = (ev: globalThis.PointerEvent) => {
       const current = dragRef.current;
-      if (!current) return;
+      if (!current || ev.pointerId !== pointer) return;
       // After every other row whose middle is above the pointer. The rows on
       // screen may lag a render behind, so the dragged one is found by its mark.
       const rows = [...(list.current?.children ?? [])] as HTMLElement[];
@@ -69,6 +72,7 @@ export function SortableList<T>({ items, keyOf, label, disabled, onReorder, chil
       if (over !== current.over) setDrag({ ...current, over });
     };
     const finish = (ev: globalThis.PointerEvent) => {
+      if (ev.pointerId !== pointer) return;
       window.removeEventListener("pointermove", moveTo);
       window.removeEventListener("pointerup", finish);
       window.removeEventListener("pointercancel", finish);

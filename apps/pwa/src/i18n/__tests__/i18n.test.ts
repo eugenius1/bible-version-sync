@@ -42,6 +42,19 @@ describe("dictionaries", () => {
     }
   });
 
+  it("show the count in every form of a language whose 'one' isn't only 1", () => {
+    for (const lang of THREE_FORMS) {
+      for (const [path, value] of strings(DICTIONARIES[lang])) {
+        const plural = path.match(/^(.*)\[0\]$/)?.[1];
+        if (!plural || plural === "signIn.points") continue;
+        const other = new Map(strings(DICTIONARIES[lang])).get(`${plural}[1]`) ?? "";
+        if (other.includes("{n}")) expect(value, `${lang} ${path}`).toContain("{n}");
+      }
+    }
+    const RU = createI18n("ru");
+    expect(RU.plural(RU.t.results.inSyncStoppedDone, 21)).toMatch(/^В 21 книге/);
+  });
+
   it("give three plural forms only where the language has a separate 'few'", () => {
     // signIn.points is a list, not plural forms, and has three items everywhere.
     for (const lang of LANGUAGES) {
@@ -64,7 +77,11 @@ describe("dictionaries", () => {
       for (const [path, value] of strings(DICTIONARIES[lang])) {
         // A third plural form is checked against English's plural.
         const english = reference.get(path) ?? reference.get(path.replace(/\[2\]$/, "[1]")) ?? "";
-        expect(placeholders(value), `${lang}: placeholders differ at ${path}`).toEqual(placeholders(english));
+        // Where "one" isn't only 1 (Russian's covers 21, 31…), the first form
+        // carries the count even when English's singular doesn't.
+        const own = THREE_FORMS.has(lang) && path.endsWith("[0]") ? placeholders(value).filter((p) => p !== "{n}") : placeholders(value);
+        const theirs = THREE_FORMS.has(lang) && path.endsWith("[0]") ? placeholders(english).filter((p) => p !== "{n}") : placeholders(english);
+        expect(own, `${lang}: placeholders differ at ${path}`).toEqual(theirs);
       }
     }
   });
