@@ -108,9 +108,6 @@ function Row({ id, n, name, disabled, onKeyDown, children }: RowProps) {
         isDragging ? "z-10 rounded-lg bg-stone-100 shadow-sm dark:bg-stone-800" : ""
       }`}
     >
-      <span className="w-5 text-right text-sm tabular-nums text-stone-500 dark:text-stone-400">{n}</span>
-      <div className="flex min-w-0 flex-1 items-center gap-3">{children}</div>
-      {/* On the right, where a thumb holding the phone reaches it. */}
       <button
         ref={setActivatorNodeRef}
         type="button"
@@ -123,6 +120,8 @@ function Row({ id, n, name, disabled, onKeyDown, children }: RowProps) {
       >
         <GripVertical size={16} aria-hidden />
       </button>
+      <span className="w-5 text-right text-sm tabular-nums text-stone-500 dark:text-stone-400">{n}</span>
+      <div className="flex min-w-0 flex-1 items-center gap-3">{children}</div>
     </li>
   );
 }

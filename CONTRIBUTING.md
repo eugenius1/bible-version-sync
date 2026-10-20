@@ -470,7 +470,7 @@ the two in step.
 
 **Reordering uses dnd-kit's pointer sensor, not HTML drag and drop**, which
 touch screens never fire (`apps/pwa/src/components/Sortable.tsx`). Only the
-grip handle on the right starts a drag, so the rest of the row still scrolls the page. The
+grip handle starts a drag, so the rest of the row still scrolls the page. The
 handles take the arrow keys themselves rather than dnd-kit's keyboard sensor,
 and dnd-kit's announcements are silenced, since they're English only. In
 jsdom, give the `<ol>` a size as well as the rows: the drag is kept inside
