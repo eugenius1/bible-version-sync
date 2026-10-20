@@ -1,0 +1,246 @@
+import type { Dictionary } from "./en";
+
+/**
+ * Brazilian Portuguese strings (você). Readers in Portugal get these too,
+ * which read naturally enough there.
+ */
+export const pt: Dictionary = {
+  meta: {
+    localeTag: "pt-BR",
+    name: "Português",
+  },
+
+  app: {
+    back: "Voltar",
+    languageLabel: "Idioma",
+    themeLabel: "Aparência",
+    copyright: "© {years} Eusebius Ngemera",
+    licence: "GPLv3",
+    licenceTitle: "Licença Pública Geral GNU, versão 3 ou posterior",
+    notAffiliated: "Sem vínculo com a YouVersion.",
+  },
+
+  themes: {
+    system: "Sistema",
+    light: "Claro",
+    dark: "Escuro",
+  },
+
+  signIn: {
+    intro:
+      "Destaque um versículo em uma versão da Bíblia e ele aparece nas outras que você lê. Os números dos versículos são combinados mesmo onde as versões diferem (títulos dos Salmos, Joel, Malaquias, Jó e outros).",
+    points: [
+      "Na sua primeira sincronização, nenhum destaque existente muda de cor ou é removido.",
+      "Revise cada alteração antes que algo seja gravado.",
+      "Seu login e seus dados ficam neste navegador e vão apenas para a YouVersion.",
+    ],
+    button: "Entrar com a YouVersion",
+    opening: "Abrindo a YouVersion…",
+    disclaimer: "Usa a API da YouVersion Platform com a sua permissão.",
+    missingKey: "Falta a chave do app. Defina VITE_YV_APP_KEY em apps/pwa/.env.local e reinicie.",
+  },
+
+  callback: {
+    finishing: "Concluindo o login…",
+    failed: "O login não foi concluído",
+    stateMismatch: "Este login não corresponde ao que o app iniciou, ou demorou demais. Entre novamente.",
+    noPermission:
+      "Você entrou, mas não permitiu o acesso aos destaques, de que este app precisa. Entre novamente e permita.",
+    provider: "A YouVersion informou um problema: {detail}",
+  },
+
+  priority: {
+    title: "Quando as cores de um versículo diferem, qual vence?",
+    toggle: "Usar a prioridade de cores em vez da prioridade de versões",
+    byVersion: "Prioridade de versões",
+    byColor: "Prioridade de cores",
+    helpByVersion: "Cada versão mantém a sua cor. As versões sem destaque recebem a cor da primeira versão da lista.",
+    helpByColor: "Cada versão mantém a sua cor. As versões sem destaque recebem a primeira cor da lista, seja qual for a versão em que ela está; entre duas versões com a mesma cor, decide a ordem das versões.",
+    note: "O bible.com oferece apenas amarelo, verde, azul, pêssego e rosa; as outras vêm dos apps para celular.",
+    drag: "Reordenar {color}: arraste ou use as setas para cima e para baixo",
+    names: {
+      purple: "Roxo",
+      aqua: "Água-marinha",
+      yellow: "Amarelo",
+      green: "Verde",
+      blue: "Azul",
+      peach: "Pêssego",
+      pink: "Rosa",
+      paleYellow: "Amarelo-claro",
+      orange: "Laranja",
+      grey: "Cinza",
+    },
+  },
+
+  versions: {
+    title: "Suas versões",
+    help: "As versões em que você destaca. Os versículos são combinados mesmo onde a numeração é diferente.",
+    source: {
+      verified: {
+        text: "Numeração verificada",
+        hint: "A numeração dos versículos desta versão foi conferida capítulo por capítulo.",
+      },
+      scanned: {
+        text: "Versículos conhecidos",
+        hint: "A contagem de versículos desta versão vem com o app (lida do bible.com, set. 2026), mas a numeração não foi conferida à mão. Os capítulos que não seguem nenhum sistema padrão são ignorados.",
+      },
+      "api-index": {
+        text: "Numeração da YouVersion",
+        hint: "A contagem de versículos vem da API da YouVersion. Os capítulos que não seguem nenhum sistema padrão são ignorados.",
+      },
+      assumed: {
+        text: "Numeração presumida",
+        hint: "Não foi possível ler a contagem de versículos desta versão, então presume-se a numeração {system}. Destaques em Salmos e em alguns capítulos do Antigo Testamento podem cair no versículo errado.",
+      },
+      unsupported: {
+        text: "Numeração não suportada",
+        hint: "{n} capítulos desta versão não seguem nem a numeração inglesa nem a hebraica, e a YouVersion não diz qual sistema ela segue (sinodal russa, Septuaginta…), então os destaques cairiam nos versículos errados. Ela fica de fora de toda sincronização, e os seus destaques não são tocados.",
+      },
+    },
+    systems: {
+      eng: "inglesa",
+      org: "hebraica",
+      rso: "sinodal russa",
+      rsc: "sinodal russa",
+      lxx: "da Septuaginta",
+      vul: "da Vulgata",
+    },
+    checking: "Conferindo a numeração…",
+    unnamed: "Versão {id}",
+    drag: "Reordenar {abbr}: arraste ou use as setas para cima e para baixo",
+    remove: "Remover {abbr}",
+    confirmRemove: "Parar de sincronizar {abbr}? Os destaques dela continuam na YouVersion.",
+    addLabel: "Adicionar uma versão",
+    addPlaceholder: "Pesquise por nome, sigla ou número",
+    add: "Adicionar",
+    adding: "Conferindo…",
+    addHelp: "Os seus idiomas vêm primeiro. Você também pode colar um link do bible.com, como",
+    alreadyAdded: "Já adicionada",
+    number: "Nº {id}",
+    moreResults: "Mostrando {shown} de {total}. Continue digitando para refinar.",
+    noResults: "Nenhuma versão corresponde a “{query}”.",
+    find: {
+      examples: "Estas são versões de exemplo. Deixe o app encontrar as que você usa para destacar, ou adicione as suas abaixo.",
+      button: "Encontrar minhas versões",
+      again: "Procurar de novo",
+      help: "Verifica os seus destaques em alguns capítulos conhecidos de cada versão no seu idioma. Nada é alterado.",
+      starting: "Começando…",
+      progress: "Procurando os seus destaques · {done} de {total}",
+      stop: "Parar",
+      stopping: "Parando…",
+      stoppingButton: "Parando",
+      stopped: "Parou depois de verificar {done} de {total}.",
+      stoppedAtStart: "Parou antes de verificar qualquer coisa.",
+      failed: "Não foi possível terminar a busca: {problem}",
+      none: "Nenhum destaque encontrado nos capítulos verificados (Isaías 41, Filipenses 4, João 3). Adicione as suas versões abaixo.",
+      foundTitle: "Você destaca em",
+      verses: ["{n} versículo destacado na amostra", "{n} versículos destacados na amostra"],
+      unsupported: "A numeração não é suportada, então não pode ser sincronizada",
+      inList: "Na sua lista",
+      add: "Adicionar {abbr}",
+      notFound: "Nenhum destaque encontrado em {list} nos capítulos verificados.",
+      useThese: ["Usar esta versão", "Usar estas {n} versões"],
+    },
+    errors: {
+      cantRead: "Não foi possível ler os destaques da versão {id}: {problem}",
+      unsupported:
+        "A versão {id} não pode ser sincronizada: {n} dos seus capítulos não seguem nem a numeração inglesa nem a hebraica, e a YouVersion não diz qual sistema ela segue, então os destaques cairiam nos versículos errados.",
+    },
+  },
+
+  sync: {
+    title: "Sincronizar",
+    scopeLegend: "O que sincronizar",
+    chapter: "Capítulo",
+    book: "Livro",
+    bible: "Bíblia inteira",
+    chapterCount: ["{book} tem {n} capítulo na {abbr}.", "{book} tem {n} capítulos na {abbr}."],
+    bibleNote: "Lê cerca de {n} capítulos. Pode demorar um pouco; mantenha esta página aberta.",
+    preview: "Ver as alterações",
+    syncNow: "Sincronizar agora",
+    confirmBible: "Sincronizar a Bíblia inteira agora, sem ver as alterações antes?",
+    previewing: "Verificando",
+    syncing: "Sincronizando",
+    starting: "Começando…",
+    reading: "Lendo {book} · {done} de {total} capítulos",
+    writing: "Gravando {book} · {done} de {total} alterações",
+    stop: "Parar",
+    stopping: "Parando…",
+    stoppingWriting: "Vai parar quando {book} terminar de ser gravado…",
+    stoppingButton: "Parando",
+    stopNote: "Se você parar agora, o livro que está sendo gravado termina primeiro, para que nada fique pela metade.",
+    tooFew: "Para sincronizar, são necessárias pelo menos duas versões com numeração suportada.",
+  },
+
+  results: {
+    previewTitle: "Prévia",
+    doneTitle: "Sincronização concluída",
+    stopped: "(interrompida)",
+    inSyncDone: "Tudo já estava sincronizado.",
+    inSyncPreview: "Nada a alterar: tudo está sincronizado.",
+    inSyncStoppedDone: [
+      "Nada precisou ser alterado no livro sincronizado antes de parar.",
+      "Nada precisou ser alterado nos {n} livros sincronizados antes de parar.",
+    ],
+    inSyncStoppedPreview: [
+      "Nada a alterar no livro lido antes de parar.",
+      "Nada a alterar nos {n} livros lidos antes de parar.",
+    ],
+    stoppedBeforeBook: "Parou antes de ler um livro inteiro, então não há nada para mostrar. Nada foi alterado.",
+    added: ["{n} destaque adicionado", "{n} destaques adicionados"],
+    removedCount: ["{n} removido", "{n} removidos"],
+    toAdd: ["{n} destaque a adicionar", "{n} destaques a adicionar"],
+    toRemove: ["{n} a remover", "{n} a remover"],
+    differences: [
+      "{n} versículo tem cores diferentes; cada versão mantém a sua.",
+      "{n} versículos têm cores diferentes; cada versão mantém a sua.",
+    ],
+    booksSkipped: [
+      "{n} livro foi ignorado porque não foi possível ler os destaques. Nada foi alterado nele.",
+      "{n} livros foram ignorados porque não foi possível ler os destaques. Nada foi alterado neles.",
+    ],
+    writeErrors: ["{n} alteração falhou; a próxima sincronização tenta de novo.", "{n} alterações falharam; a próxima sincronização tenta de novo."],
+    authExpired: "Interrompido: o seu login na YouVersion expirou. Nada mais foi alterado.",
+    network:
+      "Interrompido: a YouVersion não está respondendo. Verifique a sua conexão. Se você estiver on-line, o app provavelmente fez pedidos demais por enquanto: a YouVersion então o faz esperar vários minutos. Nada mais foi alterado.",
+    rateLimited: [
+      "Interrompido: a YouVersion recebeu pedidos demais do app por enquanto. Tente de novo em {n} minuto. Nada mais foi alterado.",
+      "Interrompido: a YouVersion recebeu pedidos demais do app por enquanto. Tente de novo em {n} minutos. Nada mais foi alterado.",
+    ],
+    rateLimitedSoon: "Interrompido: a YouVersion recebeu pedidos demais do app por enquanto. Tente de novo em alguns minutos. Nada mais foi alterado.",
+    signInAgain: "Entrar novamente",
+    apply: ["Aplicar {n} alteração", "Aplicar {n} alterações"],
+    blocked: [
+      "{n} livro não foi alterado porque a sincronização removeria muitos destaques de uma vez. Se você queria removê-los, continue:",
+      "{n} livros não foram alterados porque a sincronização removeria muitos destaques de uma vez. Se você queria removê-los, continue:",
+    ],
+    applyWithRemovals: "Aplicar, incluindo as remoções",
+    skippedRead: "ignorado: não foi possível ler",
+    notApplied: "não aplicado: removeria {removals} destaques (limite de {limit} por vez)",
+    differentColors: "Cores diferentes",
+    differenceNote: "Cada uma mantém a sua; as versões sem destaque recebem a cor da {winner}.",
+    removed: "removido",
+    action: { fill: "adicionar", recolor: "mudar a cor", remove: "remover" },
+    more: "…e mais {n}",
+    refused: "Ficaram de fora porque a numeração delas não é suportada: {names}. Nada foi lido nem alterado nelas.",
+  },
+
+  problems: {
+    signInExpired: "o seu login na YouVersion expirou. Entre novamente.",
+    unreachable:
+      "A YouVersion não está respondendo. Verifique a sua conexão. Se você estiver on-line, o app provavelmente fez pedidos demais por enquanto: a YouVersion então o faz esperar vários minutos.",
+    rateLimited: [
+      "A YouVersion recebeu pedidos demais do app por enquanto. Tente de novo em {n} minuto.",
+      "A YouVersion recebeu pedidos demais do app por enquanto. Tente de novo em {n} minutos.",
+    ],
+    rateLimitedSoon: "A YouVersion recebeu pedidos demais do app por enquanto. Tente de novo em alguns minutos.",
+  },
+
+  footer: {
+    memory: ["Memória de sincronização: {n} versículo", "Memória de sincronização: {n} versículos"],
+    reset: "Redefinir",
+    confirmReset:
+      "Esquecer o que as sincronizações anteriores fizeram? A próxima só vai preencher lacunas; não vai remover nem mudar a cor de nada.",
+    signOut: "Sair",
+  },
+};

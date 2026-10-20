@@ -1,0 +1,243 @@
+import type { Dictionary } from "./en";
+
+/** German strings, addressing the reader as "du", as Bible apps usually do. */
+export const de: Dictionary = {
+  meta: {
+    localeTag: "de",
+    name: "Deutsch",
+  },
+
+  app: {
+    back: "Zurück",
+    languageLabel: "Sprache",
+    themeLabel: "Darstellung",
+    copyright: "© {years} Eusebius Ngemera",
+    licence: "GPLv3",
+    licenceTitle: "GNU General Public License, Version 3 oder neuer",
+    notAffiliated: "Nicht mit YouVersion verbunden.",
+  },
+
+  themes: {
+    system: "System",
+    light: "Hell",
+    dark: "Dunkel",
+  },
+
+  signIn: {
+    intro:
+      "Markiere einen Vers in einer Bibelübersetzung, und er erscheint auch in den anderen, die du liest. Versnummern werden auch dort zugeordnet, wo sich die Übersetzungen unterscheiden (Psalmüberschriften, Joel, Maleachi, Hiob und mehr).",
+    points: [
+      "Bei deiner ersten Synchronisierung wird keine vorhandene Markierung umgefärbt oder entfernt.",
+      "Du siehst jede Änderung, bevor etwas geschrieben wird.",
+      "Deine Anmeldung und deine Daten bleiben in diesem Browser und gehen nur an YouVersion.",
+    ],
+    button: "Mit YouVersion anmelden",
+    opening: "YouVersion wird geöffnet…",
+    disclaimer: "Nutzt die YouVersion Platform API mit deiner Erlaubnis.",
+    missingKey: "App-Schlüssel fehlt. Setze VITE_YV_APP_KEY in apps/pwa/.env.local und starte neu.",
+  },
+
+  callback: {
+    finishing: "Anmeldung wird abgeschlossen…",
+    failed: "Anmeldung nicht abgeschlossen",
+    stateMismatch: "Diese Anmeldung passt nicht zu der, die die App gestartet hat, oder sie hat zu lange gedauert. Bitte melde dich erneut an.",
+    noPermission:
+      "Du hast dich angemeldet, aber keinen Zugriff auf Markierungen erlaubt, den diese App braucht. Bitte melde dich erneut an und erlaube ihn.",
+    provider: "YouVersion meldet ein Problem: {detail}",
+  },
+
+  priority: {
+    title: "Wenn die Farben eines Verses abweichen, welche gewinnt?",
+    toggle: "Farbpriorität statt Übersetzungspriorität verwenden",
+    byVersion: "Übersetzungspriorität",
+    byColor: "Farbpriorität",
+    helpByVersion: "Jede Übersetzung behält ihre eigene Farbe. Übersetzungen ohne Markierung bekommen die Farbe der obersten Übersetzung.",
+    helpByColor: "Jede Übersetzung behält ihre eigene Farbe. Übersetzungen ohne Markierung bekommen die oberste Farbe, egal in welcher Übersetzung sie steht; bei zwei Übersetzungen mit derselben Farbe entscheidet die Reihenfolge der Übersetzungen.",
+    note: "bible.com bietet nur Gelb, Grün, Blau, Pfirsich und Rosa; die anderen kommen aus den Mobil-Apps.",
+    drag: "{color} verschieben: ziehen oder die Pfeiltasten nach oben und unten verwenden",
+    names: {
+      purple: "Lila",
+      aqua: "Türkis",
+      yellow: "Gelb",
+      green: "Grün",
+      blue: "Blau",
+      peach: "Pfirsich",
+      pink: "Rosa",
+      paleYellow: "Blassgelb",
+      orange: "Orange",
+      grey: "Grau",
+    },
+  },
+
+  versions: {
+    title: "Deine Übersetzungen",
+    help: "Die Übersetzungen, in denen du markierst. Verse werden auch dort zugeordnet, wo ihre Zählung abweicht.",
+    source: {
+      verified: {
+        text: "Zählung geprüft",
+        hint: "Die Verszählung dieser Übersetzung wurde Kapitel für Kapitel geprüft.",
+      },
+      scanned: {
+        text: "Verszahlen bekannt",
+        hint: "Die Verszahlen dieser Übersetzung kommen mit der App (von bible.com gelesen, Sept. 2026), aber ihre Zählung wurde nicht von Hand geprüft. Kapitel, die keinem Standardsystem folgen, werden übersprungen.",
+      },
+      "api-index": {
+        text: "Zählung von YouVersion",
+        hint: "Die Verszahlen kommen aus der YouVersion-API. Kapitel, die keinem Standardsystem folgen, werden übersprungen.",
+      },
+      assumed: {
+        text: "Zählung angenommen",
+        hint: "Die Verszahlen dieser Übersetzung konnten nicht gelesen werden, daher wird die Zählung {system} angenommen. Markierungen in den Psalmen und einigen Kapiteln des Alten Testaments können auf dem falschen Vers landen.",
+      },
+      unsupported: {
+        text: "Zählung nicht unterstützt",
+        hint: "{n} Kapitel dieser Übersetzung passen weder zur englischen noch zur hebräischen Zählung, und YouVersion sagt nicht, welchem System sie folgt (russische Synodalbibel, Septuaginta…), daher würden Markierungen auf falschen Versen landen. Sie wird bei jeder Synchronisierung ausgelassen, und ihre Markierungen werden nicht angetastet.",
+      },
+    },
+    systems: {
+      eng: "der englischen Bibeln",
+      org: "der hebräischen Bibel",
+      rso: "der russischen Synodalbibel",
+      rsc: "der russischen Synodalbibel",
+      lxx: "der Septuaginta",
+      vul: "der Vulgata",
+    },
+    checking: "Zählung wird geprüft…",
+    unnamed: "Übersetzung {id}",
+    drag: "{abbr} verschieben: ziehen oder die Pfeiltasten nach oben und unten verwenden",
+    remove: "{abbr} entfernen",
+    confirmRemove: "{abbr} nicht mehr synchronisieren? Ihre Markierungen bleiben in YouVersion.",
+    addLabel: "Übersetzung hinzufügen",
+    addPlaceholder: "Nach Name, Abkürzung oder Nummer suchen",
+    add: "Hinzufügen",
+    adding: "Wird geprüft…",
+    addHelp: "Deine Sprachen stehen oben. Du kannst auch einen Link von bible.com einfügen, etwa",
+    alreadyAdded: "Bereits hinzugefügt",
+    number: "Nr. {id}",
+    moreResults: "{shown} von {total} werden angezeigt. Tippe weiter, um einzugrenzen.",
+    noResults: "Keine Übersetzung passt zu „{query}“.",
+    find: {
+      examples: "Das sind Beispielübersetzungen. Lass die App die finden, in denen du markierst, oder füge unten deine eigenen hinzu.",
+      button: "Meine Übersetzungen finden",
+      again: "Erneut suchen",
+      help: "Prüft deine Markierungen in einigen bekannten Kapiteln jeder Übersetzung in deiner Sprache. Es wird nichts geändert.",
+      starting: "Wird gestartet…",
+      progress: "Suche nach deinen Markierungen · {done} von {total}",
+      stop: "Anhalten",
+      stopping: "Wird angehalten…",
+      stoppingButton: "Wird angehalten",
+      stopped: "Angehalten nach {done} von {total}.",
+      stoppedAtStart: "Angehalten, bevor etwas geprüft wurde.",
+      failed: "Die Suche konnte nicht abgeschlossen werden: {problem}",
+      none: "In den geprüften Kapiteln (Jesaja 41, Philipper 4, Johannes 3) wurden keine Markierungen gefunden. Füge deine Übersetzungen unten hinzu.",
+      foundTitle: "Du markierst in",
+      verses: ["{n} markierter Vers in der Stichprobe", "{n} markierte Verse in der Stichprobe"],
+      unsupported: "Zählung nicht unterstützt, daher nicht synchronisierbar",
+      inList: "In deiner Liste",
+      add: "{abbr} hinzufügen",
+      notFound: "In den geprüften Kapiteln wurden in {list} keine Markierungen gefunden.",
+      useThese: ["Diese Übersetzung verwenden", "Stattdessen diese {n} Übersetzungen verwenden"],
+    },
+    errors: {
+      cantRead: "Markierungen für Übersetzung {id} konnten nicht gelesen werden: {problem}",
+      unsupported:
+        "Übersetzung {id} kann nicht synchronisiert werden: {n} ihrer Kapitel passen weder zur englischen noch zur hebräischen Zählung, und YouVersion sagt nicht, welchem System sie folgt, daher würden Markierungen auf falschen Versen landen.",
+    },
+  },
+
+  sync: {
+    title: "Synchronisieren",
+    scopeLegend: "Was synchronisiert wird",
+    chapter: "Kapitel",
+    book: "Buch",
+    bible: "Ganze Bibel",
+    chapterCount: ["{book} hat in der {abbr} {n} Kapitel.", "{book} hat in der {abbr} {n} Kapitel."],
+    bibleNote: "Liest etwa {n} Kapitel. Das kann eine Weile dauern; lass diese Seite geöffnet.",
+    preview: "Änderungen ansehen",
+    syncNow: "Jetzt synchronisieren",
+    confirmBible: "Die ganze Bibel jetzt synchronisieren, ohne Vorschau?",
+    previewing: "Vorschau läuft",
+    syncing: "Wird synchronisiert",
+    starting: "Wird gestartet…",
+    reading: "Lese {book} · {done} von {total} Kapiteln",
+    writing: "Schreibe {book} · {done} von {total} Änderungen",
+    stop: "Anhalten",
+    stopping: "Wird angehalten…",
+    stoppingWriting: "Wird angehalten, sobald {book} geschrieben ist…",
+    stoppingButton: "Wird angehalten",
+    stopNote: "Wenn du jetzt anhältst, wird ein Buch, das gerade geschrieben wird, erst fertig geschrieben, damit nichts halb erledigt bleibt.",
+    tooFew: "Zum Synchronisieren braucht es mindestens zwei Übersetzungen mit unterstützter Zählung.",
+  },
+
+  results: {
+    previewTitle: "Vorschau",
+    doneTitle: "Synchronisierung abgeschlossen",
+    stopped: "(angehalten)",
+    inSyncDone: "Alles war schon synchron.",
+    inSyncPreview: "Nichts zu ändern – alles ist synchron.",
+    inSyncStoppedDone: [
+      "Im Buch, das vor dem Anhalten synchronisiert wurde, musste nichts geändert werden.",
+      "In den {n} Büchern, die vor dem Anhalten synchronisiert wurden, musste nichts geändert werden.",
+    ],
+    inSyncStoppedPreview: [
+      "Im Buch, das vor dem Anhalten gelesen wurde, ist nichts zu ändern.",
+      "In den {n} Büchern, die vor dem Anhalten gelesen wurden, ist nichts zu ändern.",
+    ],
+    stoppedBeforeBook: "Angehalten, bevor ein ganzes Buch gelesen war, daher gibt es nichts zu zeigen. Es wurde nichts geändert.",
+    added: ["{n} Markierung hinzugefügt", "{n} Markierungen hinzugefügt"],
+    removedCount: ["{n} entfernt", "{n} entfernt"],
+    toAdd: ["{n} Markierung hinzuzufügen", "{n} Markierungen hinzuzufügen"],
+    toRemove: ["{n} zu entfernen", "{n} zu entfernen"],
+    differences: [
+      "{n} Vers hat unterschiedliche Farben; jede Übersetzung behält ihre eigene.",
+      "{n} Verse haben unterschiedliche Farben; jede Übersetzung behält ihre eigene.",
+    ],
+    booksSkipped: [
+      "{n} Buch wurde übersprungen, weil die Markierungen nicht gelesen werden konnten. Darin wurde nichts geändert.",
+      "{n} Bücher wurden übersprungen, weil die Markierungen nicht gelesen werden konnten. Darin wurde nichts geändert.",
+    ],
+    writeErrors: ["{n} Änderung ist fehlgeschlagen; die nächste Synchronisierung versucht es erneut.", "{n} Änderungen sind fehlgeschlagen; die nächste Synchronisierung versucht es erneut."],
+    authExpired: "Angehalten: Deine YouVersion-Anmeldung ist abgelaufen. Es wurde nichts weiter geändert.",
+    network:
+      "Angehalten: YouVersion antwortet nicht. Prüfe deine Verbindung. Wenn du online bist, hat die App vermutlich gerade zu oft angefragt: YouVersion lässt sie dann mehrere Minuten warten. Es wurde nichts weiter geändert.",
+    rateLimited: [
+      "Angehalten: YouVersion hat vorerst zu viele Anfragen von der App bekommen. Versuche es in {n} Minute erneut. Es wurde nichts weiter geändert.",
+      "Angehalten: YouVersion hat vorerst zu viele Anfragen von der App bekommen. Versuche es in {n} Minuten erneut. Es wurde nichts weiter geändert.",
+    ],
+    rateLimitedSoon: "Angehalten: YouVersion hat vorerst zu viele Anfragen von der App bekommen. Versuche es in ein paar Minuten erneut. Es wurde nichts weiter geändert.",
+    signInAgain: "Erneut anmelden",
+    apply: ["{n} Änderung übernehmen", "{n} Änderungen übernehmen"],
+    blocked: [
+      "{n} Buch wurde nicht geändert, weil die Synchronisierung viele Markierungen auf einmal entfernen würde. Wenn du sie entfernen wolltest, fahre fort:",
+      "{n} Bücher wurden nicht geändert, weil die Synchronisierung viele Markierungen auf einmal entfernen würde. Wenn du sie entfernen wolltest, fahre fort:",
+    ],
+    applyWithRemovals: "Übernehmen, einschließlich Entfernungen",
+    skippedRead: "übersprungen: nicht lesbar",
+    notApplied: "nicht übernommen: würde {removals} Markierungen entfernen (Grenze {limit} pro Durchlauf)",
+    differentColors: "Unterschiedliche Farben",
+    differenceNote: "Jede behält ihre eigene; Übersetzungen ohne Markierung bekommen die Farbe von {winner}.",
+    removed: "entfernt",
+    action: { fill: "hinzufügen", recolor: "umfärben", remove: "entfernen" },
+    more: "…und {n} weitere",
+    refused: "Ausgelassen, weil ihre Zählung nicht unterstützt wird: {names}. Darin wurde nichts gelesen oder geändert.",
+  },
+
+  problems: {
+    signInExpired: "deine YouVersion-Anmeldung ist abgelaufen. Melde dich erneut an.",
+    unreachable:
+      "YouVersion antwortet nicht. Prüfe deine Verbindung. Wenn du online bist, hat die App vermutlich gerade zu oft angefragt: YouVersion lässt sie dann mehrere Minuten warten.",
+    rateLimited: [
+      "YouVersion hat vorerst zu viele Anfragen von der App bekommen. Versuche es in {n} Minute erneut.",
+      "YouVersion hat vorerst zu viele Anfragen von der App bekommen. Versuche es in {n} Minuten erneut.",
+    ],
+    rateLimitedSoon: "YouVersion hat vorerst zu viele Anfragen von der App bekommen. Versuche es in ein paar Minuten erneut.",
+  },
+
+  footer: {
+    memory: ["Synchronisierungsspeicher: {n} Vers", "Synchronisierungsspeicher: {n} Verse"],
+    reset: "Zurücksetzen",
+    confirmReset:
+      "Vergessen, was frühere Synchronisierungen getan haben? Die nächste füllt nur Lücken; sie entfernt nichts und färbt nichts um.",
+    signOut: "Abmelden",
+  },
+};

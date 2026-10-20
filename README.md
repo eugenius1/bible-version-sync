@@ -93,9 +93,10 @@ version's numbering:
 
 ## Languages and appearance
 
-English and French. The default comes from your device; the picker at the
-bottom of the page overrides it and the choice is remembered. Light and dark
-themes follow your device too, unless you pick one.
+English, Spanish, Portuguese, French, Indonesian, Swahili, German and Russian.
+The default comes from your device; the language icon at the top right
+overrides it and the choice is remembered. Light and dark themes follow your
+device too, unless you pick one with the icon beside it.
 
 ## Good to know
 
@@ -110,7 +111,7 @@ themes follow your device too, unless you pick one.
 ## Status
 
 Working: sign-in, sync with preview for a chapter, book or the whole Bible,
-English and French, light and dark. Syncing runs when you press the button;
+eight languages, light and dark. Syncing runs when you press the button;
 automatic background syncing needs a server and is planned.
 
 ## Contributing

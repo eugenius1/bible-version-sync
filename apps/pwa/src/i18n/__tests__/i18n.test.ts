@@ -1,15 +1,25 @@
 import { STD_SCHEMES } from "@bvs/core";
 import { describe, expect, it } from "vitest";
-import { createI18n, detectLanguage, DICTIONARIES, interpolate, LANGUAGES } from "..";
+import { createI18n, detectLanguage, DICTIONARIES, interpolate, LANGUAGES, menuOrder, type Lang } from "..";
 import { copyrightYears } from "../../lib/copyright";
 import { en } from "../en";
 import { fr } from "../fr";
 
-/** Every leaf path in a dictionary (arrays count as one leaf with their length). */
-function paths(value: unknown, prefix = ""): string[] {
-  if (Array.isArray(value)) return [`${prefix}[${value.length}]`];
+/** Languages whose counts take [one, few, many]. */
+const THREE_FORMS = new Set<Lang>(["ru"]);
+
+/**
+ * Every leaf path in a dictionary (arrays count as one leaf with their
+ * length). A language with three plural forms has three where English has
+ * two; that's counted as two, so the shapes still compare.
+ */
+function paths(value: unknown, prefix = "", threeForms = false): string[] {
+  if (Array.isArray(value)) {
+    const plural = threeForms && value.length === 3 && prefix !== "signIn.points";
+    return [`${prefix}[${plural ? 2 : value.length}]`];
+  }
   if (value && typeof value === "object") {
-    return Object.entries(value).flatMap(([k, v]) => paths(v, prefix ? `${prefix}.${k}` : k));
+    return Object.entries(value).flatMap(([k, v]) => paths(v, prefix ? `${prefix}.${k}` : k, threeForms));
   }
   return [prefix];
 }
@@ -27,15 +37,35 @@ function strings(dict: unknown, prefix = ""): [string, string][] {
 describe("dictionaries", () => {
   it("cover exactly the same keys in every language", () => {
     const reference = paths(en).sort();
-    for (const lang of LANGUAGES) expect(paths(DICTIONARIES[lang]).sort(), `locale ${lang}`).toEqual(reference);
+    for (const lang of LANGUAGES) {
+      expect(paths(DICTIONARIES[lang], "", THREE_FORMS.has(lang)).sort(), `locale ${lang}`).toEqual(reference);
+    }
+  });
+
+  it("give three plural forms only where the language has a separate 'few'", () => {
+    // signIn.points is a list, not plural forms, and has three items everywhere.
+    for (const lang of LANGUAGES) {
+      const threes = strings(DICTIONARIES[lang])
+        .map(([path]) => path.match(/^(.*)\[2\]$/)?.[1])
+        .filter((path): path is string => !!path && path !== "signIn.points");
+      if (THREE_FORMS.has(lang)) expect(threes.length, lang).toBeGreaterThan(0);
+      else expect(threes, lang).toEqual([]);
+    }
+    for (const lang of THREE_FORMS) {
+      expect(new Intl.PluralRules(DICTIONARIES[lang].meta.localeTag).resolvedOptions().pluralCategories).toContain("few");
+    }
   });
 
   it("use the same placeholders in every language", () => {
     // Guards against a French string using {count} where English uses {n}.
     const placeholders = (s: string) => (s.match(/\{(\w+)\}/g) ?? []).sort();
     const reference = new Map(strings(en));
-    for (const [path, value] of strings(fr)) {
-      expect(placeholders(value), `placeholders differ at ${path}`).toEqual(placeholders(reference.get(path) ?? ""));
+    for (const lang of LANGUAGES) {
+      for (const [path, value] of strings(DICTIONARIES[lang])) {
+        // A third plural form is checked against English's plural.
+        const english = reference.get(path) ?? reference.get(path.replace(/\[2\]$/, "[1]")) ?? "";
+        expect(placeholders(value), `${lang}: placeholders differ at ${path}`).toEqual(placeholders(english));
+      }
     }
   });
 
@@ -52,14 +82,23 @@ describe("dictionaries", () => {
     );
   });
 
-  it("have no French strings left identical to English by accident", () => {
-    // Names, symbols and format-only strings are legitimately shared.
-    const allowed = new Set(["app.copyright", "app.licence", "results.more", "priority.names.orange"]);
+  it("have no strings left identical to English by accident", () => {
+    // Names, symbols and format-only strings are legitimately shared, and some
+    // words are the same in both languages.
+    const shared = ["app.copyright", "app.licence"];
+    const allowed: Partial<Record<Lang, string[]>> = {
+      fr: ["results.more", "priority.names.orange"],
+      de: ["themes.system", "priority.names.orange"],
+      id: ["versions.number"],
+    };
     const english = new Map(strings(en));
-    const identical = strings(fr)
-      .filter(([path, value]) => !allowed.has(path) && english.get(path) === value)
-      .map(([path]) => path);
-    expect(identical).toEqual([]);
+    for (const lang of LANGUAGES.filter((l) => l !== "en")) {
+      const ok = new Set([...shared, ...(allowed[lang] ?? [])]);
+      const identical = strings(DICTIONARIES[lang])
+        .filter(([path, value]) => !ok.has(path) && english.get(path) === value)
+        .map(([path]) => path);
+      expect(identical, lang).toEqual([]);
+    }
   });
 
   it("keep French punctuation off the start of a line", () => {
@@ -82,12 +121,26 @@ describe("device language detection", () => {
   });
 
   it("respects preference order and skips unsupported languages", () => {
-    expect(detectLanguage(["de-DE", "fr-BE", "en"])).toBe("fr");
+    expect(detectLanguage(["ja-JP", "fr-BE", "en"])).toBe("fr");
+    expect(detectLanguage(["pt-PT", "es"])).toBe("pt");
   });
 
   it("falls back to English when nothing matches", () => {
     expect(detectLanguage(["ja", "ko"])).toBe("en");
     expect(detectLanguage([])).toBe("en");
+  });
+});
+
+describe("language menu order", () => {
+  it("puts English first, then the device's languages, then the rest by name", () => {
+    expect(menuOrder(["ru-RU", "fr", "ja", "en-GB"])).toEqual({
+      pinned: ["en", "ru", "fr"],
+      rest: ["id", "de", "es", "sw", "pt"],
+    });
+  });
+
+  it("puts English alone first when nothing else matches", () => {
+    expect(menuOrder([]).pinned).toEqual(["en"]);
   });
 });
 
@@ -111,6 +164,17 @@ describe("formatting", () => {
     expect(EN.num(12345)).toBe("12,345");
     expect(FR.num(12345)).toMatch(/^12\s345$/u);
     expect(FR.plural(FR.t.results.apply, 1500)).toMatch(/^Appliquer 1\s500 modifications$/u);
+  });
+
+  it("picks Russian's three forms by the last digits", () => {
+    const RU = createI18n("ru");
+    const memory = (n: number) => RU.plural(RU.t.footer.memory, n);
+    expect(memory(1)).toBe("Память синхронизации: 1 стих");
+    expect(memory(3)).toBe("Память синхронизации: 3 стиха");
+    expect(memory(5)).toBe("Память синхронизации: 5 стихов");
+    expect(memory(11)).toBe("Память синхронизации: 11 стихов");
+    expect(memory(21)).toBe("Память синхронизации: 21 стих");
+    expect(memory(22)).toBe("Память синхронизации: 22 стиха");
   });
 
   it("names books and verses in the active language", () => {

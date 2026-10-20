@@ -41,16 +41,14 @@ function Shell({ children, account }: { children: React.ReactNode; account?: Rea
       <header className="flex items-center gap-3">
         <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="size-9" />
         <h1 className="text-lg font-semibold">Bible Version Sync</h1>
+        <div className="ml-auto flex items-center">
+          <LanguageSwitcher />
+          <ThemeSwitcher />
+        </div>
       </header>
       {children}
       <footer className="mt-auto space-y-3 pt-6 text-xs text-stone-600 dark:text-stone-400">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">{account}</div>
-          <div className="flex items-center gap-2">
-            <LanguageSwitcher />
-            <ThemeSwitcher />
-          </div>
-        </div>
+        {account && <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">{account}</div>}
         <p className="text-center">
           {f(t.app.copyright, { years: copyrightYears() })} ·{" "}
           <a

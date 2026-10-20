@@ -38,7 +38,8 @@ describe("Priority", () => {
     expect(screen.getAllByRole("listitem")).toHaveLength(3);
     expect(screen.queryByText("Yellow")).toBeNull();
     expect(await screen.findByText("Amplified Bible")).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Move AMP up" }));
+    screen.getByRole("button", { name: /^Reorder AMP/ }).focus();
+    await userEvent.keyboard("{ArrowUp}");
     expect(onVersions).toHaveBeenCalledWith([111, 1588, 93]);
   });
 
@@ -56,7 +57,8 @@ describe("Priority", () => {
   it("lists every color the mobile apps offer, and moves one up", async () => {
     const { onColors } = renderPriority(true);
     expect(screen.getAllByRole("listitem")).toHaveLength(10);
-    await userEvent.click(screen.getByRole("button", { name: "Move Yellow up" }));
+    screen.getByRole("button", { name: /^Reorder Yellow/ }).focus();
+    await userEvent.keyboard("{ArrowUp}");
     expect(onColors.mock.calls[0][1].slice(0, 3)).toEqual(["orange", "yellow", "peach"]);
   });
 });

@@ -1,0 +1,243 @@
+import type { Dictionary } from "./en";
+
+/** Swahili strings, in standard (Tanzanian and Kenyan) Kiswahili. */
+export const sw: Dictionary = {
+  meta: {
+    localeTag: "sw",
+    name: "Kiswahili",
+  },
+
+  app: {
+    back: "Rudi",
+    languageLabel: "Lugha",
+    themeLabel: "Mwonekano",
+    copyright: "© {years} Eusebius Ngemera",
+    licence: "GPLv3",
+    licenceTitle: "Leseni ya Umma ya GNU, toleo la 3 au la baadaye",
+    notAffiliated: "Haihusiani na YouVersion.",
+  },
+
+  themes: {
+    system: "Mfumo",
+    light: "Mwanga",
+    dark: "Giza",
+  },
+
+  signIn: {
+    intro:
+      "Wekea mstari alama katika toleo moja la Biblia, nayo itaonekana katika matoleo mengine unayosoma. Namba za mistari hulinganishwa hata pale matoleo yanapotofautiana (vichwa vya Zaburi, Yoeli, Malaki, Ayubu na mengineyo).",
+    points: [
+      "Katika usawazishaji wako wa kwanza, alama zilizopo hazibadilishwi rangi wala kuondolewa kamwe.",
+      "Kagua kila badiliko kabla chochote hakijaandikwa.",
+      "Uingiaji wako na data yako vinabaki katika kivinjari hiki na huenda kwa YouVersion pekee.",
+    ],
+    button: "Ingia kwa YouVersion",
+    opening: "Inafungua YouVersion…",
+    disclaimer: "Inatumia API ya YouVersion Platform kwa ruhusa yako.",
+    missingKey: "Ufunguo wa programu haupo. Weka VITE_YV_APP_KEY katika apps/pwa/.env.local kisha uanzishe upya.",
+  },
+
+  callback: {
+    finishing: "Inakamilisha kuingia…",
+    failed: "Kuingia hakukukamilika",
+    stateMismatch: "Uingiaji huu haulingani na ule ulioanzishwa na programu, au ulichukua muda mrefu mno. Tafadhali ingia tena.",
+    noPermission:
+      "Uliingia lakini hukuruhusu ufikiaji wa alama, ambao programu hii inauhitaji. Tafadhali ingia tena na uruhusu.",
+    provider: "YouVersion iliripoti tatizo: {detail}",
+  },
+
+  priority: {
+    title: "Rangi za mstari zikitofautiana, ipi inashinda?",
+    toggle: "Tumia kipaumbele cha rangi badala ya kipaumbele cha matoleo",
+    byVersion: "Kipaumbele cha matoleo",
+    byColor: "Kipaumbele cha rangi",
+    helpByVersion: "Kila toleo linabaki na rangi yake. Matoleo yasiyo na alama hupata rangi ya toleo lililo juu kabisa.",
+    helpByColor: "Kila toleo linabaki na rangi yake. Matoleo yasiyo na alama hupata rangi iliyo juu kabisa, iwe katika toleo lolote; kati ya matoleo mawili yenye rangi moja, mpangilio wa matoleo huamua.",
+    note: "bible.com ina njano, kijani, bluu, pichi na waridi tu; nyingine zinatoka kwenye programu za simu.",
+    drag: "Panga upya {color}: buruta, au tumia vitufe vya mshale juu na chini",
+    names: {
+      purple: "Zambarau",
+      aqua: "Samawati",
+      yellow: "Njano",
+      green: "Kijani",
+      blue: "Bluu",
+      peach: "Pichi",
+      pink: "Waridi",
+      paleYellow: "Njano hafifu",
+      orange: "Machungwa",
+      grey: "Kijivu",
+    },
+  },
+
+  versions: {
+    title: "Matoleo yako",
+    help: "Matoleo unayowekea alama. Mistari hulinganishwa hata pale namba zake zinapotofautiana.",
+    source: {
+      verified: {
+        text: "Namba zimethibitishwa",
+        hint: "Namba za mistari za toleo hili zimekaguliwa sura kwa sura.",
+      },
+      scanned: {
+        text: "Idadi ya mistari inajulikana",
+        hint: "Idadi ya mistari ya toleo hili inakuja na programu (imesomwa kutoka bible.com, Sept. 2026), lakini namba zake hazijakaguliwa kwa mkono. Sura zisizofuata mfumo wowote wa kawaida zinarukwa.",
+      },
+      "api-index": {
+        text: "Namba kutoka YouVersion",
+        hint: "Idadi ya mistari inatoka kwenye API ya YouVersion. Sura zisizofuata mfumo wowote wa kawaida zinarukwa.",
+      },
+      assumed: {
+        text: "Namba zimekisiwa",
+        hint: "Idadi ya mistari ya toleo hili haikuweza kusomwa, kwa hiyo namba za {system} zinakisiwa. Alama katika Zaburi na baadhi ya sura za Agano la Kale zinaweza kuangukia mstari usio sahihi.",
+      },
+      unsupported: {
+        text: "Namba hazitumiki",
+        hint: "Sura {n} za toleo hili hazilingani na namba za Kiingereza wala za Kiebrania, na YouVersion haisemi linafuata mfumo gani (Sinodi ya Kirusi, Septuaginta…), kwa hiyo alama zingeangukia mistari isiyo sahihi. Limeachwa nje ya kila usawazishaji, na alama zake haziguswi.",
+      },
+    },
+    systems: {
+      eng: "Kiingereza",
+      org: "Kiebrania",
+      rso: "Sinodi ya Kirusi",
+      rsc: "Sinodi ya Kirusi",
+      lxx: "Septuaginta",
+      vul: "Vulgata",
+    },
+    checking: "Inakagua namba…",
+    unnamed: "Toleo {id}",
+    drag: "Panga upya {abbr}: buruta, au tumia vitufe vya mshale juu na chini",
+    remove: "Ondoa {abbr}",
+    confirmRemove: "Acha kusawazisha {abbr}? Alama zake zinabaki katika YouVersion.",
+    addLabel: "Ongeza toleo",
+    addPlaceholder: "Tafuta kwa jina, kifupisho au namba",
+    add: "Ongeza",
+    adding: "Inakagua…",
+    addHelp: "Lugha zako zinakuja kwanza. Unaweza pia kubandika kiungo kutoka bible.com, kama",
+    alreadyAdded: "Tayari limeongezwa",
+    number: "Na. {id}",
+    moreResults: "Inaonyesha {shown} kati ya {total}. Endelea kuandika ili kupunguza.",
+    noResults: "Hakuna toleo linalolingana na “{query}”.",
+    find: {
+      examples: "Haya ni matoleo ya mfano. Acha programu ipate yale unayowekea alama, au ongeza yako hapa chini.",
+      button: "Tafuta matoleo yangu",
+      again: "Tafuta tena",
+      help: "Hukagua alama zako katika sura chache zinazojulikana za kila toleo katika lugha yako. Hakuna kinachobadilishwa.",
+      starting: "Inaanza…",
+      progress: "Inatafuta alama zako · {done} kati ya {total}",
+      stop: "Simamisha",
+      stopping: "Inasimamisha…",
+      stoppingButton: "Inasimamisha",
+      stopped: "Imesimama baada ya kukagua {done} kati ya {total}.",
+      stoppedAtStart: "Imesimama kabla ya kukagua chochote.",
+      failed: "Utafutaji haukuweza kukamilika: {problem}",
+      none: "Hakuna alama zilizopatikana katika sura zilizokaguliwa (Isaya 41, Wafilipi 4, Yohana 3). Ongeza matoleo yako hapa chini.",
+      foundTitle: "Unawekea alama katika",
+      verses: ["Mstari {n} wenye alama katika sampuli", "Mistari {n} yenye alama katika sampuli"],
+      unsupported: "Namba zake hazitumiki, kwa hiyo haliwezi kusawazishwa",
+      inList: "Kwenye orodha yako",
+      add: "Ongeza {abbr}",
+      notFound: "Hakuna alama zilizopatikana katika {list} kwenye sura zilizokaguliwa.",
+      useThese: ["Tumia toleo hili", "Tumia matoleo haya {n} badala yake"],
+    },
+    errors: {
+      cantRead: "Alama za toleo {id} hazikuweza kusomwa: {problem}",
+      unsupported:
+        "Toleo {id} haliwezi kusawazishwa: sura {n} zake hazilingani na namba za Kiingereza wala za Kiebrania, na YouVersion haisemi linafuata mfumo gani, kwa hiyo alama zingeangukia mistari isiyo sahihi.",
+    },
+  },
+
+  sync: {
+    title: "Sawazisha",
+    scopeLegend: "Nini cha kusawazisha",
+    chapter: "Sura",
+    book: "Kitabu",
+    bible: "Biblia nzima",
+    chapterCount: ["{book} kina sura {n} katika {abbr}.", "{book} kina sura {n} katika {abbr}."],
+    bibleNote: "Husoma takriban sura {n}. Hii inaweza kuchukua muda; acha ukurasa huu wazi.",
+    preview: "Hakiki mabadiliko",
+    syncNow: "Sawazisha sasa",
+    confirmBible: "Sawazisha Biblia nzima sasa, bila kuhakiki?",
+    previewing: "Inahakiki",
+    syncing: "Inasawazisha",
+    starting: "Inaanza…",
+    reading: "Inasoma {book} · sura {done} kati ya {total}",
+    writing: "Inaandika {book} · badiliko {done} kati ya {total}",
+    stop: "Simamisha",
+    stopping: "Inasimamisha…",
+    stoppingWriting: "Itasimama {book} kikishaandikwa…",
+    stoppingButton: "Inasimamisha",
+    stopNote: "Ukisimamisha sasa, kitabu kinachoandikwa kitamalizika kwanza, ili kisibaki nusu.",
+    tooFew: "Yanahitajika angalau matoleo mawili yenye namba zinazotumika ili kusawazisha.",
+  },
+
+  results: {
+    previewTitle: "Uhakiki",
+    doneTitle: "Usawazishaji umekamilika",
+    stopped: "(umesimamishwa)",
+    inSyncDone: "Kila kitu kilikuwa tayari kimesawazishwa.",
+    inSyncPreview: "Hakuna cha kubadilisha — kila kitu kimesawazishwa.",
+    inSyncStoppedDone: [
+      "Hakuna kilichohitaji kubadilishwa katika kitabu kilichosawazishwa kabla ya kusimama.",
+      "Hakuna kilichohitaji kubadilishwa katika vitabu {n} vilivyosawazishwa kabla ya kusimama.",
+    ],
+    inSyncStoppedPreview: [
+      "Hakuna cha kubadilisha katika kitabu kilichosomwa kabla ya kusimama.",
+      "Hakuna cha kubadilisha katika vitabu {n} vilivyosomwa kabla ya kusimama.",
+    ],
+    stoppedBeforeBook: "Ilisimama kabla ya kusoma kitabu kizima, kwa hiyo hakuna cha kuonyesha. Hakuna kilichobadilishwa.",
+    added: ["Alama {n} imeongezwa", "Alama {n} zimeongezwa"],
+    removedCount: ["{n} imeondolewa", "{n} zimeondolewa"],
+    toAdd: ["Alama {n} ya kuongeza", "Alama {n} za kuongeza"],
+    toRemove: ["{n} ya kuondoa", "{n} za kuondoa"],
+    differences: [
+      "Mstari {n} una rangi tofauti; kila toleo linabaki na rangi yake.",
+      "Mistari {n} ina rangi tofauti; kila toleo linabaki na rangi yake.",
+    ],
+    booksSkipped: [
+      "Kitabu {n} kilirukwa kwa sababu alama hazikuweza kusomwa. Hakuna kilichobadilishwa ndani yake.",
+      "Vitabu {n} vilirukwa kwa sababu alama hazikuweza kusomwa. Hakuna kilichobadilishwa ndani yake.",
+    ],
+    writeErrors: ["Badiliko {n} limeshindwa; usawazishaji ujao utajaribu tena.", "Mabadiliko {n} yameshindwa; usawazishaji ujao utajaribu tena."],
+    authExpired: "Imesimama: uingiaji wako wa YouVersion umeisha muda. Hakuna kingine kilichobadilishwa.",
+    network:
+      "Imesimama: YouVersion haijibu. Kagua muunganisho wako. Ikiwa uko mtandaoni, huenda programu imeomba mara nyingi mno kwa sasa: YouVersion huifanya isubiri dakika kadhaa. Hakuna kingine kilichobadilishwa.",
+    rateLimited: [
+      "Imesimama: YouVersion imepokea maombi mengi mno kutoka kwa programu kwa sasa. Jaribu tena baada ya dakika {n}. Hakuna kingine kilichobadilishwa.",
+      "Imesimama: YouVersion imepokea maombi mengi mno kutoka kwa programu kwa sasa. Jaribu tena baada ya dakika {n}. Hakuna kingine kilichobadilishwa.",
+    ],
+    rateLimitedSoon: "Imesimama: YouVersion imepokea maombi mengi mno kutoka kwa programu kwa sasa. Jaribu tena baada ya dakika chache. Hakuna kingine kilichobadilishwa.",
+    signInAgain: "Ingia tena",
+    apply: ["Tekeleza badiliko {n}", "Tekeleza mabadiliko {n}"],
+    blocked: [
+      "Kitabu {n} hakikubadilishwa kwa sababu usawazishaji ungeondoa alama nyingi kwa mara moja. Ikiwa ulikusudia kuziondoa, endelea:",
+      "Vitabu {n} havikubadilishwa kwa sababu usawazishaji ungeondoa alama nyingi kwa mara moja. Ikiwa ulikusudia kuziondoa, endelea:",
+    ],
+    applyWithRemovals: "Tekeleza, pamoja na kuondoa",
+    skippedRead: "kimerukwa: hakikuweza kusomwa",
+    notApplied: "hakijatekelezwa: kingeondoa alama {removals} (kikomo ni {limit} kwa mara moja)",
+    differentColors: "Rangi tofauti",
+    differenceNote: "Kila moja linabaki na yake; matoleo yasiyo na alama hupata rangi ya {winner}.",
+    removed: "imeondolewa",
+    action: { fill: "ongeza", recolor: "badilisha rangi", remove: "ondoa" },
+    more: "…na {n} zaidi",
+    refused: "Yameachwa nje kwa sababu namba zake hazitumiki: {names}. Hakuna kilichosomwa wala kubadilishwa ndani yake.",
+  },
+
+  problems: {
+    signInExpired: "uingiaji wako wa YouVersion umeisha muda. Ingia tena.",
+    unreachable:
+      "YouVersion haijibu. Kagua muunganisho wako. Ikiwa uko mtandaoni, huenda programu imeomba mara nyingi mno kwa sasa: YouVersion huifanya isubiri dakika kadhaa.",
+    rateLimited: [
+      "YouVersion imepokea maombi mengi mno kutoka kwa programu kwa sasa. Jaribu tena baada ya dakika {n}.",
+      "YouVersion imepokea maombi mengi mno kutoka kwa programu kwa sasa. Jaribu tena baada ya dakika {n}.",
+    ],
+    rateLimitedSoon: "YouVersion imepokea maombi mengi mno kutoka kwa programu kwa sasa. Jaribu tena baada ya dakika chache.",
+  },
+
+  footer: {
+    memory: ["Kumbukumbu ya usawazishaji: mstari {n}", "Kumbukumbu ya usawazishaji: mistari {n}"],
+    reset: "Weka upya",
+    confirmReset:
+      "Kusahau yale ambayo usawazishaji uliopita ulifanya? Usawazishaji ujao utajaza mapengo tu; hautaondoa wala kubadilisha rangi ya chochote.",
+    signOut: "Toka",
+  },
+};

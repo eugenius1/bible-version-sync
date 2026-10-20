@@ -53,17 +53,17 @@
   @apply text-xs font-medium tracking-wide text-stone-500 uppercase dark:text-stone-400;
 }
 
-/* Language and appearance pickers: a native <select> with icons either side. */
+/* Language and appearance pickers: an icon with a native <select> over it. */
 @utility picker {
-  @apply relative inline-flex min-h-8 items-center gap-1.5 rounded-full border border-stone-300 bg-white pr-2 pl-2.5
-    text-xs text-stone-600 transition hover:border-stone-400 hover:text-stone-900
+  @apply relative inline-flex size-9 items-center justify-center rounded-full text-stone-600 transition
+    hover:bg-stone-100 hover:text-stone-900
     focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-amber-600 dark:focus-within:outline-amber-500
-    dark:border-stone-700 dark:bg-stone-900 dark:text-stone-400 dark:hover:border-stone-600 dark:hover:text-stone-100;
+    dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-100;
 }
 
 @utility picker-select {
-  /* The select carries the click target; the icons are decoration. */
-  @apply cursor-pointer appearance-none bg-transparent py-1 text-xs leading-none text-inherit focus:outline-none;
+  /* The select carries the click target, invisibly; the icon is decoration. */
+  @apply absolute inset-0 cursor-pointer appearance-none opacity-0;
 }
 
 @layer base {

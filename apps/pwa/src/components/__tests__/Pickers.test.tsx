@@ -112,10 +112,20 @@ describe("LanguageSwitcher", () => {
     expect(localStorage.getItem(LANG_STORAGE_KEY)).toBe("fr");
   });
 
-  it("lists each language in its own name", () => {
+  it("lists each language in its own name: English, the device's languages, then the rest by name", () => {
     stubMatchMedia(false);
+    vi.spyOn(navigator, "languages", "get").mockReturnValue(["de-CH", "ja", "sw"]);
     renderPickers();
-    const names = [...(screen.getByLabelText("Language") as HTMLSelectElement).options].map((o) => o.textContent);
-    expect(names).toEqual(["English", "Français"]);
+    const names = [...(screen.getByLabelText("Sprache") as HTMLSelectElement).options].map((o) => o.textContent);
+    expect(names).toEqual([
+      "English",
+      "Deutsch",
+      "Kiswahili",
+      "Bahasa Indonesia",
+      "Español",
+      "Français",
+      "Português",
+      "Русский",
+    ]);
   });
 });
