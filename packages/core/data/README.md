@@ -38,7 +38,8 @@ are keyed by bible id throughout; abbreviations aren't unique.
   at 17). A version gets one only through a `use` line, once its text has
   been read.
 
-`known_counts.json` (for scanned versions), `suffixed_chapters.json`,
-`labels.json`, `names.json` and `defaults.json` are written by `npm run import-survey -w @bvs/core` from the survey's
-`counts.json` and `candidates.json`. After editing anything here, run `npm run gen -w @bvs/core`
-to regenerate `src/data.generated.ts` and `src/names.generated.ts`.
+`npm run import-survey -w @bvs/core` writes `known_counts.json` (for scanned
+versions), `suffixed_chapters.json`, `labels.json`, `names.json` and
+`defaults.json` from the survey's `counts.json`, `candidates.json` and
+`defaults.json`. `npm run check` then regenerates `src/data.generated.ts` and
+`src/names.generated.ts` from everything here.

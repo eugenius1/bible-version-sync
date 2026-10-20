@@ -90,15 +90,11 @@ Where one version splits a verse that another combines (e.g. 2 Cor 13:12–13
 in English is 13:12 in French), highlighting the combined verse highlights
 both halves.
 
-## Not yet verified against the live API
+## The live API
 
-These need a real app key to confirm; `check` and a one-book `sync` will show:
-
-- Whether NIV / AMP / LSG / S21 highlights are readable and writable with your
-  key (licensing may restrict some versions).
-- Token refresh uses the standard OAuth `refresh_token` grant, which the docs
-  don't spell out. If it fails you'll just need to `login` again.
-- Rate limits aren't documented; the client backs off on HTTP 429.
+What's since been learnt about it (the refresh grant works, the rate limit
+is small, licensed versions still read and write highlights) is in
+[CONTRIBUTING.md](../../CONTRIBUTING.md#the-youversion-api-things-that-will-bite-you).
 
 ## Tests
 

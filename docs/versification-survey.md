@@ -16,25 +16,7 @@ languages ([below](#label-coverage)); a version whose counts no available
 system explains is refused ([below](#refusing-what-cant-be-mapped)). The
 tables here are the survey as taken, against the two-system engine.
 
-The rest of the app's hand-made ranking (`packages/core/scripts/popular.mjs`)
-was scanned later the same way and 56 of its versions bundled; none is
-refused, and none has a misplaced verse. Three depart from their label in
-one verse on purpose: Synod (167), BTI (313) and CARS (385) keep Nehemiah
-7:68 (horses and mules) with English 7:68, as SYNO and NRT do, since their
-7:67–7:73 match NIV verse for verse, where `rso`/`rsc` would fold 7:68 into
-7:67. Two of the 56, GNA2025 (67) and NR2006 (4833), id some chapters
-`PSA.1_1`, like TUKARA84 below, and were bundled once `scan.py` counted
-those as ordinary chapters. Held back at first: 19 that print many merged
-verses (over 100 spans, or a Living Bible paraphrase), and BEX2004 (3286,
-190 spans), until merged-verse highlighting was tested. Once it was (finding
-5), the 18 of them not already bundled with the verified versions (all but
-ASD and RSP) were bundled too: TLA, CEV, TSI, KLB, ICL00D, GNT, UMT, FAYH,
-NTLH, DHH94I, HERV, CSB, BFC, SAB, CCB, CCBT, PLNT and BEX2004. None is
-refused and none has a misplaced verse; nine skip nothing, and the rest skip
-one or two chapters that fit no system (John 7 in 52 verses in GNT and NTLH,
-Revelation 12 in 17 in PLNT and FAYH, 2 Chronicles 12 in 17 in DHH94I and TLA,
-Psalm 13 in UMT, Mark 16 in CEV, Romans 14 and 3 John in TSI). No correction
-tables were written for them.
+Later scans are summarised [at the end](#later-scans).
 
 **Columns.** *Label*: YouVersion's system for the version. *Fits*: of the ~348
 chapters where the systems disagree, how many match the label / another system
@@ -426,3 +408,25 @@ of their neighbour. Isaiah 64:1 was another until issue #6: `eng.vrs` put
 "rend the heavens" on Hebrew 64:1, the fire verse, where it is the second
 half of Hebrew 63:19 (as `rso`, `rsc` and `vul` have it). English 64:1 now
 maps there, alongside 63:19.
+
+## Later scans
+
+The rest of the app's hand-made ranking (`packages/core/scripts/popular.mjs`)
+was scanned later the same way and 56 of its versions bundled; none is
+refused, and none has a misplaced verse. Three depart from their label in
+one verse on purpose: Synod (167), BTI (313) and CARS (385) keep Nehemiah
+7:68 (horses and mules) with English 7:68, as SYNO and NRT do, since their
+7:67–7:73 match NIV verse for verse, where `rso`/`rsc` would fold 7:68 into
+7:67. Two of the 56, GNA2025 (67) and NR2006 (4833), id some chapters
+`PSA.1_1`, like TUKARA84, and were bundled once `scan.py` counted
+those as ordinary chapters. Held back at first: 19 that print many merged
+verses (over 100 spans, or a Living Bible paraphrase), and BEX2004 (3286,
+190 spans), until merged-verse highlighting was tested. Once it was (finding
+5), the 18 of them not already bundled with the verified versions (all but
+ASD and RSP) were bundled too: TLA, CEV, TSI, KLB, ICL00D, GNT, UMT, FAYH,
+NTLH, DHH94I, HERV, CSB, BFC, SAB, CCB, CCBT, PLNT and BEX2004. None is
+refused and none has a misplaced verse; nine skip nothing, and the rest skip
+one or two chapters that fit no system (John 7 in 52 verses in GNT and NTLH,
+Revelation 12 in 17 in PLNT and FAYH, 2 Chronicles 12 in 17 in DHH94I and TLA,
+Psalm 13 in UMT, Mark 16 in CEV, Romans 14 and 3 John in TSI). No correction
+tables were written for them.

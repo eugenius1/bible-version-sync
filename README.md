@@ -34,8 +34,8 @@ again. A highlight lands on the same *words* in every version.
 - **Your first sync only fills in blanks.** Nothing you've already highlighted
   is removed or recoloured.
 - **When versions disagree, each keeps its own colour.** Versions with no
-  highlight on that verse get the colour from the version listed first; you
-  choose the order. Or rank the highlight colours instead, so that, say, pink
+  highlight on that verse get the colour from the version listed first; drag
+  the versions into the order you want. Or rank the highlight colours instead, so that, say, pink
   always wins over yellow whichever version it's in.
 - **Later changes follow you.** Remove or recolour a highlight in one version
   and the next sync does the same in the others — but only where the verse
@@ -57,35 +57,28 @@ Verse numbering has been checked against the text, chapter by chapter, for over
 James Version (KJV)** and the **Russian Synodal Bible**, and the most used
 versions of over 15 other languages.
 
-The app starts with an example list, the most used version in each of your
-browser's first seven languages (NIV for English, Louis Segond for French),
-with a second version of the same language when that's the only one, and,
-the first time
-you sign in, looks for the versions you actually highlight in: it reads your
-highlights in Isaiah 41, Philippians 4 and John 3 in every
-version in your browser's languages, most used versions first, and offers to
-use the ones it finds. It only reads; "Find my versions" runs it again. A
-version you only highlight in elsewhere won't be found; add it by hand.
+The app starts with an example list: the most used version in each of your
+browser's languages (NIV for English, Louis Segond for French). The first time
+you sign in, it reads your highlights in Isaiah 41, Philippians 4 and John 3 in
+every version in your languages and offers the ones you highlight in. It only
+reads, and "Find my versions" runs it again. A version you only highlight in
+elsewhere won't be found; add it by hand.
 
 You can add any other YouVersion version by searching for its name,
 abbreviation or number (versions in your languages come first), or by
 pasting its bible.com link. The app tells you how sure it is of that
-version's numbering:
+version's numbering. Whatever the badge, a chapter that fits no known
+numbering is skipped, never guessed.
 
 - **Verified numbering**: checked chapter by chapter.
 - **Verse counts known**: the app comes with the verse count of every chapter
-  for about 290 more versions (ESV, NLT and many widely used ones in other
-  languages, down to smaller translations), scanned in Sept 2026 but not
-  checked against the text. Chapters that follow no standard pattern are
-  skipped rather than guessed.
+  for about 290 more versions, including ESV and NLT, scanned from bible.com
+  but not checked against the text.
 - **Numbering from YouVersion**: worked out from YouVersion's own verse counts.
-  Chapters that follow no standard pattern are skipped rather than guessed.
-- **Numbering assumed**: YouVersion wouldn't share the verse counts, so English
-  numbering is assumed (or Russian Synodal, Septuagint or Vulgate numbering,
-  for versions YouVersion marks as using it; the app knows which system
-  YouVersion gives for every version it listed in Sept 2026). Fine for most
-  of the Bible; in the Psalms and a few Old Testament chapters a highlight
-  could land a verse or two off.
+- **Numbering assumed**: YouVersion wouldn't share the verse counts, so the app
+  assumes the numbering YouVersion lists for the version, usually English.
+  Fine for most of the Bible; in the Psalms and a few Old Testament chapters a
+  highlight could land a verse or two off.
 - **Numbering not supported**: the version's verse counts follow Synodal or
   Septuagint numbering, but YouVersion doesn't say which, so the app can't
   place its verses. It won't add such a version, and one already in your list
@@ -93,10 +86,9 @@ version's numbering:
 
 ## Languages and appearance
 
-English (US and UK), Spanish, Portuguese, French, Indonesian, Swahili, German and Russian.
-The default comes from your device; the language icon at the top right
-overrides it and the choice is remembered. Light and dark themes follow your
-device too, unless you pick one with the icon beside it.
+English (US and UK), Spanish, Portuguese, French, Indonesian, Swahili, German
+and Russian. The app follows your device's language and light or dark theme;
+change either with the icons at the top right, and your choice is remembered.
 
 ## Good to know
 
@@ -110,9 +102,8 @@ device too, unless you pick one with the icon beside it.
 
 ## Status
 
-Working: sign-in, sync with preview for a chapter, book or the whole Bible,
-nine languages, light and dark. Syncing runs when you press the button;
-automatic background syncing needs a server and is planned.
+Syncing runs when you press the button. Automatic background syncing needs a
+server, and it's planned.
 
 ## Contributing
 
