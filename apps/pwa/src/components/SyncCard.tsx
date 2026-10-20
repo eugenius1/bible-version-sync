@@ -1,8 +1,9 @@
-import { BOOKS, type Scope } from "@bvs/core";
+import { BOOKS, ESTIMATE_THRESHOLD_MS, estimateRun, type Scope } from "@bvs/core";
 import { Eye, RefreshCw, Square } from "lucide-react";
 import { useState } from "react";
 import type { RunState } from "../App";
 import { useI18n } from "../i18n";
+import { storedPace } from "../lib/pace";
 import type { ResolvedVersion } from "../lib/versions";
 import { Select } from "./Select";
 import { Step } from "./Step";
@@ -20,7 +21,7 @@ interface Props {
 }
 
 export function SyncCard({ versions, run, stopping, onRun, onCancel }: Props) {
-  const { t, f, plural, num, book: bookName } = useI18n();
+  const { t, plural, duration, book: bookName } = useI18n();
   const ts = t.sync;
   const [kind, setKind] = useState<Kind>("chapter");
   const [book, setBook] = useState("JHN");
@@ -35,6 +36,7 @@ export function SyncCard({ versions, run, stopping, onRun, onCancel }: Props) {
   const running = run.status === "running";
   const tooFew = !!versions && versions.length < 2;
   const ready = !!versions && !tooFew && !running && (kind !== "chapter" || validChapter);
+  const estimate = versions && !tooFew && !running ? estimateRun(versions, scope, storedPace().msPerRead) : null;
 
   return (
     <section className="card space-y-4" aria-labelledby="sync-title">
@@ -86,9 +88,9 @@ export function SyncCard({ versions, run, stopping, onRun, onCancel }: Props) {
             {plural(ts.chapterCount, chapters.length, { book: bookName(book), abbr: versions[0].abbr })}
           </p>
         )}
-        {kind === "bible" && (
+        {estimate && estimate.ms > ESTIMATE_THRESHOLD_MS && (
           <p className="text-sm text-stone-600 dark:text-stone-400">
-            {f(ts.bibleNote, { n: num(1189 * (versions?.length ?? 4)) })}
+            {plural(ts.estimate, estimate.reads, { time: duration(estimate.ms) })}
           </p>
         )}
       </fieldset>
@@ -123,7 +125,7 @@ function ProgressView({ run, stopping, onCancel }: {
   stopping: boolean;
   onCancel: () => void;
 }) {
-  const { t, f, num, book } = useI18n();
+  const { t, f, num, book, duration } = useI18n();
   const ts = t.sync;
   const p = run.progress;
   const pct = p && p.readTotal ? Math.round((p.readDone / p.readTotal) * 100) : 0;
@@ -134,12 +136,14 @@ function ProgressView({ run, stopping, onCancel }: {
     : p.phase === "reading"
       ? f(ts.reading, { book: book(p.book), done: num(p.readDone), total: num(p.readTotal) })
       : f(ts.writing, { book: book(p.book), done: num(p.done), total: num(p.total) });
+  const left = !stopping && run.remainingMs !== null ? f(ts.remaining, { time: duration(run.remainingMs) }) : null;
   return (
     <div className="space-y-2" role="status" aria-live="polite">
       <div className="flex items-center justify-between gap-3 text-sm">
         <span className="inline-flex items-center gap-2">
           <RefreshCw size={14} className="shrink-0 animate-spin motion-reduce:animate-none" aria-hidden />
           {run.apply ? ts.syncing : ts.previewing} — {text}
+          {left && ` · ${left}`}
         </span>
         <button className="btn-ghost shrink-0" disabled={stopping} onClick={onCancel}>
           <Square size={14} aria-hidden />

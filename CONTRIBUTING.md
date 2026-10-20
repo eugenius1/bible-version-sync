@@ -351,6 +351,13 @@ single-chapter requests". Writes and deletes take single verses.
 
 **There is no "list my highlights".** Every sync reads every chapter it covers,
 in every version — about 1,200 requests per version for a whole Bible.
+How long that takes is estimated in `packages/core/src/estimate.ts`: before a
+run, from the chapters it will read at the rate this browser measured last
+time (`apps/pwa/src/lib/pace.ts`, in localStorage), else an assumed 100 ms a
+read; during it, by `RunClock`, which times reads and writes apart and eases
+the measured rate in from that prior. Writes in books not yet read can't be
+known, so a sync with many changes runs past its estimate. Nothing under five
+seconds shows one.
 
 **An expired token looks like a network error in the browser.** YouVersion's
 401 responses carry no CORS header, so `fetch` rejects with a `TypeError`

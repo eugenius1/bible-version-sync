@@ -94,7 +94,9 @@ change either with the icons at the top right, and your choice is remembered.
 
 - YouVersion offers no way to ask "which verses have I highlighted?", so a sync
   reads every chapter it covers, in every version. A whole-Bible sync is about
-  1,200 requests per version and takes a while; keep the page open.
+  1,200 requests per version and takes a while; keep the page open. Anything
+  longer than a few seconds says beforehand roughly how long it will take, and
+  how long is left while it runs.
 - You sign in with your YouVersion account and allow access to your highlights.
   Notes and bookmarks aren't touched; YouVersion doesn't offer them to apps.
 - On iPhone, an app added to the home screen keeps its storage separate from

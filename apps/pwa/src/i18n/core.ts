@@ -104,6 +104,11 @@ export interface I18n {
   plural: (forms: readonly string[], n: number, params?: Params) => string;
   /** Format a number for the locale (thousands separators). */
   num: (value: number) => string;
+  /**
+   * A rough length of time, in the locale's own units: "45 seconds",
+   * "3 minutes", "1.5 hours". Rounded, since it's always an estimate.
+   */
+  duration: (ms: number) => string;
   /** Book name in the active language: GEN -> Genesis / Genèse. */
   book: (code: string) => string;
   /** "PSA.51.3" -> "Psalms 51:3" / "Psaumes 51:3". */
@@ -130,9 +135,24 @@ export function createI18n(lang: Lang, setLang: (lang: Lang) => void = () => {})
       return interpolate(form, { n: numberFormat.format(n), ...params });
     },
     num: (v) => numberFormat.format(v),
+    duration: (ms) => formatDuration(t.meta.localeTag, ms),
     book: (code) => bookName(code, books),
     ref: (r) => displayRef(r, books),
   };
+}
+
+/**
+ * Seconds to the nearest five under a minute and a half, then minutes, then
+ * hours to one decimal. Rounding up for the seconds, so "0 seconds" never
+ * shows while something is still running.
+ */
+export function formatDuration(localeTag: string, ms: number): string {
+  const s = ms / 1000;
+  const [value, unit, digits] =
+    s < 90 ? [Math.max(5, Math.ceil(s / 5) * 5), "second", 0]
+    : s < 90 * 60 ? [Math.round(s / 60), "minute", 0]
+    : [s / 3600, "hour", 1];
+  return new Intl.NumberFormat(localeTag, { style: "unit", unit, unitDisplay: "long", maximumFractionDigits: digits }).format(value);
 }
 
 /** Keep <html lang> in step, so screen readers and hyphenation follow. */
