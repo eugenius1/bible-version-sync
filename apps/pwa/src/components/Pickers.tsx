@@ -1,5 +1,5 @@
 import { Contrast, Globe, Moon, Sun } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type SyntheticEvent } from "react";
 import { DICTIONARIES, menuOrder, useI18n, type Lang } from "../i18n";
 import { applyTheme, persistTheme, storedTheme, THEMES, watchSystemTheme, type Theme } from "../theme";
 
@@ -9,6 +9,20 @@ import { applyTheme, persistTheme, storedTheme, THEMES, watchSystemTheme, type T
  * mobile for free, and stay usable as more languages are added, while taking
  * no more room in the header than an icon.
  */
+
+/**
+ * Tags a select opened by pointer so the stylesheet can leave its focus ring
+ * off: the select keeps focus once its picker closes, and Chromium counts a
+ * focused select as :focus-visible however it got there. The next key press
+ * is keyboard use again, so the ring comes back.
+ */
+const markPointer = (e: SyntheticEvent<HTMLSelectElement>) => {
+  e.currentTarget.dataset.pointer = "";
+};
+const clearPointer = (e: SyntheticEvent<HTMLSelectElement>) => {
+  delete e.currentTarget.dataset.pointer;
+};
+const pointerFocus = { onPointerDown: markPointer, onKeyDown: clearPointer, onBlur: clearPointer };
 
 export function LanguageSwitcher() {
   const { lang, setLang, t } = useI18n();
@@ -25,6 +39,7 @@ export function LanguageSwitcher() {
       <select
         className="picker-select"
         aria-label={t.app.languageLabel}
+        {...pointerFocus}
         value={lang}
         onChange={(e) => setLang(e.target.value as Lang)}
       >
@@ -61,6 +76,7 @@ export function ThemeSwitcher() {
       <select
         className="picker-select"
         aria-label={t.app.themeLabel}
+        {...pointerFocus}
         value={theme}
         onChange={(e) => {
           const next = e.target.value as Theme;

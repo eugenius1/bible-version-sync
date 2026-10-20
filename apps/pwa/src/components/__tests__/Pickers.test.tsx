@@ -130,3 +130,24 @@ describe("LanguageSwitcher", () => {
     ]);
   });
 });
+
+describe("focus ring", () => {
+  // The ring keys off data-pointer (see .picker in index.css): a tap leaves
+  // the select focused, and Chromium would otherwise ring it.
+  it("is suppressed after a tap and comes back with the keyboard", async () => {
+    stubMatchMedia(false);
+    renderPickers();
+    const select = screen.getByRole("combobox", { name: "Appearance" });
+    const user = userEvent.setup();
+
+    await user.pointer({ keys: "[MouseLeft>]", target: select });
+    expect(select).toHaveAttribute("data-pointer");
+
+    await user.keyboard("{Shift}");
+    expect(select).not.toHaveAttribute("data-pointer");
+
+    await user.pointer({ keys: "[MouseLeft>]", target: select });
+    select.blur();
+    expect(select).not.toHaveAttribute("data-pointer");
+  });
+});

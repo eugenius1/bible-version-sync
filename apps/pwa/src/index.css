@@ -53,11 +53,15 @@
   @apply text-xs font-medium tracking-wide text-stone-500 uppercase dark:text-stone-400;
 }
 
-/* Language and appearance pickers: an icon with a native <select> over it. */
+/* Language and appearance pickers: an icon with a native <select> over it.
+   The ring is for keyboard focus only. A tapped select keeps focus after its
+   picker closes, and Chromium counts that as :focus-visible, so Pickers.tsx
+   marks a select opened by pointer with data-pointer until the next key. */
 @utility picker {
   @apply relative inline-flex size-9 items-center justify-center rounded-full text-stone-600 transition
     hover:bg-stone-100 hover:text-stone-900
-    focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-amber-600 dark:focus-within:outline-amber-500
+    has-[select:focus-visible:not([data-pointer])]:outline-2 has-[select:focus-visible:not([data-pointer])]:outline-offset-1
+    has-[select:focus-visible:not([data-pointer])]:outline-amber-600 dark:has-[select:focus-visible:not([data-pointer])]:outline-amber-500
     dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-100;
 }
 
