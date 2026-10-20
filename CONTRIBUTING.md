@@ -6,21 +6,23 @@ of rules that bind coding agents specifically.
 
 ## Running it
 
-Needs Node and a YouVersion Platform app key. Which Node is set in two
-places: `engines` in [package.json](package.json) is the minimum, which
-`engine-strict` in [.npmrc](.npmrc) enforces (so `npm install` refuses a
-Node the project or a dependency doesn't support), and [.nvmrc](.nvmrc) is
-the version CI uses; `nvm use` picks it, so the bundled data regenerates
-exactly as in CI. npm 10 crashes installing this workspace ("Cannot read
-properties of null (reading 'edgesOut')"); with a Node that ships it,
-`npx npm@11 install` works. npm 11 holds back
-esbuild's install script by default, which the build doesn't need.
+Needs Node and a YouVersion Platform app key.
 
 ```bash
 npm install
 cp apps/pwa/.env.example apps/pwa/.env.local   # put your app key in it
 npm run dev                                     # http://localhost:8001
 ```
+
+If the install fails:
+
+- The minimum Node is `engines` in [package.json](package.json), and
+  `engine-strict` in [.npmrc](.npmrc) makes `npm install` refuse an older
+  one. [.nvmrc](.nvmrc) is the version CI uses; `nvm use` picks it, so the
+  bundled data regenerates exactly as in CI.
+- npm 10 crashes on this workspace ("Cannot read properties of null (reading
+  'edgesOut')"); `npx npm@11 install` works. npm 11 holds back esbuild's
+  install script by default, which the build doesn't need.
 
 `npm run dev` is for editing: instant reload, but no Content-Security-Policy
 and no service worker. `npm run preview` serves the production build from
@@ -36,11 +38,10 @@ package, runs all tests and builds the app. Run it before every commit.
 **App key and callback.** Create an app at
 <https://platform.youversion.com>. The key goes in `apps/pwa/.env.local` as
 `VITE_YV_APP_KEY` (git ignores that file). The app's callback URL must be
-`<origin><base>callback`, where the base is `/` except when deployed below a
-domain's root; the dev server is pinned to port 8001 so that
-`http://localhost:8001/callback` stays valid. `PORT` moves it (when another
-checkout's server has 8001), but signing in only works on 8001 unless that
-port's callback is registered for the key too. The key isn't a secret — it's
+`<origin><base>callback`, where the base is `/` unless the app is served
+below a domain's root (`BASE_PATH`). The dev server is pinned to port 8001 so
+that `http://localhost:8001/callback` stays valid. `PORT` moves it, but sign-in
+only works on a port whose callback is registered for the key. The key isn't a secret — it's
 an OAuth client id and ends up in the built JavaScript — but keep your real
 value out of the repository anyway.
 
@@ -54,10 +55,23 @@ and `https://eusebius.tech/bible-version-sync/callback` must be registered in
 the portal. Pages has no SPA fallback, so the build copies `index.html` to
 `callback.html`, which Pages serves at `/callback`.
 
-To host it elsewhere, `npm run build` writes a static site to `apps/pwa/dist/`
-(set `BASE_PATH=/path/` to serve it below a domain's root). Set
-`VITE_YV_APP_KEY` at build time and register `<origin><base>callback`. The production build carries a
-strict Content-Security-Policy (see `apps/pwa/vite.config.ts`).
+To host it elsewhere, `npm run build` writes a static site to `apps/pwa/dist/`.
+Set `BASE_PATH` and `VITE_YV_APP_KEY` at build time and register the
+callback as above. The production build carries a strict
+Content-Security-Policy (see `apps/pwa/vite.config.ts`).
+
+## Conventions
+
+- **`npm run check` must pass** before every commit (see above).
+- **No licence headers in source files.** The licence lives in `LICENSE` and the
+  `license` field of each `package.json`.
+- **Comments explain why, not what.**
+- **Every user-visible string goes in `en.ts`**; the other locales are typed
+  against it, and `en-gb.ts` is derived.
+- **Never commit an app key, tokens or someone's highlights.** `.env.local`,
+  `tools/python-cli/config.json` and `.yvsync/` are gitignored for this.
+- **Commit messages are prose.** Explain the reasoning and what went wrong, not
+  a changelog line.
 
 ## Layout
 
@@ -67,6 +81,8 @@ strict Content-Security-Policy (see `apps/pwa/vite.config.ts`).
 | `packages/core/data` | Verse-numbering data and correction tables, bundled into `src/data.generated.ts` by `npm run gen -w @bvs/core`. |
 | `apps/pwa` | The web app: Vite, React, Tailwind CSS v4, lucide icons, Dexie (IndexedDB), vite-plugin-pwa. |
 | `tools/python-cli` | The original Python prototype, kept for reference. The TypeScript mapping was checked against it verse for verse. |
+| `tools/versification-survey` | The scanner and data behind the bundled verse counts, labels and names. The app never reads it; `import-survey` copies from it. |
+| `tools/youversion-skill.sh` | Refreshes the vendored YouVersion agent skill (see below). |
 
 ## How verses are matched
 
@@ -125,7 +141,9 @@ look unread, and so removed, when the other book syncs.
 `packages/core/test/survey.test.ts` runs the engine over all 353 scanned
 versions and pins what each one skips.
 
-**A version no system explains is refused.** Without a label, only `eng`
+### A version no system explains is refused
+
+Without a label, only `eng`
 and `org` are candidates, and counts can't say which of the other four a
 version follows (UBIO fits `lxx` in 131 chapters and `rsc` in 130), so an
 unlabelled Synodal or Septuagint version would have its Psalms land one
@@ -141,12 +159,11 @@ add form refuses one, and a saved one shows "Numbering not supported". A
 version with no counts at all can't be checked, and is assumed English as
 before.
 
-Verse counts come from, in order: `packages/core/data/known_counts.json`
-(the 46 verified versions in `scripts/verified.mjs` and the rest scanned
-for the survey: 54 widely used, 56 more from the hand-made ranking in
-`scripts/popular.mjs`, four more bundled when they were verified, 18 that
-print many merged verses, and 221 smaller unlabelled ones scanned for
-coverage, by bible id), then the
+### Where the verse counts come from
+
+They come from, in order: `packages/core/data/known_counts.json`
+(the verified versions in `scripts/verified.mjs` and the ones scanned for the
+survey, listed in [its README](tools/versification-survey/README.md)), then the
 YouVersion API's `/v1/bibles/{id}/index` (only for versions the app key may
 read), then an assumption of the version's label or English numbering. The
 app shows which as a badge: "Verified numbering", "Verse counts known",
@@ -160,50 +177,83 @@ versions are a Gospel or two). Everything else would get the same count and
 system anyway, which keeps the 353 versions to about 36,500 entries.
 
 [docs/versification-survey.md](docs/versification-survey.md) records how 54
-widely used versions in 20 languages fared against the two-system engine,
-which is what led to the other four. The scanner and data behind it are in [tools/versification-survey](tools/versification-survey/README.md).
+widely used versions in 20 languages fared against the original
+`eng`/`org` engine; it's why `rso`, `rsc`, `lxx` and `vul` were added. The scanner and data behind it are in [tools/versification-survey](tools/versification-survey/README.md).
 
-**Adding a version's counts.** Scan it (`tools/versification-survey/scan.py`),
-add it to the survey's `data/counts.json` (`scan.py --add`), and run
-`npm run import-survey -w @bvs/core`, which rewrites that version's
-exceptions in `known_counts.json`, every label in `labels.json` and every
-name in `names.json`. Review the diff: the app never reads `tools/` itself, so
-what ships is exactly what's in `packages/core/data`. `survey.test.ts` fails if
-the bundle stops reproducing the scan. The version then shows "Verse counts
-known".
+## Adding or verifying a version
 
-**Version names.** The official API doesn't name most versions (their text
+To add a version's verse counts, so it shows "Verse counts known":
+
+1. Scan it with `tools/versification-survey/scan.py`, and add it to the
+   survey's `data/counts.json` with `scan.py --add`.
+2. Run `npm run import-survey -w @bvs/core`, which rewrites the files listed
+   in [`packages/core/data`'s README](packages/core/data/README.md).
+3. Review the diff: the app never reads `tools/` itself, so what ships is
+   exactly what's in `packages/core/data`. `survey.test.ts` fails if the
+   bundle stops reproducing the scan.
+
+To verify its numbering, so it shows "Verified numbering", also:
+
+4. Add an entry to `VERIFIED` in `packages/core/scripts/verified.mjs`.
+5. For each chapter that matches neither system, write the correction table.
+   First check whether a shared table in `overrides/shared/` describes it, by
+   reading the verses at its boundaries in the version (not just comparing
+   counts), and `use` it if so. Matching counts aren't enough: RVR1960
+   numbers Psalm 47 the English way in Hebrew's 10 verses, and was mapped a
+   verse off until its text was read. The survey's `text.py`, `sheets.ts` and
+   `REVIEW.md` do the reading (see
+   [its README](tools/versification-survey/README.md#verifying-a-versions-numbering)).
+   Bible text isn't committed, and comments quote only public-domain text
+   (KJV, Douay-Rheims).
+6. Add test cases to `packages/core/test/versification.test.ts` for the
+   verses you checked by eye, and run `npm run check`. A verified version
+   maps every chapter it has; a test checks that.
+
+The LSG tables were first built by aligning the text verse by verse with S21
+(by word overlap), then against NIV.
+
+## Version names and discovery
+
+### Version names
+
+The official API doesn't name most versions (their text
 isn't licensed to the app key), so `names.json` has the abbreviation, title
 and language bible.com shows for all 3,864 versions YouVersion lists. That's
 100 KB gzipped, more than half the rest of the app, so it isn't in the main
 bundle: `gen-data.mjs` writes it to `src/names.generated.ts`, which
 `loadVersionNames()` imports on demand, and Vite makes a chunk of its own.
 The versions card starts the load when it mounts, and `versionName()`
-returns nothing until it's done. YouVersion's language tags become BCP 47
-(`eng` → `en`, `zho_tw` → `zh-TW`, `hin_ro` → `hi-Latn`; a suffix with no
-BCP 47 equivalent, like `gax_ars` for Arsi Oromo, is dropped), by a fixed
-table in `scripts/language-tags.mjs` rather than `Intl`'s canonical form,
-which changes with Node's ICU (it turned `mnk`, Mandinka, into `man` on one
-Node and `gom`, Goan Konkani, into `kok` on another). Those two keep
-YouVersion's more precise tag; a test flags any other tag the runtime would
-write differently. YouVersion has
-two abbreviations per version, and bible.com shows
+returns nothing until it's done.
+
+YouVersion's language tags become BCP 47 (`eng` → `en`, `zho_tw` → `zh-TW`,
+`hin_ro` → `hi-Latn`; a suffix with no BCP 47 equivalent is dropped) by a
+fixed table in `scripts/language-tags.mjs`, never `Intl`, whose canonical
+form changes with Node's ICU (one Node turned `mnk`, Mandinka, into `man`). A
+test flags any tag the runtime would write differently.
+
+YouVersion has two abbreviations per version, and bible.com shows
 `local_abbreviation` (NIV, НРП), not `abbreviation` (NIV11, NRT); the survey's
 `names.py` records it. The verified versions are named the same way, and
-`gen-data.mjs` checks that `verified.mjs` agrees. A version is named by its
+`gen-data.mjs` checks that `verified.mjs` agrees.
+
+A version is named by its
 abbreviation, worked out from its id and never saved (`labelVersions` in
 `apps/pwa/src/lib/db.ts`); two in the list that share one get their
 language, or their number when that's shared too: NVI (es), ARC (212). The
 app shows the title beside it and falls back to "Version {id}" once the
 names are loaded and don't have it. Titles are in the version's own script,
 so they're rendered with `lang` (Japanese glyphs rather than Chinese) and
-`dir="auto"` (Arabic). The add field searches these names
+`dir="auto"` (Arabic).
+
+The add field searches these names
 (`searchVersions`): every word must appear in the number, abbreviation or
 title, accents and case aside; an exact number comes first, then the
 reader's languages in their order, then exact and leading abbreviation
 matches, then popularity. A number bible.com doesn't name is still offered.
 
-**Finding the person's versions.** There's no "list my highlights", so
+### Finding the person's versions
+
+There's no "list my highlights", so
 `discoverVersions` (`packages/core/src/discover.ts`) reads three
 often-highlighted chapters (Isaiah 41, Philippians 4, John 3, none
 of which moves between numbering systems, most highlighted first by
@@ -214,40 +264,25 @@ version found is checked for supported numbering straight away, so it can be
 added while the scan goes on. It runs by itself only on a first visit (no saved settings,
 empty sync memory), when the default list is just an example; replacing the
 list is only offered then, since replacing a synced list would drop its
-snapshots. Versions are asked about, and listed, most used first
+snapshots.
+
+Versions are asked about, and listed, most used first
 (`byPopularity`): YouVersion publishes no ranking, so 20 big languages
 have a hand-made one in `packages/core/scripts/popular.mjs`, and every other
 language has only its default version, the one bible.com opens for it
 (`data/defaults.json`, from the survey's `languages.py`, which reads
 `default_versions` in bible.com's `configuration.json`), ranked first. A
 default that a hand-made list leaves out ranks just after it. Both ride in
-the names chunk. The example list shown before the person chooses
-(`defaultVersions` in `apps/pwa/src/lib/db.ts`) uses the same ranking: the
-most used version of each of the browser's first seven languages. A sync
-needs two, so when that gives one, the next most used version in its
-language joins it (NIV and KJV for English alone), or NIV and AMP when its
-language has no other; NIV and AMP are also the list when none of the
-languages is known. AMP is an arbitrary favourite. Converting a snapshot
-saved by name still uses the old rule (first three languages, then AMP),
-since that's the list whose names it holds.
+the names chunk.
 
-**Verifying a version.** Also add an entry to `VERIFIED` in
-`packages/core/scripts/verified.mjs`, and for each chapter that matches neither
-system, write the correction table: first check whether a shared table in
-`overrides/shared/` describes it, by reading the verses at its boundaries in
-the version (not just comparing counts), and `use` it if so. Matching counts
-aren't enough: RVR1960 numbers Psalm 47 the English way in Hebrew's 10
-verses, and was mapped a verse off until its text was read. The survey's
-`text.py`, `sheets.ts` and `REVIEW.md` do the reading (see
-[its README](tools/versification-survey/README.md#verifying-a-versions-numbering)):
-every verse where the numbering could go wrong, beside the NIV and LSG
-verses the engine pairs it with, plus the stretches a verse-length aligner
-suspects. The LSG tables were first built by aligning the text verse by verse
-with S21 (by word overlap), then against NIV. Bible text isn't committed,
-and comments quote only public-domain text (KJV, Douay-Rheims). Then add
-test cases to `packages/core/test/versification.test.ts` for the verses you
-checked by eye, and run `npm run check`. A verified version maps every
-chapter it has; a test checks that.
+### The example list
+
+The example list shown before the person chooses (`defaultVersions` in
+`apps/pwa/src/lib/db.ts`) is the most used version of each of the browser's
+first seven languages, padded to the two a sync needs with the next most used
+in the same language, and NIV and AMP when nothing else fits. Converting a
+snapshot saved by name still uses the old rule (first three languages, then
+AMP), since that's the list whose names it holds.
 
 ## The sync rules
 
@@ -300,12 +335,10 @@ Safety rules, all tested:
   `runSync` and `planBook` skip a version whose map is flagged `unsupported`:
   nothing is read or written for it, its snapshot is carried over untouched,
   and `RunSummary.refused` names it.
-- **A stop never leaves a book half planned.** The abort signal goes into
-  every read (the client hands it to `fetch` and to its back-off sleeps), so
-  reading stops at once, and a book stopped mid-read is dropped from the
-  summary unplanned (`readBook` checks the signal once more before it
-  returns, so a book is either read in full or not at all). Writes take no
-  signal: a book being written is finished first, since a
+- **A stop never leaves a book half planned.** Every read takes the abort
+  signal (down to `fetch` and the back-off sleeps), and a book stopped
+  mid-read is dropped unplanned; `readBook` checks the signal once more before
+  it returns. Writes don't take it: a book being written is finished, since a
   request cut off mid-flight may or may not have landed.
 
 ## The YouVersion API: things that will bite you
@@ -323,10 +356,15 @@ in every version — about 1,200 requests per version for a whole Bible.
 401 responses carry no CORS header, so `fetch` rejects with a `TypeError`
 instead of returning the 401. Successful responses and other errors do have the
 header. The client therefore treats a failed authenticated request as a likely
-expired token: refresh once and retry; if the refresh is rejected, report
-"sign-in expired"; if the refresh can't get through either, it isn't the
-sign-in (a stale refresh token gets a readable 400), so stop at once as
-unreachable; after three network failures, give up. The runner stops the
+expired token:
+
+- refresh once and retry;
+- refresh rejected: report "sign-in expired";
+- refresh can't get through either: it isn't the sign-in (a stale refresh
+  token gets a readable 400), so stop at once as unreachable;
+- three network failures in a row: give up.
+
+The runner stops the
 whole run on the first auth, network or rate-limit failure rather than
 failing every book. A write that fails that way stops the rest of its book
 too, and those verses keep their old snapshot so the next run retries them.
@@ -379,32 +417,14 @@ counts say otherwise.
 at most 99. Versions missing from the list still read and write highlights, so
 don't validate a version against it.
 
-**YouVersion's own agent skill is vendored, but this section overrides it.**
-`.agents/skills/youversion-platform-api` is copied from
-[youversion/platform-skills](https://github.com/youversion/platform-skills)
-(Apache-2.0, its `LICENSE` alongside, the commit in `.upstream`). Skills live
-in `.agents/skills`, which Codex and other agents read, and `.claude/skills`
-is a symlink to it because Claude Code reads only that; add new skills to
-`.agents/skills`. The SDK and React skills upstream aren't copied, since the
-app calls the API with plain `fetch` and shows no Bible text. The skill
-covers only `/v1/bibles` and passages, not highlights or sign-in, and it's
-written for apps that show text: it treats `/v1/bibles` as the only source of
-version ids, where here the list is a subset and versions are bundled
-(above). One trick it documents is worth knowing: `page_size=*` is accepted
-when at most three `fields[]` are asked for, so
+**`page_size=*` lists everything in one request** when at most three
+`fields[]` are asked for:
 `/v1/bibles?language_ranges[]=*&fields[]=id&fields[]=abbreviation&page_size=*`
-lists every version the app key may read in one request (360 in Sept 2026).
-`tools/youversion-skill.sh` refreshes the copy, and `--check` fails when
-upstream has changed it; the "YouVersion skill / Up to date" check runs that on
-every PR. It isn't a required check, so an upstream change shows red without
-blocking unrelated PRs: run the script, read what changed against this
-section, and commit it. Don't edit the copy by hand; the check fails on
-that too.
+gives every version the app key may read (360 in Sept 2026).
 
-**Some versions id chapters `BOOK.<n>_1`.** NR2006's Psalms and Job are
-`PSA.1_1`, `JOB.1_1`…; so are GNA2025's Psalms and Philemon and TUKARA84's
-Matthew, while BFC does it only in Psalms 10–147 and DHH94I only in Psalms
-42–43. Their highlights live under those ids (`PSA.1_1.5`): reading
+**Some versions id chapters `BOOK.<n>_1`.** NR2006's Psalms, for one, are
+`PSA.1_1`, `PSA.2_1`…; which versions and chapters do it is in
+`data/suffixed_chapters.json`. Their highlights live under those ids (`PSA.1_1.5`): reading
 `PSA.1` there gives an empty list, not an error, so the rule that a failed
 read skips the book never fires, and writing `PSA.1.2` is a 502. The engine
 speaks plain `BOOK.<n>` throughout, and `YouVersionClient` translates at the
@@ -413,17 +433,112 @@ edge (`toYouVersionId`, `fromYouVersionId`), chapter by chapter, using
 bundled gets them from its API index instead (`suffixedFromIndex`, kept on
 `VersionMap.suffixed`), and `resolveVersion` hands them to the client
 (`useSuffixedChapters`). The index gives such a chapter `"id": "1_1"` and
-`"passage_id": "PS2.1_1"` (WEBUS's Psalm 151, seen in October 2026; PS2
-isn't one of the engine's books, so that chapter itself isn't synced). None
-of the five bundled versions' indexes are licensed to the app key (404), so
-for them the bundled list is what counts; a version whose index the app key
-may not read still needs a scan and an `import-survey`. The sync's mapping
+`"passage_id": "PS2.1_1"` (WEBUS's Psalm 151; PS2 isn't one of the engine's
+books, so that chapter isn't synced). A version whose index the app key may
+not read, which includes every bundled one so far, needs a scan and an
+`import-survey` instead. The sync's mapping
 fingerprint includes the suffixed chapters, so such a version is re-added once in those books
 when they first become known, rather than diffed against a snapshot made
 with the plain ids.
 
 **Abbreviations aren't unique.** `NVI-S` is both 128 and 2664, `ARC` both 212
 and 3407. Key anything version-specific by bible id.
+
+## Things that will bite you elsewhere
+
+**Nahum is `NAM`, not `NAH`.** Use the USFM book codes exactly as `BOOKS` in
+`versification.ts` lists them. A wrong code silently drops the book.
+
+**English Psalm titles are verse 0.** `eng.vrs` maps them (`PSA 51:0 = PSA
+51:1`), but a verse 0 can't be highlighted, so those mappings are ignored.
+
+**bible.com's pages answer scripts with a bot challenge**, but the API behind
+them works from plain scripts; the survey uses that (see
+[its README](tools/versification-survey/README.md)).
+
+**The Content-Security-Policy forbids inline scripts.** That's why the theme's
+pre-paint script is `apps/pwa/public/theme-init.js`, a file, rather than inline
+like in most apps. It mirrors `resolveTheme()` in `apps/pwa/src/theme.ts`; keep
+the two in step.
+
+**Tailwind v4 can't `@apply` a custom class from a plain layer.** Shared styles
+(`card`, `btn`, `input`, `picker`…) are declared with `@utility` in
+`apps/pwa/src/index.css` for that reason.
+
+**Dark mode is a class, not a media query.** `@custom-variant dark` keys off
+`.dark` on `<html>`, so the theme icon in the header can override the system.
+
+**Reordering uses pointer events, not HTML drag and drop**, which touch
+screens never fire (`apps/pwa/src/components/Sortable.tsx`). The drag is
+followed on the window, since reordering moves the dragged row's element and
+moving an element drops pointer capture; it's kept in a ref as well as state,
+since a release can arrive before the re-render after the press; and only the
+pointer that started it counts.
+
+**Some embedded browsers don't allow service workers.** Test offline support in
+a real Chrome. For screenshots of signed-in screens without a real account, a
+throwaway headless Chrome (fresh `--user-data-dir`, driven over the DevTools
+protocol) with a fake token written to IndexedDB works well; any API call then
+exercises the sign-in-expired path.
+
+## Localisation
+
+`apps/pwa/src/i18n/en.ts` is the canonical shape; every other locale is typed
+against it, so a missing key is a build error. Strings are data: placeholders
+are `{name}`, filled by `f()`, and counts are `[singular, plural]` pairs picked
+by `Intl.PluralRules` (French and Brazilian Portuguese take the singular for
+zero; Indonesian has no plural, so both forms are the same). Russian counts
+take three forms, `[one, few, many]` (1 стих, 2 стиха, 5 стихов); the tests
+allow a third form only in a language whose plural rules have a "few". Tests
+assert that the locales share every key, placeholders match, nothing is
+accidentally still English, and French punctuation (`:` `;` `?` `!`) is
+preceded by a no-break space. Book names live in `packages/core/src/books.ts`,
+one list of 66 per language, each from that language's most read Bible.
+
+British English (`en-gb.ts`) isn't written out: it's `en.ts` respelled
+(colour, grey), so it can't fall behind. It's the default for English
+readers in the UK, Ireland and the Commonwealth countries that teach British
+spelling (`BRITISH_REGIONS` in `i18n/core.ts`); Canada stays American.
+
+Adding a language: a dictionary in `apps/pwa/src/i18n/`, its book names in
+`books.ts`, and the code in `Lang` there. The picker lists English first,
+then the reader's own languages, then the rest by their own names. Chinese and Korean are left out
+for now: their text doesn't break at spaces, and the layout hasn't been
+checked for it.
+
+**Never build a sentence in `packages/core`.** The engine returns structured
+data (`Difference`, `blocked`, `SignInError` codes) and the app phrases it, so
+switching language re-renders everything.
+
+## Colour and contrast
+
+Colours come from Tailwind's default palette: stone for neutrals, amber for the
+accent. `apps/pwa/src/__tests__/contrast.test.ts` reads Tailwind's own values
+and checks every text/background pairing the components use against WCAG AA,
+in both themes. It's why light mode uses amber-600 for focus rings and amber-700
+for the progress bar. Add a pairing there when you add a colour.
+
+## The vendored YouVersion skill
+
+`.agents/skills/youversion-platform-api` is copied from
+[youversion/platform-skills](https://github.com/youversion/platform-skills)
+(Apache-2.0, its `LICENSE` alongside, the commit in `.upstream`). Skills live
+in `.agents/skills`, which Codex and other agents read, and `.claude/skills`
+is a symlink to it because Claude Code reads only that; add new skills to
+`.agents/skills`. The SDK and React skills upstream aren't copied, since the
+app calls the API with plain `fetch` and shows no Bible text.
+
+**The API section overrides it.** The skill covers only `/v1/bibles`
+and passages, not highlights or sign-in, and it's written for apps that show
+text: it treats `/v1/bibles` as the only source of version ids, where here
+the list is a subset and versions are bundled.
+
+`tools/youversion-skill.sh` refreshes the copy, and `--check` fails when
+upstream has changed it; the "YouVersion skill / Up to date" check runs that on
+every PR. It isn't a required check, so an upstream change shows red without
+blocking unrelated PRs: run the script, read what changed against the API
+section, and commit it. Don't edit the copy by hand; the check fails on that
+too.
 
 ## Claude review on PRs
 
@@ -451,66 +566,3 @@ either. Put the code in its own PR.
 
 A change to the shared actions isn't checked that way: once merged there, it
 runs on every repo's next PR.
-
-## Things that will bite you elsewhere
-
-**Nahum is `NAM`, not `NAH`.** Use the USFM book codes exactly as `BOOKS` in
-`versification.ts` lists them. A wrong code silently drops the book.
-
-**English Psalm titles are verse 0.** `eng.vrs` maps them (`PSA 51:0 = PSA
-51:1`), but a verse 0 can't be highlighted, so those mappings are ignored.
-
-**bible.com blocks scripted clients.** `curl` gets a "Client Challenge" page.
-Collect data from a real browser session instead.
-
-**The Content-Security-Policy forbids inline scripts.** That's why the theme's
-pre-paint script is `apps/pwa/public/theme-init.js`, a file, rather than inline
-like in most apps. It mirrors `resolveTheme()` in `apps/pwa/src/theme.ts`; keep
-the two in step.
-
-**Tailwind v4 can't `@apply` a custom class from a plain layer.** Shared styles
-(`card`, `btn`, `input`, `picker`…) are declared with `@utility` in
-`apps/pwa/src/index.css` for that reason.
-
-**Dark mode is a class, not a media query.** `@custom-variant dark` keys off
-`.dark` on `<html>`, so the picker can override the system.
-
-**Some embedded browsers don't allow service workers.** Test offline support in
-a real Chrome. For screenshots of signed-in screens without a real account, a
-throwaway headless Chrome (fresh `--user-data-dir`, driven over the DevTools
-protocol) with a fake token written to IndexedDB works well; any API call then
-exercises the sign-in-expired path.
-
-## Localisation
-
-`apps/pwa/src/i18n/en.ts` is the canonical shape; `fr.ts` is typed against it,
-so a missing key is a build error. Strings are data: placeholders are `{name}`,
-filled by `f()`, and counts are `[singular, plural]` pairs picked by
-`Intl.PluralRules` (French takes the singular for zero). Tests assert that the
-locales share every key, placeholders match, nothing French is accidentally
-still English, and French punctuation (`:` `;` `?` `!`) is preceded by a
-no-break space.
-
-**Never build a sentence in `packages/core`.** The engine returns structured
-data (`Difference`, `blocked`, `SignInError` codes) and the app phrases it, so
-switching language re-renders everything.
-
-## Colour and contrast
-
-Colours come from Tailwind's default palette: stone for neutrals, amber for the
-accent. `apps/pwa/src/__tests__/contrast.test.ts` reads Tailwind's own values
-and checks every text/background pairing the components use against WCAG AA,
-in both themes. It's why light mode uses amber-600 for focus rings and amber-700
-for the progress bar. Add a pairing there when you add a colour.
-
-## Conventions
-
-- **`npm run check` must pass** before every commit.
-- **No licence headers in source files.** The licence lives in `LICENSE` and the
-  `license` field of each `package.json`.
-- **Comments explain why, not what.**
-- **Every user-visible string goes in both dictionaries.**
-- **Never commit an app key, tokens or someone's highlights.** `.env.local`,
-  `tools/python-cli/config.json` and `.yvsync/` are gitignored for this.
-- **Commit messages are prose.** Explain the reasoning and what went wrong, not
-  a changelog line.

@@ -1,0 +1,243 @@
+import type { Dictionary } from "./en";
+
+/** Spanish strings, in neutral Latin American Spanish (ustedes, no vosotros). */
+export const es: Dictionary = {
+  meta: {
+    localeTag: "es",
+    name: "Español",
+  },
+
+  app: {
+    back: "Volver",
+    languageLabel: "Idioma",
+    themeLabel: "Apariencia",
+    copyright: "© {years} Eusebius Ngemera",
+    licence: "GPLv3",
+    licenceTitle: "Licencia Pública General de GNU, versión 3 o posterior",
+    notAffiliated: "Sin relación con YouVersion.",
+  },
+
+  themes: {
+    system: "Sistema",
+    light: "Claro",
+    dark: "Oscuro",
+  },
+
+  signIn: {
+    intro:
+      "Resalta un versículo en una versión de la Biblia y aparecerá en las demás que lees. Los números de versículo se emparejan aunque las versiones difieran (títulos de los Salmos, Joel, Malaquías, Job y más).",
+    points: [
+      "En tu primera sincronización nunca se cambia el color de un resaltado ni se elimina ninguno.",
+      "Revisa cada cambio antes de que se escriba nada.",
+      "Tu sesión y tus datos se quedan en este navegador y solo van a YouVersion.",
+    ],
+    button: "Iniciar sesión con YouVersion",
+    opening: "Abriendo YouVersion…",
+    disclaimer: "Usa la API de YouVersion Platform con tu permiso.",
+    missingKey: "Falta la clave de la app. Define VITE_YV_APP_KEY en apps/pwa/.env.local y reinicia.",
+  },
+
+  callback: {
+    finishing: "Terminando de iniciar sesión…",
+    failed: "No se pudo iniciar sesión",
+    stateMismatch: "Este inicio de sesión no coincide con el que empezó la app, o tardó demasiado. Vuelve a iniciar sesión.",
+    noPermission:
+      "Iniciaste sesión pero no diste acceso a los resaltados, que esta app necesita. Vuelve a iniciar sesión y permítelo.",
+    provider: "YouVersion informó de un problema: {detail}",
+  },
+
+  priority: {
+    title: "Cuando los colores de un versículo difieren, ¿cuál gana?",
+    toggle: "Usar la prioridad de colores en vez de la de versiones",
+    byVersion: "Prioridad de versiones",
+    byColor: "Prioridad de colores",
+    helpByVersion: "Cada versión conserva su propio color. Las versiones sin resaltado reciben el color de la primera versión de la lista.",
+    helpByColor: "Cada versión conserva su propio color. Las versiones sin resaltado reciben el primer color de la lista, esté en la versión que esté; entre dos versiones con el mismo color, decide el orden de las versiones.",
+    note: "bible.com solo ofrece amarillo, verde, azul, melocotón y rosa; los demás vienen de las apps para móvil.",
+    drag: "Reordenar {color}: arrastra o usa las flechas arriba y abajo",
+    names: {
+      purple: "Morado",
+      aqua: "Aguamarina",
+      yellow: "Amarillo",
+      green: "Verde",
+      blue: "Azul",
+      peach: "Melocotón",
+      pink: "Rosa",
+      paleYellow: "Amarillo pálido",
+      orange: "Naranja",
+      grey: "Gris",
+    },
+  },
+
+  versions: {
+    title: "Tus versiones",
+    help: "Las versiones en las que resaltas. Los versículos se emparejan aunque su numeración sea distinta.",
+    source: {
+      verified: {
+        text: "Numeración verificada",
+        hint: "La numeración de esta versión se comprobó capítulo por capítulo.",
+      },
+      scanned: {
+        text: "Versículos conocidos",
+        hint: "El número de versículos de esta versión viene con la app (tomado de bible.com, sept. 2026), pero su numeración no se ha comprobado a mano. Se omiten los capítulos que no siguen ningún sistema estándar.",
+      },
+      "api-index": {
+        text: "Numeración de YouVersion",
+        hint: "El número de versículos viene de la API de YouVersion. Se omiten los capítulos que no siguen ningún sistema estándar.",
+      },
+      assumed: {
+        text: "Numeración supuesta",
+        hint: "No se pudo leer el número de versículos de esta versión, así que se supone la numeración {system}. Los resaltados en Salmos y en algunos capítulos del Antiguo Testamento podrían caer en el versículo equivocado.",
+      },
+      unsupported: {
+        text: "Numeración no compatible",
+        hint: "{n} capítulos de esta versión no coinciden ni con la numeración inglesa ni con la hebrea, y YouVersion no dice qué sistema sigue (sinodal ruso, Septuaginta…), así que los resaltados caerían en versículos equivocados. Queda fuera de toda sincronización y sus resaltados no se tocan.",
+      },
+    },
+    systems: {
+      eng: "inglesa",
+      org: "hebrea",
+      rso: "sinodal rusa",
+      rsc: "sinodal rusa",
+      lxx: "de la Septuaginta",
+      vul: "de la Vulgata",
+    },
+    checking: "Comprobando la numeración…",
+    unnamed: "Versión {id}",
+    drag: "Reordenar {abbr}: arrastra o usa las flechas arriba y abajo",
+    remove: "Quitar {abbr}",
+    confirmRemove: "¿Dejar de sincronizar {abbr}? Sus resaltados se quedan en YouVersion.",
+    addLabel: "Añadir una versión",
+    addPlaceholder: "Busca por nombre, abreviatura o número",
+    add: "Añadir",
+    adding: "Comprobando…",
+    addHelp: "Tus idiomas aparecen primero. También puedes pegar un enlace de bible.com, como",
+    alreadyAdded: "Ya añadida",
+    number: "N.º {id}",
+    moreResults: "Se muestran {shown} de {total}. Sigue escribiendo para acotar.",
+    noResults: "Ninguna versión coincide con «{query}».",
+    find: {
+      examples: "Estas son versiones de ejemplo. Deja que la app encuentre las que usas para resaltar, o añade las tuyas abajo.",
+      button: "Buscar mis versiones",
+      again: "Buscar de nuevo",
+      help: "Revisa tus resaltados en algunos capítulos conocidos de cada versión en tu idioma. No se cambia nada.",
+      starting: "Empezando…",
+      progress: "Buscando tus resaltados · {done} de {total}",
+      stop: "Detener",
+      stopping: "Deteniendo…",
+      stoppingButton: "Deteniendo",
+      stopped: "Detenido tras revisar {done} de {total}.",
+      stoppedAtStart: "Detenido antes de revisar nada.",
+      failed: "No se pudo terminar la búsqueda: {problem}",
+      none: "No se encontraron resaltados en los capítulos revisados (Isaías 41, Filipenses 4, Juan 3). Añade tus versiones abajo.",
+      foundTitle: "Resaltas en",
+      verses: ["{n} versículo resaltado en la muestra", "{n} versículos resaltados en la muestra"],
+      unsupported: "Su numeración no es compatible, así que no se puede sincronizar",
+      inList: "En tu lista",
+      add: "Añadir {abbr}",
+      notFound: "No se encontraron resaltados en {list} en los capítulos revisados.",
+      useThese: ["Usar esta versión", "Usar estas {n} versiones"],
+    },
+    errors: {
+      cantRead: "No se pudieron leer los resaltados de la versión {id}: {problem}",
+      unsupported:
+        "La versión {id} no se puede sincronizar: {n} de sus capítulos no coinciden ni con la numeración inglesa ni con la hebrea, y YouVersion no dice qué sistema sigue, así que los resaltados caerían en versículos equivocados.",
+    },
+  },
+
+  sync: {
+    title: "Sincronizar",
+    scopeLegend: "Qué sincronizar",
+    chapter: "Capítulo",
+    book: "Libro",
+    bible: "Toda la Biblia",
+    chapterCount: ["{book} tiene {n} capítulo en {abbr}.", "{book} tiene {n} capítulos en {abbr}."],
+    bibleNote: "Lee unos {n} capítulos. Puede tardar un rato; mantén esta página abierta.",
+    preview: "Ver los cambios",
+    syncNow: "Sincronizar ahora",
+    confirmBible: "¿Sincronizar toda la Biblia ahora, sin ver antes los cambios?",
+    previewing: "Revisando",
+    syncing: "Sincronizando",
+    starting: "Empezando…",
+    reading: "Leyendo {book} · {done} de {total} capítulos",
+    writing: "Escribiendo {book} · {done} de {total} cambios",
+    stop: "Detener",
+    stopping: "Deteniendo…",
+    stoppingWriting: "Se detendrá cuando termine de escribir {book}…",
+    stoppingButton: "Deteniendo",
+    stopNote: "Si detienes ahora, el libro que se está escribiendo termina primero, para que nada quede a medias.",
+    tooFew: "Para sincronizar hacen falta al menos dos versiones con numeración compatible.",
+  },
+
+  results: {
+    previewTitle: "Vista previa",
+    doneTitle: "Sincronización terminada",
+    stopped: "(detenida)",
+    inSyncDone: "Todo estaba ya sincronizado.",
+    inSyncPreview: "No hay nada que cambiar: todo está sincronizado.",
+    inSyncStoppedDone: [
+      "No hizo falta cambiar nada en el libro sincronizado antes de detener.",
+      "No hizo falta cambiar nada en los {n} libros sincronizados antes de detener.",
+    ],
+    inSyncStoppedPreview: [
+      "No hay nada que cambiar en el libro leído antes de detener.",
+      "No hay nada que cambiar en los {n} libros leídos antes de detener.",
+    ],
+    stoppedBeforeBook: "Se detuvo antes de leer un libro entero, así que no hay nada que mostrar. No se cambió nada.",
+    added: ["{n} resaltado añadido", "{n} resaltados añadidos"],
+    removedCount: ["{n} eliminado", "{n} eliminados"],
+    toAdd: ["{n} resaltado por añadir", "{n} resaltados por añadir"],
+    toRemove: ["{n} por eliminar", "{n} por eliminar"],
+    differences: [
+      "{n} versículo tiene colores distintos; cada versión conserva el suyo.",
+      "{n} versículos tienen colores distintos; cada versión conserva el suyo.",
+    ],
+    booksSkipped: [
+      "Se omitió {n} libro porque no se pudieron leer los resaltados. No se cambió nada en él.",
+      "Se omitieron {n} libros porque no se pudieron leer los resaltados. No se cambió nada en ellos.",
+    ],
+    writeErrors: ["Falló {n} cambio; la próxima sincronización lo reintentará.", "Fallaron {n} cambios; la próxima sincronización los reintentará."],
+    authExpired: "Detenido: tu sesión de YouVersion ha caducado. No se cambió nada más.",
+    network:
+      "Detenido: YouVersion no responde. Revisa tu conexión. Si estás en línea, probablemente la app ha hecho demasiadas consultas por ahora: entonces YouVersion la hace esperar varios minutos. No se cambió nada más.",
+    rateLimited: [
+      "Detenido: YouVersion ha recibido demasiadas solicitudes de la app por ahora. Inténtalo de nuevo en {n} minuto. No se cambió nada más.",
+      "Detenido: YouVersion ha recibido demasiadas solicitudes de la app por ahora. Inténtalo de nuevo en {n} minutos. No se cambió nada más.",
+    ],
+    rateLimitedSoon: "Detenido: YouVersion ha recibido demasiadas solicitudes de la app por ahora. Inténtalo de nuevo en unos minutos. No se cambió nada más.",
+    signInAgain: "Volver a iniciar sesión",
+    apply: ["Aplicar {n} cambio", "Aplicar {n} cambios"],
+    blocked: [
+      "No se cambió {n} libro porque la sincronización eliminaría muchos resaltados de una vez. Si querías eliminarlos, continúa:",
+      "No se cambiaron {n} libros porque la sincronización eliminaría muchos resaltados de una vez. Si querías eliminarlos, continúa:",
+    ],
+    applyWithRemovals: "Aplicar, incluidas las eliminaciones",
+    skippedRead: "omitido: no se pudo leer",
+    notApplied: "no aplicado: eliminaría {removals} resaltados (límite de {limit} por vez)",
+    differentColors: "Colores distintos",
+    differenceNote: "Cada una conserva el suyo; las versiones sin resaltado reciben el color de {winner}.",
+    removed: "eliminado",
+    action: { fill: "añadir", recolor: "cambiar color", remove: "eliminar" },
+    more: "…y {n} más",
+    refused: "Quedan fuera porque su numeración no es compatible: {names}. No se leyó ni se cambió nada en ellas.",
+  },
+
+  problems: {
+    signInExpired: "tu sesión de YouVersion ha caducado. Vuelve a iniciar sesión.",
+    unreachable:
+      "YouVersion no responde. Revisa tu conexión. Si estás en línea, probablemente la app ha hecho demasiadas consultas por ahora: entonces YouVersion la hace esperar varios minutos.",
+    rateLimited: [
+      "YouVersion ha recibido demasiadas solicitudes de la app por ahora. Inténtalo de nuevo en {n} minuto.",
+      "YouVersion ha recibido demasiadas solicitudes de la app por ahora. Inténtalo de nuevo en {n} minutos.",
+    ],
+    rateLimitedSoon: "YouVersion ha recibido demasiadas solicitudes de la app por ahora. Inténtalo de nuevo en unos minutos.",
+  },
+
+  footer: {
+    memory: ["Memoria de sincronización: {n} versículo", "Memoria de sincronización: {n} versículos"],
+    reset: "Restablecer",
+    confirmReset:
+      "¿Olvidar lo que hicieron las sincronizaciones anteriores? La próxima solo rellenará huecos; no eliminará ni cambiará el color de nada.",
+    signOut: "Cerrar sesión",
+  },
+};

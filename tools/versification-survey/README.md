@@ -30,10 +30,9 @@ S21). It doesn't know the `rso`/`rsc`/`lxx`/`vul` support added since;
 and is the measurement to trust.
 
 The app doesn't read this folder. `npm run import-survey -w @bvs/core` copies
-each scanned version's exception counts, every `vrs` label and version
-name (from `counts.json` and `candidates.json`) and every language's default
-version (from `defaults.json`), into `packages/core/data/`, so a new scan
-changes the app only through a reviewed diff there.
+from it into `packages/core/data/` (the files are listed in
+[its README](../../packages/core/data/README.md)), so a new scan changes the
+app only through a reviewed diff there.
 
 ## `counts.json`
 
@@ -46,9 +45,8 @@ changes the app only through a reviewed diff there.
 ```
 
 `suffixed`, only in versions that have any, lists the chapters YouVersion
-ids `BOOK.<n>_1`, by book. NIV has none; DHH94I (52) has
-`"suffixed": { "PSA": [42, 43] }`. They're counted as chapter `<n>`, and
-the app reads and writes their highlights under the suffixed ids.
+ids `BOOK.<n>_1`, by book (DHH94I: `"suffixed": { "PSA": [42, 43] }`),
+counted as chapter `<n>`.
 
 `counts` holds the **highest verse number present** in each chapter (0 when
 the chapter doesn't exist), not the number of verses, so an omitted verse
@@ -57,8 +55,7 @@ below that maximum; `merged` lists verses printed as one span. `abbr` is
 YouVersion's internal abbreviation and `local_abbr` the one bible.com shows,
 which is what the app bundles.
 
-Key versions by bible id: YouVersion abbreviations aren't unique (`NVI-S` is
-both 128 and 2664, `ARC` both 212 and 3407).
+Key versions by bible id; abbreviations aren't unique.
 
 ## Where the data comes from
 
@@ -92,9 +89,9 @@ all 1,189 chapters.
 ## YouVersion's numbering label (`vrs`)
 
 One of `eng`, `org`, `rso`, `rsc`, `lxx`, `vul`, or `null`, per version. It's a
-good prior but not the truth: LSG is labelled `org` yet uses English numbering
-in Malachi and Joel and neither in Job 38–41, so the engine still has to decide
-chapter by chapter.
+good prior but not the truth (LSG is labelled `org` yet doesn't follow it
+throughout), so the engine still decides chapter by chapter; see
+[How verses are matched](../../CONTRIBUTING.md#how-verses-are-matched).
 
 ## `.vrs` files
 

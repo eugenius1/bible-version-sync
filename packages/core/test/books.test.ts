@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { displayRef, parseVersionInput } from "../src";
+import { BOOK_NAMES_BY_LANG, BOOKS, displayRef, parseVersionInput } from "../src";
 
 describe("parseVersionInput", () => {
   it.each([
@@ -19,5 +19,16 @@ describe("displayRef", () => {
     expect(displayRef("1CO.13")).toBe("1 Corinthians 13");
     expect(displayRef("ISA.53.5", "fr")).toBe("Ésaïe 53:5");
     expect(displayRef("REV.22.21", "fr")).toBe("Apocalypse 22:21");
+    expect(displayRef("1KI.3.5", "ru")).toBe("3 Царств 3:5");
+  });
+
+  it("names every book, each differently, in every language", () => {
+    // A name missing from the middle of a list shifts every later book by one.
+    for (const [lang, names] of Object.entries(BOOK_NAMES_BY_LANG)) {
+      expect(BOOKS.map((b) => names[b]).filter(Boolean), lang).toHaveLength(BOOKS.length);
+      expect(new Set(Object.values(names)).size, lang).toBe(BOOKS.length);
+    }
+    expect(BOOK_NAMES_BY_LANG.de.MAL).toBe("Maleachi");
+    expect(BOOK_NAMES_BY_LANG.sw.REV).toBe("Ufunuo");
   });
 });

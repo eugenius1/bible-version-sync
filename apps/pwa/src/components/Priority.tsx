@@ -1,7 +1,7 @@
 import { HIGHLIGHT_COLORS, loadVersionNames, versionNamesLoaded, type HighlightColorId } from "@bvs/core";
-import { ArrowDown, ArrowUp } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { useI18n } from "../i18n";
+import { SortableList } from "./Sortable";
 import { Step } from "./Step";
 import type { VersionSetting } from "../lib/db";
 import { versionName } from "../lib/versions";
@@ -34,12 +34,6 @@ export function Priority({ versions, byColor, colorOrder, disabled, onVersions, 
       () => undefined,
     );
   }, []);
-  const swap = <T,>(list: T[], i: number, d: -1 | 1) => {
-    const next = [...list];
-    [next[i], next[i + d]] = [next[i + d], next[i]];
-    return next;
-  };
-  const ids = versions.map((v) => v.bibleId);
   // The words either side of the switch pick that side too. Hidden from
   // screen readers, for which the switch alone says it all.
   const side = (color: boolean) => (
@@ -59,47 +53,38 @@ export function Priority({ versions, byColor, colorOrder, disabled, onVersions, 
 
   const lists = byColor ? (
     <>
-      <ol className="divide-y divide-stone-200 dark:divide-stone-800">
-        {colorOrder.map((id, i) => {
-          const name = tp.names[id];
-          return (
-            <Row
-              key={id}
-              n={i + 1}
-              up={f(tp.moveUp, { color: name })}
-              down={f(tp.moveDown, { color: name })}
-              disabled={disabled}
-              first={i === 0}
-              last={i === colorOrder.length - 1}
-              onMove={(d) => void onColors(true, swap(colorOrder, i, d))}
-            >
-              <span
-                className="size-6 shrink-0 rounded-full ring-1 ring-black/10 dark:ring-white/20"
-                style={{ background: `#${HEX[id]}` }}
-                aria-hidden
-              />
-              <span className="text-sm">{name}</span>
-            </Row>
-          );
-        })}
-      </ol>
+      <SortableList
+        items={colorOrder}
+        keyOf={(id) => id}
+        label={(id) => f(tp.drag, { color: tp.names[id] })}
+        disabled={disabled}
+        onReorder={(next) => void onColors(true, next)}
+      >
+        {(id) => (
+          <>
+            <span
+              className="size-6 shrink-0 rounded-full ring-1 ring-black/10 dark:ring-white/20"
+              style={{ background: `#${HEX[id]}` }}
+              aria-hidden
+            />
+            <span className="text-sm">{tp.names[id]}</span>
+          </>
+        )}
+      </SortableList>
       <p className="text-xs text-stone-600 dark:text-stone-400">{tp.note}</p>
     </>
   ) : (
-    <ol className="divide-y divide-stone-200 dark:divide-stone-800">
-      {versions.map((v, i) => {
+    <SortableList
+      items={versions}
+      keyOf={(v) => v.bibleId}
+      label={(v) => f(tv.drag, { abbr: v.abbr })}
+      disabled={disabled}
+      onReorder={(next) => void onVersions(next.map((v) => v.bibleId))}
+    >
+      {(v) => {
         const name = versionName(v.bibleId);
         return (
-          <Row
-            key={v.bibleId}
-            n={i + 1}
-            up={f(tv.moveUp, { abbr: v.abbr })}
-            down={f(tv.moveDown, { abbr: v.abbr })}
-            disabled={disabled}
-            first={i === 0}
-            last={i === versions.length - 1}
-            onMove={(d) => void onVersions(swap(ids, i, d))}
-          >
+          <>
             <span className="shrink-0 font-medium">{v.abbr}</span>
             {/* The title tells apart versions whose abbreviations look alike
                 (NVI (es), NVI (pt)); in the version's own script, as in VersionsCard. */}
@@ -110,10 +95,10 @@ export function Priority({ versions, byColor, colorOrder, disabled, onVersions, 
             >
               {name?.title ?? (versionNamesLoaded() ? f(tv.unnamed, { id: v.bibleId }) : null)}
             </span>
-          </Row>
+          </>
         );
-      })}
-    </ol>
+      }}
+    </SortableList>
   );
 
   return (
@@ -149,31 +134,5 @@ export function Priority({ versions, byColor, colorOrder, disabled, onVersions, 
 
       {lists}
     </section>
-  );
-}
-
-function Row(p: {
-  n: number;
-  up: string;
-  down: string;
-  disabled: boolean;
-  first: boolean;
-  last: boolean;
-  onMove: (d: -1 | 1) => void;
-  children: ReactNode;
-}) {
-  return (
-    <li className="flex items-center gap-3 py-1.5">
-      <span className="w-5 text-right text-sm tabular-nums text-stone-500 dark:text-stone-400">{p.n}</span>
-      <div className="flex min-w-0 flex-1 items-center gap-3">{p.children}</div>
-      <div className="flex shrink-0 items-center">
-        <button className="btn-ghost" disabled={p.disabled || p.first} onClick={() => p.onMove(-1)} aria-label={p.up} title={p.up}>
-          <ArrowUp size={16} aria-hidden />
-        </button>
-        <button className="btn-ghost" disabled={p.disabled || p.last} onClick={() => p.onMove(1)} aria-label={p.down} title={p.down}>
-          <ArrowDown size={16} aria-hidden />
-        </button>
-      </div>
-    </li>
   );
 }

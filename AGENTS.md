@@ -1,10 +1,7 @@
 # Notes for coding agents
 
-Deliberately short: this file is loaded into context on every session, so it
-carries only attribution and the rules whose cost is unrecoverable if missed.
-Anything a test already enforces is left to [CONTRIBUTING.md](CONTRIBUTING.md).
-Read CONTRIBUTING.md before changing code: conventions, architecture, and the
-traps that have cost real debugging time are all there.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before changing code: conventions,
+architecture, and the traps that have cost real debugging time are all there.
 
 A browser-only PWA that syncs YouVersion highlights across Bible versions.
 npm workspaces: `packages/core` (engine), `apps/pwa` (Vite, React, Tailwind).
@@ -15,8 +12,6 @@ No server.
 ```bash
 npm run check
 ```
-
-Regenerates bundled data, typechecks, runs every test and builds.
 
 ## Attribution
 

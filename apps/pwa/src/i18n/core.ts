@@ -2,13 +2,21 @@
  * The translation core, free of React, so the formatting rules can be tested
  * directly.
  */
-import { bookName, displayRef } from "@bvs/core";
+import { bookName, displayRef, type Lang as BookLang } from "@bvs/core";
+import { de } from "./de";
 import { en, type Dictionary } from "./en";
+import { enGB } from "./en-gb";
+import { es } from "./es";
 import { fr } from "./fr";
+import { id } from "./id";
+import { pt } from "./pt";
+import { ru } from "./ru";
+import { sw } from "./sw";
 
-export type Lang = "en" | "fr";
+/** A language the app is in. British English shares its book names with American. */
+export type Lang = BookLang | "en-GB";
 
-export const DICTIONARIES: Record<Lang, Dictionary> = { en, fr };
+export const DICTIONARIES: Record<Lang, Dictionary> = { en, "en-GB": enGB, es, pt, fr, id, sw, de, ru };
 export const LANGUAGES = Object.keys(DICTIONARIES) as Lang[];
 
 export function isLang(value: unknown): value is Lang {
@@ -16,21 +24,61 @@ export function isLang(value: unknown): value is Lang {
 }
 
 /**
- * Pick a language from the device's preferences, in order: a reader set up as
- * [de, fr, en] gets French. Region subtags are ignored (fr-CA means French).
+ * Where English is written with British spelling: the UK and Ireland, and the
+ * Commonwealth countries whose schools teach it. Canada mixes the two, so it
+ * stays with American.
  */
-export function detectLanguage(
-  preferred: readonly string[] = typeof navigator === "undefined"
-    ? []
-    : navigator.languages?.length
-      ? navigator.languages
-      : [navigator.language],
-): Lang {
+const BRITISH_REGIONS = new Set(
+  ["gb", "ie", "au", "nz", "za", "in", "pk", "ng", "gh", "ke", "ug", "tz", "zw", "zm", "mw", "jm", "sg", "my", "hk"],
+);
+
+/**
+ * The language for one tag the browser sent, if the app has it. Other region
+ * subtags are ignored (fr-CA means French).
+ */
+export function forTag(tag: string): Lang | undefined {
+  const [base, ...subtags] = (tag ?? "").toLowerCase().split("-");
+  // A script may come before the region: en-Latn-GB.
+  if (base === "en" && subtags.some((s) => BRITISH_REGIONS.has(s))) return "en-GB";
+  return isLang(base) ? base : undefined;
+}
+
+/**
+ * Pick a language from the device's preferences, in order: a reader set up as
+ * [ja, fr, en] gets French.
+ */
+export function detectLanguage(preferred: readonly string[] = browserLanguages()): Lang {
   for (const tag of preferred) {
-    const base = tag?.toLowerCase().split("-")[0];
-    if (isLang(base)) return base;
+    const lang = forTag(tag);
+    if (lang) return lang;
   }
   return "en";
+}
+
+// One fixed collation, so the list is in the same order for every reader:
+// Latin-script names first, then the others.
+const byName = new Intl.Collator("en");
+
+/**
+ * The languages in the order the picker offers them, as in
+ * concurrent-counter-next: English first, as the way out for someone landed
+ * in a language they can't read; then the reader's own languages, most
+ * preferred first; then the rest by their own names.
+ */
+export function menuOrder(preferred: readonly string[] = browserLanguages()): { pinned: Lang[]; rest: Lang[] } {
+  const langs = preferred.map(forTag).filter((l): l is Lang => !!l);
+  // The reader's own English leads, if they have one.
+  const pinned: Lang[] = [langs.find((l) => l === "en" || l === "en-GB") ?? "en"];
+  for (const lang of langs) if (!pinned.includes(lang)) pinned.push(lang);
+  const rest = LANGUAGES.filter((l) => !pinned.includes(l)).sort((a, b) =>
+    byName.compare(DICTIONARIES[a].meta.name, DICTIONARIES[b].meta.name),
+  );
+  return { pinned, rest };
+}
+
+function browserLanguages(): readonly string[] {
+  if (typeof navigator === "undefined") return [];
+  return navigator.languages?.length ? navigator.languages : [navigator.language];
 }
 
 export type Params = Record<string, string | number>;
@@ -50,6 +98,8 @@ export interface I18n {
   /**
    * Pick the plural form for `n` and fill it (`{n}` is the formatted count).
    * Uses Intl.PluralRules: French treats 0 as singular, English doesn't.
+   * Forms are [one, other], or [one, few, many] where a language has three
+   * (Russian: 1 стих, 2 стиха, 5 стихов).
    */
   plural: (forms: readonly string[], n: number, params?: Params) => string;
   /** Format a number for the locale (thousands separators). */
@@ -62,6 +112,7 @@ export interface I18n {
 
 export function createI18n(lang: Lang, setLang: (lang: Lang) => void = () => {}): I18n {
   const t = DICTIONARIES[lang];
+  const books: BookLang = lang === "en-GB" ? "en" : lang;
   const pluralRules = new Intl.PluralRules(t.meta.localeTag);
   const numberFormat = new Intl.NumberFormat(t.meta.localeTag);
   return {
@@ -70,13 +121,17 @@ export function createI18n(lang: Lang, setLang: (lang: Lang) => void = () => {})
     t,
     f: interpolate,
     plural: (forms, n, params) => {
-      // Dictionaries carry [singular, plural]; map the CLDR category onto it.
-      const form = pluralRules.select(n) === "one" ? forms[0] : forms[forms.length - 1];
+      // Map the CLDR category onto the forms the dictionary carries.
+      const category = pluralRules.select(n);
+      const form =
+        category === "one" ? forms[0]
+        : category === "few" && forms.length > 2 ? forms[1]
+        : forms[forms.length - 1];
       return interpolate(form, { n: numberFormat.format(n), ...params });
     },
     num: (v) => numberFormat.format(v),
-    book: (code) => bookName(code, lang),
-    ref: (r) => displayRef(r, lang),
+    book: (code) => bookName(code, books),
+    ref: (r) => displayRef(r, books),
   };
 }
 
