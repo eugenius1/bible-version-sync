@@ -118,7 +118,7 @@ describe("dictionaries", () => {
     vi.resetModules();
     vi.doMock("../en", async (load) => {
       const real = await load<typeof import("../en")>();
-      return { ...real, en: { ...real.en, app: { ...real.app, back: "Synchronize, organization, analyzed, resize, prizes" } } };
+      return { ...real, en: { ...real.en, app: { ...real.en.app, back: "Synchronize, organization, analyzed, resize, prizes" } } };
     });
     const { enGB } = await import("../en-gb");
     expect(enGB.app.back).toBe("Synchronise, organisation, analysed, resize, prizes");
