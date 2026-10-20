@@ -495,6 +495,11 @@ accidentally still English, and French punctuation (`:` `;` `?` `!`) is
 preceded by a no-break space. Book names live in `packages/core/src/books.ts`,
 one list of 66 per language, each from that language's most read Bible.
 
+British English (`en-gb.ts`) isn't written out: it's `en.ts` respelled
+(colour, grey), so it can't fall behind. It's the default for English
+readers in the UK, Ireland and the Commonwealth countries that teach British
+spelling (`BRITISH_REGIONS` in `i18n/core.ts`); Canada stays American.
+
 Adding a language: a dictionary in `apps/pwa/src/i18n/`, its book names in
 `books.ts`, and the code in `Lang` there. The picker orders itself as
 concurrent-counter-next's does: English first, then the reader's own

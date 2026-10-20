@@ -1,5 +1,5 @@
 import { STD_SCHEMES } from "@bvs/core";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createI18n, detectLanguage, DICTIONARIES, interpolate, LANGUAGES, menuOrder, type Lang } from "..";
 import { copyrightYears } from "../../lib/copyright";
 import { en } from "../en";
@@ -92,13 +92,37 @@ describe("dictionaries", () => {
       id: ["versions.number"],
     };
     const english = new Map(strings(en));
-    for (const lang of LANGUAGES.filter((l) => l !== "en")) {
+    // British English is American respelled, so mostly the same by design.
+    for (const lang of LANGUAGES.filter((l) => l !== "en" && l !== "en-GB")) {
       const ok = new Set([...shared, ...(allowed[lang] ?? [])]);
       const identical = strings(DICTIONARIES[lang])
         .filter(([path, value]) => !ok.has(path) && english.get(path) === value)
         .map(([path]) => path);
       expect(identical, lang).toEqual([]);
     }
+  });
+
+  it("respell British English but leave placeholders alone", () => {
+    const gb = DICTIONARIES["en-GB"];
+    expect(gb.priority.title).toBe("When a verse's colours differ, which wins?");
+    expect(gb.priority.names.grey).toBe("Grey");
+    expect(gb.results.action.recolor).toBe("change colour");
+    expect(gb.signIn.points[0]).toContain("recoloured");
+    expect(gb.priority.drag).toContain("{color}");
+    const american = strings(gb).filter(([, value]) => /(?<!\{)\bcolor|\bgray\b/i.test(value));
+    expect(american).toEqual([]);
+    expect(createI18n("en-GB").ref("PSA.23.1")).toBe("Psalms 23:1");
+  });
+
+  it("respells -ize and -yze words, but not size or prize", async () => {
+    vi.resetModules();
+    vi.doMock("../en", async (load) => {
+      const real = await load<typeof import("../en")>();
+      return { ...real, en: { ...real.en, app: { ...real.app, back: "Synchronize, organization, analyzed, resize, prizes" } } };
+    });
+    const { enGB } = await import("../en-gb");
+    expect(enGB.app.back).toBe("Synchronise, organisation, analysed, resize, prizes");
+    vi.doUnmock("../en");
   });
 
   it("keep French punctuation off the start of a line", () => {
@@ -117,7 +141,15 @@ describe("device language detection", () => {
 
   it("ignores the region subtag", () => {
     expect(detectLanguage(["fr-CA"])).toBe("fr");
-    expect(detectLanguage(["en-GB"])).toBe("en");
+    expect(detectLanguage(["en-US"])).toBe("en");
+  });
+
+  it("gives British English to the UK and the Commonwealth, and American to the rest", () => {
+    expect(detectLanguage(["en-GB"])).toBe("en-GB");
+    expect(detectLanguage(["en-KE"])).toBe("en-GB");
+    expect(detectLanguage(["en-Latn-NG"])).toBe("en-GB");
+    expect(detectLanguage(["en-CA"])).toBe("en");
+    expect(detectLanguage(["en"])).toBe("en");
   });
 
   it("respects preference order and skips unsupported languages", () => {
@@ -133,10 +165,15 @@ describe("device language detection", () => {
 
 describe("language menu order", () => {
   it("puts English first, then the device's languages, then the rest by name", () => {
-    expect(menuOrder(["ru-RU", "fr", "ja", "en-GB"])).toEqual({
+    expect(menuOrder(["ru-RU", "fr", "ja", "en-US"])).toEqual({
       pinned: ["en", "ru", "fr"],
-      rest: ["id", "de", "es", "sw", "pt"],
+      rest: ["id", "de", "en-GB", "es", "sw", "pt"],
     });
+  });
+
+  it("leads with the reader's own English", () => {
+    expect(menuOrder(["fr", "en-GB"]).pinned).toEqual(["en-GB", "fr"]);
+    expect(menuOrder(["en-GB", "en-US"]).pinned).toEqual(["en-GB", "en"]);
   });
 
   it("puts English alone first when nothing else matches", () => {

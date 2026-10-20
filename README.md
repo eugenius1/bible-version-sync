@@ -93,7 +93,7 @@ version's numbering:
 
 ## Languages and appearance
 
-English, Spanish, Portuguese, French, Indonesian, Swahili, German and Russian.
+English (US and UK), Spanish, Portuguese, French, Indonesian, Swahili, German and Russian.
 The default comes from your device; the language icon at the top right
 overrides it and the choice is remembered. Light and dark themes follow your
 device too, unless you pick one with the icon beside it.
@@ -111,7 +111,7 @@ device too, unless you pick one with the icon beside it.
 ## Status
 
 Working: sign-in, sync with preview for a chapter, book or the whole Bible,
-eight languages, light and dark. Syncing runs when you press the button;
+nine languages, light and dark. Syncing runs when you press the button;
 automatic background syncing needs a server and is planned.
 
 ## Contributing

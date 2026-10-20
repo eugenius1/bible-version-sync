@@ -8,7 +8,7 @@
 export const en = {
   meta: {
     localeTag: "en",
-    name: "English",
+    name: "English (US)",
   },
 
   app: {

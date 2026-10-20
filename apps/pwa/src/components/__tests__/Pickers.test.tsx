@@ -118,10 +118,11 @@ describe("LanguageSwitcher", () => {
     renderPickers();
     const names = [...(screen.getByLabelText("Sprache") as HTMLSelectElement).options].map((o) => o.textContent);
     expect(names).toEqual([
-      "English",
+      "English (US)",
       "Deutsch",
       "Kiswahili",
       "Bahasa Indonesia",
+      "English (UK)",
       "Español",
       "Français",
       "Português",
