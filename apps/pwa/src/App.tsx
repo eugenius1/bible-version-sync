@@ -1,5 +1,6 @@
 import {
   emptyState,
+  ESTIMATE_THRESHOLD_MS,
   estimateRun,
   forgetVersion,
   RunClock,
@@ -203,13 +204,16 @@ function Main() {
       setStopping(false);
       const pace = storedPace();
       const expected = estimateRun(versions, scope, pace.msPerRead);
-      const clock = new RunClock(performance.now(), { ...pace, expectedMs: expected.ms });
-      const left = () => (clock.long ? clock.remainingMs() : null);
-      setRun({ status: "running", apply, scope, progress: null, remainingMs: clock.long ? expected.ms : null });
+      setRun({ status: "running", apply, scope, progress: null, remainingMs: expected.ms > ESTIMATE_THRESHOLD_MS ? expected.ms : null });
       let wakeLock: { release(): Promise<void> } | null = null;
+      let clock: RunClock | null = null;
       try {
         wakeLock = (await navigator.wakeLock?.request("screen").catch(() => null)) ?? null;
         const state = await store.getState();
+        // Started only now, so neither the wake lock nor loading the snapshot
+        // is timed as the first read and saved as this browser's pace.
+        const timer = (clock = new RunClock(performance.now(), { ...pace, expectedMs: expected.ms }));
+        const left = () => (timer.long ? timer.remainingMs() : null);
         const summary = await runSync({
           api: client,
           // Unsupported ones too: the sync leaves them out but keeps their snapshot.
@@ -222,7 +226,7 @@ function Main() {
           colorOrder: settings.byColor ? settings.colorOrder : undefined,
           signal: controller.signal,
           onProgress: (progress) => {
-            clock.tick(progress, performance.now());
+            timer.tick(progress, performance.now());
             setRun({ status: "running", apply, scope, progress, remainingMs: left() });
           },
           onBookDone: async () => {
@@ -234,10 +238,12 @@ function Main() {
       } catch (e) {
         setRun({ status: "error", message: e instanceof Error ? e.message : String(e) });
       } finally {
-        persistPace({
-          ...(clock.readsTimed && { msPerRead: clock.msPerRead }),
-          ...(clock.writesTimed && { msPerWrite: clock.msPerWrite }),
-        });
+        if (clock) {
+          persistPace({
+            ...(clock.readsTimed && { msPerRead: clock.msPerRead }),
+            ...(clock.writesTimed && { msPerWrite: clock.msPerWrite }),
+          });
+        }
         await wakeLock?.release().catch(() => undefined);
         abort.current = null;
         setStopping(false);
@@ -259,7 +265,7 @@ function Main() {
     return (
       <Shell>
         {/* "#stats?demo": made-up data to look at the page with, in development. */}
-        <StatsPage versions={settings.versions} colorOrder={settings.colorOrder} demo={query === "demo"} />
+        <StatsPage versions={settings.versions} colorOrder={settings.colorOrder} demo={import.meta.env.DEV && query === "demo"} />
       </Shell>
     );
   }
@@ -283,7 +289,12 @@ function Main() {
           {t.footer.reset}
         </button>
       </span>
-      <a href="#stats" className="btn-ghost min-h-0 gap-1 px-1 py-0.5 text-xs">
+      {/* Not mid-run: the page replaces the sync card, Stop button and all. */}
+      <a
+        href={running ? undefined : "#stats"}
+        aria-disabled={running || undefined}
+        className="btn-ghost min-h-0 gap-1 px-1 py-0.5 text-xs aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
+      >
         <ChartColumn size={12} aria-hidden />
         {t.footer.stats}
       </a>

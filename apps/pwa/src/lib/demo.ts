@@ -1,4 +1,4 @@
-import { emptyState, HIGHLIGHT_COLORS, loadVersionNames, ref, Standard, type SyncState } from "@bvs/core";
+import { emptyState, HIGHLIGHT_HEX, loadVersionNames, ref, Standard, type SyncState } from "@bvs/core";
 import { labelVersions, type VersionSetting } from "./db";
 
 /** NIV, AMP and ESV. */
@@ -25,7 +25,12 @@ export function demoState(): SyncState {
     ["GEN", 8], ["HEB", 6], ["JAS", 4], ["1CO", 6], ["LUK", 7], ["ACT", 5], ["1JN", 4], ["JER", 3],
   ];
   // Yellow, blue and pink most, as on most people's screens.
-  const palette = [2, 2, 2, 2, 6, 6, 6, 8, 8, 4, 1, 0, 3, 5, 7, 9].map((i) => HIGHLIGHT_COLORS[i].hex);
+  const palette = (
+    [
+      "yellow", "yellow", "yellow", "yellow", "blue", "blue", "blue", "pink", "pink",
+      "green", "peach", "orange", "paleYellow", "aqua", "purple", "grey",
+    ] as const
+  ).map((id) => HIGHLIGHT_HEX[id]);
   const state = emptyState();
   for (const [book, chapters] of books) {
     const total = counts[book].length;

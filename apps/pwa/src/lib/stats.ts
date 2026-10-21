@@ -49,6 +49,12 @@ export interface Stats {
 
 const BOOK_INDEX = new Map(BOOKS.map((b, i) => [b, i]));
 
+/** Bible order for a chapter key ("PSA.23"); a book outside BOOKS goes last. */
+const chapterOrder = (key: string) => {
+  const [book, ch] = key.split(".");
+  return (BOOK_INDEX.get(book) ?? BOOKS.length) * 1000 + Number(ch);
+};
+
 const noColors = () => Object.fromEntries(HIGHLIGHT_COLORS.map((c) => [c.id, 0])) as Record<HighlightColorId, number>;
 
 /**
@@ -68,6 +74,7 @@ export function syncStats(state: SyncState, order: readonly number[] = []): Stat
     BOOKS.map((book) => [book, { book, verses: 0, chaptersSynced: 0, chapters: counts[book]?.length ?? 0 }]),
   );
   const byChapter = new Map<string, number>();
+  const unwritable = new Map(Object.entries(state.unwritable).map(([id, refs]) => [Number(id), new Set(refs)]));
   // Only a few distinct colours are ever used, so each is matched once.
   const palette = new Map<string, HighlightColorId>();
   const paletteColor = (hex: string) => {
@@ -105,13 +112,14 @@ export function syncStats(state: SyncState, order: readonly number[] = []): Stat
       used.add(color);
     }
     if (used.size > 1) stats.differing++;
-    const members = state.members[chapter]?.length || ids.length;
+    // A version YouVersion won't take the verse in can't have it.
+    const members = state.members[chapter]?.filter((id) => !unwritable.get(id)?.has(canon)).length || ids.length;
     if (members > 1 && ids.length === 1) stats.one++;
     else if (ids.length >= members) stats.everywhere++;
     else stats.some++;
   }
 
-  for (const [id, refs] of Object.entries(state.unwritable)) if (refs.length) version(Number(id)).unwritable = refs.length;
+  for (const [id, refs] of unwritable) if (refs.size) version(id).unwritable = refs.size;
   // Only versions in the snapshot: a version taken off the list keeps its record, not its place here.
   for (const [id, refs] of Object.entries(state.added)) {
     const v = versions.get(Number(id));
@@ -127,7 +135,7 @@ export function syncStats(state: SyncState, order: readonly number[] = []): Stat
   stats.chaptersSynced = stats.books.reduce((n, b) => n + b.chaptersSynced, 0);
   stats.chapters = stats.books.reduce((n, b) => n + b.chapters, 0);
   stats.topChapters = [...byChapter]
-    .sort((a, b) => b[1] - a[1] || BOOK_INDEX.get(a[0].split(".")[0])! - BOOK_INDEX.get(b[0].split(".")[0])!)
+    .sort((a, b) => b[1] - a[1] || chapterOrder(a[0]) - chapterOrder(b[0]))
     .slice(0, 5)
     .map(([chapter, verses]) => ({ chapter, verses }));
   return stats;

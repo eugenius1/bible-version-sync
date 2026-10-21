@@ -35,6 +35,23 @@ describe("syncStats", () => {
     expect(s.topChapters).toEqual([{ chapter: "JHN.3", verses: 2 }, { chapter: "PSA.23", verses: 1 }]);
   });
 
+  it("counts a verse as everywhere when the only version without it can't take it", () => {
+    const s = syncStats(
+      state({
+        members: { "ROM.16": [111, 1588, 59] },
+        verses: { "ROM.16.25": { 111: "fffe00", 59: "fffe00" } },
+        unwritable: { 1588: ["ROM.16.25"] },
+      }),
+    );
+    expect([s.everywhere, s.some]).toEqual([1, 0]);
+  });
+
+  it("puts chapters with as many verses in Bible order", () => {
+    const verse = (r: string) => [r, { 111: "fffe00" }];
+    const s = syncStats(state({ verses: Object.fromEntries(["PSA.119.1", "GEN.1.1", "PSA.23.1"].map(verse)) }));
+    expect(s.topChapters.map((c) => c.chapter)).toEqual(["GEN.1", "PSA.23", "PSA.119"]);
+  });
+
   it("matches a highlight to the nearest palette colour", () => {
     const s = syncStats(state({ verses: { "JHN.3.16": { 111: "fffd00" } } }));
     expect(s.versions[0].colors.yellow).toBe(1);
