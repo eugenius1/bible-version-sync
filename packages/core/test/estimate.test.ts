@@ -69,9 +69,13 @@ describe("RunClock", () => {
   it("doesn't count a failed book's unread chapters as read quickly", () => {
     const clock = new RunClock(0);
     clock.tick(reading(1, 100), 100);
-    // The rest of the book was skipped; the next book's first read reports a jump.
-    clock.tick(reading(60, 100, "PRO"), 200);
-    expect(clock.readsTimed).toBe(60);
+    // Psalms failed after one chapter, so its other 58 were skipped; the next
+    // book's first read reports readDone 60 but done 1.
+    clock.tick({ phase: "reading", book: "PRO", done: 1, total: 41, readDone: 60, readTotal: 100 }, 200);
+    expect(clock.readsTimed).toBe(2);
+    expect(clock.msPerRead).toBeCloseTo((200 + 8 * ASSUMED_MS_PER_READ) / 10);
+    // What's left counts only chapters still to read, not the skipped ones.
+    expect(clock.remainingMs()).toBeCloseTo(40 * clock.msPerRead);
   });
 
   it("is long once the run looks like taking more than five seconds, and stays so", () => {

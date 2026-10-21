@@ -75,8 +75,10 @@ export class RunClock {
     const dt = Math.max(0, now - this.last);
     this.last = now;
     if (p.phase === "reading") {
-      // A book whose read failed jumps readDone past its unread chapters.
-      const n = Math.max(0, p.readDone - (this.prev?.readDone ?? 0));
+      // Count by the book's own counter, not readDone: a book whose read
+      // failed jumps readDone past chapters that were skipped, not read.
+      const sameBook = this.prev?.phase === "reading" && this.prev.book === p.book;
+      const n = Math.max(0, p.done - (sameBook ? this.prev!.done : 0));
       if (n) {
         this.readMs += dt;
         this.reads += n;
