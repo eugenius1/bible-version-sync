@@ -1,6 +1,5 @@
 import Dexie, { type Table } from "dexie";
 import {
-  HIGHLIGHT_COLORS,
   loadVersionNames,
   migrateState,
   mostUsedVersions,
@@ -35,15 +34,17 @@ export const DEFAULT_SETTINGS: Settings = {
   ],
   maxRemovals: 25,
   byColor: false,
-  colorOrder: HIGHLIGHT_COLORS.map((c) => c.id),
+  // The strong colours first, the pale ones that read as background last.
+  colorOrder: ["purple", "pink", "green", "blue", "aqua", "orange", "peach", "yellow", "paleYellow", "grey"],
 };
 
 /**
  * A saved color order with every palette color exactly once: unknown ones
- * dropped and any the palette gains since appended in palette order.
+ * dropped and any the palette gains since appended in the default order
+ * (which a test keeps complete).
  */
 export function completeColorOrder(saved: readonly string[] | undefined): HighlightColorId[] {
-  const ids = HIGHLIGHT_COLORS.map((c) => c.id);
+  const ids = DEFAULT_SETTINGS.colorOrder;
   const kept = [...new Set(saved ?? [])].filter((id): id is HighlightColorId => (ids as string[]).includes(id));
   return [...kept, ...ids.filter((id) => !kept.includes(id))];
 }

@@ -242,8 +242,42 @@ export const fr: Dictionary = {
     rateLimitedSoon: "YouVersion a reçu trop de demandes de l'application pour l'instant. Réessayez dans quelques minutes.",
   },
 
+  stats: {
+    title: "Vos surlignages",
+    note: "D'après la mémoire de synchronisation de ce navigateur : chaque chapitre tel qu'il était après sa dernière synchronisation, pas tel qu'il est maintenant dans YouVersion.",
+    empty: "Rien n'a encore été synchronisé. Les statistiques apparaîtront ici après votre première synchronisation.",
+    demo: "Données inventées pour le développement ; rien n'est enregistré.",
+    verses: ["verset surligné", "versets surlignés"],
+    chapters: "chapitres synchronisés",
+    chaptersOf: "sur {total} ({percent})",
+    versions: ["version", "versions"],
+    perVersion: "Par version",
+    highlights: ["{n} surlignage", "{n} surlignages"],
+    unwritable: ["{n} verset refusé par YouVersion", "{n} versets refusés par YouVersion"],
+    colorCount: "{color} : {n}",
+    overlap: "D'une version à l'autre",
+    everywhere: "Dans toutes les versions",
+    some: "Dans certaines",
+    one: "Dans une seule",
+    differing: [
+      "{n} verset a des couleurs différentes selon la version.",
+      "{n} versets ont des couleurs différentes selon la version.",
+    ],
+    byBook: "Par livre",
+    bookRow: [
+      "{book} : {n} verset surligné, {synced} chapitres synchronisés sur {chapters}",
+      "{book} : {n} versets surlignés, {synced} chapitres synchronisés sur {chapters}",
+    ],
+    topChapters: "Chapitres les plus surlignés",
+    pace: "Vitesse",
+    perRead: "{ms} ms pour lire un chapitre",
+    perWrite: "{ms} ms pour écrire un surlignage",
+    noPace: "Pas encore mesurée : elle l'est pendant un aperçu ou une synchronisation.",
+  },
+
   footer: {
     memory: ["Mémoire de synchronisation : {n} verset", "Mémoire de synchronisation : {n} versets"],
+    stats: "Statistiques",
     reset: "Réinitialiser",
     confirmReset:
       "Oublier ce qu'ont fait les synchronisations précédentes ? La prochaine se contentera de compléter les versets sans surlignage, sans rien supprimer ni recolorer.",

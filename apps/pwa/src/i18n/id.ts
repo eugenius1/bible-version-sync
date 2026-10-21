@@ -237,8 +237,42 @@ export const id: Dictionary = {
     rateLimitedSoon: "YouVersion menerima terlalu banyak permintaan dari aplikasi untuk saat ini. Coba lagi dalam beberapa menit.",
   },
 
+  stats: {
+    title: "Tanda Anda",
+    note: "Dari memori sinkronisasi di peramban ini: setiap pasal seperti setelah sinkronisasi terakhirnya, bukan seperti di YouVersion sekarang.",
+    empty: "Belum ada yang disinkronkan. Statistik akan muncul di sini setelah sinkronisasi pertama Anda.",
+    demo: "Data karangan untuk pengembangan; tidak ada yang disimpan.",
+    verses: ["ayat ditandai", "ayat ditandai"],
+    chapters: "pasal disinkronkan",
+    chaptersOf: "dari {total} ({percent})",
+    versions: ["versi", "versi"],
+    perVersion: "Per versi",
+    highlights: ["{n} tanda", "{n} tanda"],
+    unwritable: ["{n} ayat ditolak YouVersion", "{n} ayat ditolak YouVersion"],
+    colorCount: "{color}: {n}",
+    overlap: "Antarversi",
+    everywhere: "Di semua versi",
+    some: "Di beberapa",
+    one: "Hanya di satu",
+    differing: [
+      "{n} ayat memiliki warna berbeda di versi yang berbeda.",
+      "{n} ayat memiliki warna berbeda di versi yang berbeda.",
+    ],
+    byBook: "Per kitab",
+    bookRow: [
+      "{book}: {n} ayat ditandai, {synced} dari {chapters} pasal disinkronkan",
+      "{book}: {n} ayat ditandai, {synced} dari {chapters} pasal disinkronkan",
+    ],
+    topChapters: "Pasal yang paling banyak ditandai",
+    pace: "Kecepatan",
+    perRead: "{ms} md untuk membaca satu pasal",
+    perWrite: "{ms} md untuk menulis satu tanda",
+    noPace: "Belum diukur: diukur saat pratinjau atau sinkronisasi.",
+  },
+
   footer: {
     memory: ["Memori sinkronisasi: {n} ayat", "Memori sinkronisasi: {n} ayat"],
+    stats: "Statistik",
     reset: "Atur ulang",
     confirmReset:
       "Lupakan apa yang dilakukan sinkronisasi sebelumnya? Sinkronisasi berikutnya hanya akan mengisi yang kosong; tidak akan menghapus atau mengganti warna apa pun.",

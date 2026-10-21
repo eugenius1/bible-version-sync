@@ -25,6 +25,9 @@ export const HIGHLIGHT_COLORS = [
 
 export type HighlightColorId = (typeof HIGHLIGHT_COLORS)[number]["id"];
 
+/** Each palette colour's hex (lower case, no #), by id. */
+export const HIGHLIGHT_HEX = Object.fromEntries(HIGHLIGHT_COLORS.map((c) => [c.id, c.hex])) as Record<HighlightColorId, string>;
+
 const rgb = (hex: string) => [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16));
 
 /** The palette colour closest to `hex` (lower case, no #). */

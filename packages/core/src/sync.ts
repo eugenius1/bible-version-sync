@@ -117,7 +117,8 @@ export function migrateState(saved: Partial<SyncState> | undefined, ids: Readonl
   return state;
 }
 
-const chapterKey = (canon: Ref) => canon.slice(0, canon.lastIndexOf("."));
+/** The canonical chapter a canonical verse is in, as `members` keys it: "PSA.51.3" -> "PSA.51". */
+export const chapterKey = (canon: Ref) => canon.slice(0, canon.lastIndexOf("."));
 
 /** Forget a version everywhere in the snapshot (call when it's removed from the list). */
 export function forgetVersion(state: SyncState, bibleId: number): void {

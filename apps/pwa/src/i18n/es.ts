@@ -234,8 +234,42 @@ export const es: Dictionary = {
     rateLimitedSoon: "YouVersion ha recibido demasiadas solicitudes de la app por ahora. Inténtalo de nuevo en unos minutos.",
   },
 
+  stats: {
+    title: "Tus resaltados",
+    note: "Según la memoria de sincronización de este navegador: cada capítulo como quedó tras su última sincronización, no como está ahora en YouVersion.",
+    empty: "Todavía no se ha sincronizado nada. Las estadísticas aparecerán aquí después de tu primera sincronización.",
+    demo: "Datos inventados para desarrollo; no se guarda nada.",
+    verses: ["versículo resaltado", "versículos resaltados"],
+    chapters: "capítulos sincronizados",
+    chaptersOf: "de {total} ({percent})",
+    versions: ["versión", "versiones"],
+    perVersion: "Por versión",
+    highlights: ["{n} resaltado", "{n} resaltados"],
+    unwritable: ["{n} versículo que YouVersion no aceptó", "{n} versículos que YouVersion no aceptó"],
+    colorCount: "{color}: {n}",
+    overlap: "Entre versiones",
+    everywhere: "En todas las versiones",
+    some: "En algunas",
+    one: "Solo en una",
+    differing: [
+      "{n} versículo tiene colores distintos en distintas versiones.",
+      "{n} versículos tienen colores distintos en distintas versiones.",
+    ],
+    byBook: "Por libro",
+    bookRow: [
+      "{book}: {n} versículo resaltado, {synced} de {chapters} capítulos sincronizados",
+      "{book}: {n} versículos resaltados, {synced} de {chapters} capítulos sincronizados",
+    ],
+    topChapters: "Capítulos más resaltados",
+    pace: "Velocidad",
+    perRead: "{ms} ms para leer un capítulo",
+    perWrite: "{ms} ms para escribir un resaltado",
+    noPace: "Aún no se ha medido: se mide durante una vista previa o una sincronización.",
+  },
+
   footer: {
     memory: ["Memoria de sincronización: {n} versículo", "Memoria de sincronización: {n} versículos"],
+    stats: "Estadísticas",
     reset: "Restablecer",
     confirmReset:
       "¿Olvidar lo que hicieron las sincronizaciones anteriores? La próxima solo rellenará huecos; no eliminará ni cambiará el color de nada.",

@@ -237,8 +237,45 @@ export const pt: Dictionary = {
     rateLimitedSoon: "A YouVersion recebeu pedidos demais do app por enquanto. Tente de novo em alguns minutos.",
   },
 
+  stats: {
+    title: "Seus destaques",
+    note: "Segundo a memória de sincronização deste navegador: cada capítulo como ficou após a última sincronização, não como está agora no YouVersion.",
+    empty: "Nada foi sincronizado ainda. As estatísticas aparecerão aqui após a sua primeira sincronização.",
+    demo: "Dados inventados para desenvolvimento; nada é salvo.",
+    verses: ["versículo destacado", "versículos destacados"],
+    chapters: "capítulos sincronizados",
+    chaptersOf: "de {total} ({percent})",
+    versions: ["versão", "versões"],
+    perVersion: "Por versão",
+    highlights: ["{n} destaque", "{n} destaques"],
+    unwritable: [
+      "{n} versículo que o YouVersion não aceitou",
+      "{n} versículos que o YouVersion não aceitou",
+    ],
+    colorCount: "{color}: {n}",
+    overlap: "Entre versões",
+    everywhere: "Em todas as versões",
+    some: "Em algumas",
+    one: "Em apenas uma",
+    differing: [
+      "{n} versículo tem cores diferentes em versões diferentes.",
+      "{n} versículos têm cores diferentes em versões diferentes.",
+    ],
+    byBook: "Por livro",
+    bookRow: [
+      "{book}: {n} versículo destacado, {synced} de {chapters} capítulos sincronizados",
+      "{book}: {n} versículos destacados, {synced} de {chapters} capítulos sincronizados",
+    ],
+    topChapters: "Capítulos mais destacados",
+    pace: "Velocidade",
+    perRead: "{ms} ms para ler um capítulo",
+    perWrite: "{ms} ms para gravar um destaque",
+    noPace: "Ainda não medida: ela é medida durante uma prévia ou sincronização.",
+  },
+
   footer: {
     memory: ["Memória de sincronização: {n} versículo", "Memória de sincronização: {n} versículos"],
+    stats: "Estatísticas",
     reset: "Redefinir",
     confirmReset:
       "Esquecer o que as sincronizações anteriores fizeram? A próxima só vai preencher lacunas; não vai remover nem mudar a cor de nada.",

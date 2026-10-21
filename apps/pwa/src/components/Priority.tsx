@@ -1,12 +1,10 @@
-import { HIGHLIGHT_COLORS, loadVersionNames, versionNamesLoaded, type HighlightColorId } from "@bvs/core";
+import { HIGHLIGHT_HEX, loadVersionNames, versionNamesLoaded, type HighlightColorId } from "@bvs/core";
 import { useEffect, useState } from "react";
 import { useI18n } from "../i18n";
 import { SortableList } from "./Sortable";
 import { Step } from "./Step";
 import type { VersionSetting } from "../lib/db";
 import { versionName } from "../lib/versions";
-
-const HEX = Object.fromEntries(HIGHLIGHT_COLORS.map((c) => [c.id, c.hex])) as Record<HighlightColorId, string>;
 
 interface Props {
   versions: VersionSetting[];
@@ -64,7 +62,7 @@ export function Priority({ versions, byColor, colorOrder, disabled, onVersions, 
           <>
             <span
               className="size-6 shrink-0 rounded-full ring-1 ring-black/10 dark:ring-white/20"
-              style={{ background: `#${HEX[id]}` }}
+              style={{ background: `#${HIGHLIGHT_HEX[id]}` }}
               aria-hidden
             />
             <span className="text-sm">{tp.names[id]}</span>

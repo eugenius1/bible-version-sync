@@ -1,5 +1,6 @@
+import { HIGHLIGHT_COLORS } from "@bvs/core";
 import { describe, expect, it } from "vitest";
-import { completeColorOrder, defaultVersions, formerNames, labelVersions } from "../db";
+import { completeColorOrder, DEFAULT_SETTINGS, defaultVersions, formerNames, labelVersions } from "../db";
 
 describe("defaultVersions", () => {
   it("takes the most used version of each of the reader's first seven languages", async () => {
@@ -95,8 +96,16 @@ describe("formerNames", () => {
 describe("completeColorOrder", () => {
   it("keeps a saved order, drops unknown colors and appends ones it lacks", () => {
     const order = completeColorOrder(["pink", "teal", "yellow", "pink"]);
-    expect(order.slice(0, 3)).toEqual(["pink", "yellow", "orange"]);
+    expect(order.slice(0, 4)).toEqual(["pink", "yellow", "purple", "green"]);
     expect([...order].sort()).toEqual(completeColorOrder(undefined).sort());
     expect(order).toHaveLength(10);
+  });
+
+  it("is the default order when nothing is saved", () => {
+    expect(completeColorOrder(undefined)).toEqual(DEFAULT_SETTINGS.colorOrder);
+  });
+
+  it("has every palette color in the default order", () => {
+    expect([...DEFAULT_SETTINGS.colorOrder].sort()).toEqual(HIGHLIGHT_COLORS.map((c) => c.id).sort());
   });
 });

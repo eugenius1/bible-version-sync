@@ -234,8 +234,45 @@ export const sw: Dictionary = {
     rateLimitedSoon: "YouVersion imepokea maombi mengi mno kutoka kwa programu kwa sasa. Jaribu tena baada ya dakika chache.",
   },
 
+  stats: {
+    title: "Alama zako",
+    note: "Kutoka kwenye kumbukumbu ya usawazishaji katika kivinjari hiki: kila sura kama ilivyokuwa baada ya usawazishaji wake wa mwisho, si kama ilivyo kwenye YouVersion sasa.",
+    empty: "Bado hakuna kilichosawazishwa. Takwimu zitaonekana hapa baada ya usawazishaji wako wa kwanza.",
+    demo: "Data ya kubuni kwa ajili ya uundaji; hakuna kinachohifadhiwa.",
+    verses: ["mstari wenye alama", "mistari yenye alama"],
+    chapters: "sura zilizosawazishwa",
+    chaptersOf: "kati ya {total} ({percent})",
+    versions: ["toleo", "matoleo"],
+    perVersion: "Kwa toleo",
+    highlights: ["Alama {n}", "Alama {n}"],
+    unwritable: [
+      "Mstari {n} ambao YouVersion haikuukubali",
+      "Mistari {n} ambayo YouVersion haikuikubali",
+    ],
+    colorCount: "{color}: {n}",
+    overlap: "Kati ya matoleo",
+    everywhere: "Katika matoleo yote",
+    some: "Katika baadhi",
+    one: "Katika moja tu",
+    differing: [
+      "Mstari {n} una rangi tofauti katika matoleo tofauti.",
+      "Mistari {n} ina rangi tofauti katika matoleo tofauti.",
+    ],
+    byBook: "Kwa kitabu",
+    bookRow: [
+      "{book}: mstari {n} wenye alama, sura {synced} kati ya {chapters} zimesawazishwa",
+      "{book}: mistari {n} yenye alama, sura {synced} kati ya {chapters} zimesawazishwa",
+    ],
+    topChapters: "Sura zenye alama nyingi zaidi",
+    pace: "Kasi",
+    perRead: "ms {ms} kusoma sura moja",
+    perWrite: "ms {ms} kuandika alama moja",
+    noPace: "Bado haijapimwa: hupimwa wakati wa onyesho la kwanza au usawazishaji.",
+  },
+
   footer: {
     memory: ["Kumbukumbu ya usawazishaji: mstari {n}", "Kumbukumbu ya usawazishaji: mistari {n}"],
+    stats: "Takwimu",
     reset: "Weka upya",
     confirmReset:
       "Kusahau yale ambayo usawazishaji uliopita ulifanya? Usawazishaji ujao utajaza mapengo tu; hautaondoa wala kubadilisha rangi ya chochote.",

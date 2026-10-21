@@ -9,11 +9,12 @@ import {
   type RunSummary,
   type Scope,
 } from "@bvs/core";
-import { LogIn, LogOut, RotateCcw } from "lucide-react";
+import { ChartColumn, LogIn, LogOut, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LanguageSwitcher, ThemeSwitcher } from "./components/Pickers";
 import { Priority } from "./components/Priority";
 import { Results } from "./components/Results";
+import { StatsPage } from "./components/Stats";
 import { SyncCard } from "./components/SyncCard";
 import { VersionsCard } from "./components/VersionsCard";
 import { useI18n } from "./i18n";
@@ -37,6 +38,20 @@ export type RunState =
     }
   | { status: "done"; apply: boolean; scope: Scope; summary: RunSummary }
   | { status: "error"; message: string };
+
+/**
+ * The address's hash, which picks the page: "#stats" is the stats page.
+ * A hash rather than a path, since GitHub Pages has no SPA fallback.
+ */
+function useHash(): string {
+  const [hash, setHash] = useState(location.hash);
+  useEffect(() => {
+    const update = () => setHash(location.hash);
+    addEventListener("hashchange", update);
+    return () => removeEventListener("hashchange", update);
+  }, []);
+  return hash;
+}
 
 const LICENCE_URL = "https://github.com/eugenius1/bible-version-sync/blob/main/LICENSE";
 export function App() {
@@ -128,6 +143,7 @@ function Main() {
   const [customised, setCustomised] = useState(true);
   const abort = useRef<AbortController | null>(null);
   const [stopping, setStopping] = useState(false);
+  const [page, query] = useHash().slice(1).split("?");
 
   useEffect(() => {
     void (async () => {
@@ -238,6 +254,15 @@ function Main() {
     );
   }
   if (auth === "loading" || !settings) return <Shell>{null}</Shell>;
+  // Read only from this browser, so it needs no sign-in.
+  if (page === "stats") {
+    return (
+      <Shell>
+        {/* "#stats?demo": made-up data to look at the page with, in development. */}
+        <StatsPage versions={settings.versions} colorOrder={settings.colorOrder} demo={query === "demo"} />
+      </Shell>
+    );
+  }
   if (auth === "signed-out") return <SignIn />;
 
   const running = run.status === "running";
@@ -258,6 +283,10 @@ function Main() {
           {t.footer.reset}
         </button>
       </span>
+      <a href="#stats" className="btn-ghost min-h-0 gap-1 px-1 py-0.5 text-xs">
+        <ChartColumn size={12} aria-hidden />
+        {t.footer.stats}
+      </a>
       <button
         className="btn-ghost min-h-0 gap-1 px-1 py-0.5 text-xs"
         disabled={running}
