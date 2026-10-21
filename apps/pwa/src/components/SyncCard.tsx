@@ -1,6 +1,6 @@
 import { BOOKS, ESTIMATE_THRESHOLD_MS, estimateRun, type Scope } from "@bvs/core";
 import { Eye, RefreshCw, Square } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { RunState } from "../App";
 import { useI18n } from "../i18n";
 import { storedPace } from "../lib/pace";
@@ -29,14 +29,21 @@ export function SyncCard({ versions, run, stopping, onRun, onCancel }: Props) {
 
   const chapters = versions?.[0]?.map.chapters(book) ?? [];
   const validChapter = chapters.includes(chapter);
-  const scope: Scope =
-    kind === "bible" ? { kind: "books", books: BOOKS }
-    : kind === "book" ? { kind: "books", books: [book] }
-    : { kind: "chapter", book, chapter };
+  const scope: Scope = useMemo(
+    () =>
+      kind === "bible" ? { kind: "books", books: BOOKS }
+      : kind === "book" ? { kind: "books", books: [book] }
+      : { kind: "chapter", book, chapter },
+    [kind, book, chapter],
+  );
   const running = run.status === "running";
   const tooFew = !!versions && versions.length < 2;
   const ready = !!versions && !tooFew && !running && (kind !== "chapter" || validChapter);
-  const estimate = versions && !tooFew && !running ? estimateRun(versions, scope, storedPace().msPerRead) : null;
+  // A whole-Bible estimate walks every chapter of every version: not on every keystroke.
+  const estimate = useMemo(
+    () => (versions && !tooFew && !running ? estimateRun(versions, scope, storedPace().msPerRead) : null),
+    [versions, tooFew, running, scope],
+  );
 
   return (
     <section className="card space-y-4" aria-labelledby="sync-title">

@@ -11,6 +11,7 @@ import {
   planBook,
   readBook,
   supported,
+  type Action,
   type BookPlan,
   type PlanOptions,
   type SyncState,
@@ -53,6 +54,8 @@ export interface BookResult {
   /** Set when applying was refused because of the removal limit. */
   blocked?: { removals: number; limit: number };
   writeErrors: string[];
+  /** The actions that were written, each with the colour it replaced. */
+  written?: Action[];
 }
 
 export interface RunSummary {
@@ -163,6 +166,7 @@ export async function runSync(o: RunOptions): Promise<RunSummary> {
         summary.sets += applied.sets;
         summary.removals += applied.removals;
         result.writeErrors = applied.errors;
+        result.written = applied.written;
         summary.writeErrors += result.writeErrors.length;
         if (applied.stoppedBy) summary.fatal = fatal(applied.stoppedBy);
       }

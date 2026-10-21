@@ -234,8 +234,43 @@ export const de: Dictionary = {
     rateLimitedSoon: "YouVersion hat vorerst zu viele Anfragen von der App bekommen. Versuche es in ein paar Minuten erneut.",
   },
 
+  stats: {
+    title: "Deine Markierungen",
+    note: "Aus dem Synchronisierungsspeicher dieses Browsers: jedes Kapitel so, wie es nach seiner letzten Synchronisierung war, nicht wie es jetzt in YouVersion ist.",
+    empty: "Noch nichts synchronisiert. Nach deiner ersten Synchronisierung erscheinen hier Statistiken.",
+    demo: "Erfundene Daten für die Entwicklung; nichts davon wird gespeichert.",
+    verses: ["Vers markiert", "Verse markiert"],
+    chapters: "Kapitel synchronisiert",
+    chaptersOf: "von {total} ({percent})",
+    versions: ["Übersetzung", "Übersetzungen"],
+    perVersion: "Nach Übersetzung",
+    highlights: ["{n} Markierung", "{n} Markierungen"],
+    added: ["{n} durch die Synchronisierung hinzugefügt", "{n} durch die Synchronisierung hinzugefügt"],
+    unwritable: ["{n} Vers, den YouVersion nicht annahm", "{n} Verse, die YouVersion nicht annahm"],
+    colorCount: "{color}: {n}",
+    overlap: "Zwischen den Übersetzungen",
+    everywhere: "In allen Übersetzungen",
+    some: "In einigen",
+    one: "Nur in einer",
+    differing: [
+      "{n} Vers hat in verschiedenen Übersetzungen verschiedene Farben.",
+      "{n} Verse haben in verschiedenen Übersetzungen verschiedene Farben.",
+    ],
+    byBook: "Nach Buch",
+    bookRow: [
+      "{book}: {n} Vers markiert, {synced} von {chapters} Kapiteln synchronisiert",
+      "{book}: {n} Verse markiert, {synced} von {chapters} Kapiteln synchronisiert",
+    ],
+    topChapters: "Am meisten markierte Kapitel",
+    pace: "Tempo",
+    perRead: "{ms} ms, um ein Kapitel zu lesen",
+    perWrite: "{ms} ms, um eine Markierung zu schreiben",
+    noPace: "Noch nicht gemessen: Das geschieht während einer Vorschau oder Synchronisierung.",
+  },
+
   footer: {
     memory: ["Synchronisierungsspeicher: {n} Vers", "Synchronisierungsspeicher: {n} Verse"],
+    stats: "Statistik",
     reset: "Zurücksetzen",
     confirmReset:
       "Vergessen, was frühere Synchronisierungen getan haben? Die nächste füllt nur Lücken; sie entfernt nichts und färbt nichts um.",

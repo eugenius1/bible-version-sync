@@ -1,6 +1,5 @@
 import Dexie, { type Table } from "dexie";
 import {
-  HIGHLIGHT_COLORS,
   loadVersionNames,
   migrateState,
   mostUsedVersions,
@@ -28,11 +27,9 @@ export interface Settings {
   colorOrder: HighlightColorId[];
 }
 
-/** Purple and pink first, then the rest of the palette in its rainbow order. */
+/** The strong colours first, the pale ones that read as background last. A test keeps it complete. */
 export const DEFAULT_COLOR_ORDER: HighlightColorId[] = [
-  "purple",
-  "pink",
-  ...HIGHLIGHT_COLORS.map((c) => c.id).filter((id) => id !== "purple" && id !== "pink"),
+  "purple", "pink", "green", "blue", "aqua", "orange", "peach", "yellow", "paleYellow", "grey",
 ];
 
 export const DEFAULT_SETTINGS: Settings = {

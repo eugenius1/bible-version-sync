@@ -1,5 +1,6 @@
 import {
   emptyState,
+  ESTIMATE_THRESHOLD_MS,
   estimateRun,
   forgetVersion,
   RunClock,
@@ -9,11 +10,12 @@ import {
   type RunSummary,
   type Scope,
 } from "@bvs/core";
-import { LogIn, LogOut, RotateCcw } from "lucide-react";
+import { ChartColumn, LogIn, LogOut, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LanguageSwitcher, ThemeSwitcher } from "./components/Pickers";
 import { Priority } from "./components/Priority";
 import { Results } from "./components/Results";
+import { StatsPage } from "./components/Stats";
 import { SyncCard } from "./components/SyncCard";
 import { VersionsCard } from "./components/VersionsCard";
 import { useI18n } from "./i18n";
@@ -37,6 +39,20 @@ export type RunState =
     }
   | { status: "done"; apply: boolean; scope: Scope; summary: RunSummary }
   | { status: "error"; message: string };
+
+/**
+ * The address's hash, which picks the page: "#stats" is the stats page.
+ * A hash rather than a path, since GitHub Pages has no SPA fallback.
+ */
+function useHash(): string {
+  const [hash, setHash] = useState(location.hash);
+  useEffect(() => {
+    const update = () => setHash(location.hash);
+    addEventListener("hashchange", update);
+    return () => removeEventListener("hashchange", update);
+  }, []);
+  return hash;
+}
 
 const LICENCE_URL = "https://github.com/eugenius1/bible-version-sync/blob/main/LICENSE";
 export function App() {
@@ -132,6 +148,7 @@ function Main() {
   const [customised, setCustomised] = useState(true);
   const abort = useRef<AbortController | null>(null);
   const [stopping, setStopping] = useState(false);
+  const [page, query] = useHash().slice(1).split("?");
 
   useEffect(() => {
     void (async () => {
@@ -191,13 +208,16 @@ function Main() {
       setStopping(false);
       const pace = storedPace();
       const expected = estimateRun(versions, scope, pace.msPerRead);
-      const clock = new RunClock(performance.now(), { ...pace, expectedMs: expected.ms });
-      const left = () => (clock.long ? clock.remainingMs() : null);
-      setRun({ status: "running", apply, scope, progress: null, remainingMs: clock.long ? expected.ms : null });
+      setRun({ status: "running", apply, scope, progress: null, remainingMs: expected.ms > ESTIMATE_THRESHOLD_MS ? expected.ms : null });
       let wakeLock: { release(): Promise<void> } | null = null;
+      let clock: RunClock | null = null;
       try {
         wakeLock = (await navigator.wakeLock?.request("screen").catch(() => null)) ?? null;
         const state = await store.getState();
+        // Started only now, so neither the wake lock nor loading the snapshot
+        // is timed as the first read and saved as this browser's pace.
+        const timer = (clock = new RunClock(performance.now(), { ...pace, expectedMs: expected.ms }));
+        const left = () => (timer.long ? timer.remainingMs() : null);
         const summary = await runSync({
           api: client,
           // Unsupported ones too: the sync leaves them out but keeps their snapshot.
@@ -210,7 +230,7 @@ function Main() {
           colorOrder: settings.byColor ? settings.colorOrder : undefined,
           signal: controller.signal,
           onProgress: (progress) => {
-            clock.tick(progress, performance.now());
+            timer.tick(progress, performance.now());
             setRun({ status: "running", apply, scope, progress, remainingMs: left() });
           },
           onBookDone: async () => {
@@ -222,10 +242,12 @@ function Main() {
       } catch (e) {
         setRun({ status: "error", message: e instanceof Error ? e.message : String(e) });
       } finally {
-        persistPace({
-          ...(clock.readsTimed && { msPerRead: clock.msPerRead }),
-          ...(clock.writesTimed && { msPerWrite: clock.msPerWrite }),
-        });
+        if (clock) {
+          persistPace({
+            ...(clock.readsTimed && { msPerRead: clock.msPerRead }),
+            ...(clock.writesTimed && { msPerWrite: clock.msPerWrite }),
+          });
+        }
         await wakeLock?.release().catch(() => undefined);
         abort.current = null;
         setStopping(false);
@@ -242,6 +264,15 @@ function Main() {
     );
   }
   if (auth === "loading" || !settings) return <Shell>{null}</Shell>;
+  // Read only from this browser, so it needs no sign-in.
+  if (page === "stats") {
+    return (
+      <Shell>
+        {/* "#stats?demo": made-up data to look at the page with, in development. */}
+        <StatsPage versions={settings.versions} colorOrder={settings.colorOrder} demo={import.meta.env.DEV && query === "demo"} />
+      </Shell>
+    );
+  }
   if (auth === "signed-out") return <SignIn />;
 
   const running = run.status === "running";
@@ -262,6 +293,15 @@ function Main() {
           {t.footer.reset}
         </button>
       </span>
+      {/* Not mid-run: the page replaces the sync card, Stop button and all. */}
+      <a
+        href={running ? undefined : "#stats"}
+        aria-disabled={running || undefined}
+        className="btn-ghost min-h-0 gap-1 px-1 py-0.5 text-xs aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
+      >
+        <ChartColumn size={12} aria-hidden />
+        {t.footer.stats}
+      </a>
       <button
         className="btn-ghost min-h-0 gap-1 px-1 py-0.5 text-xs"
         disabled={running}

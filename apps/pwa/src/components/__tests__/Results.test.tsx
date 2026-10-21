@@ -17,9 +17,9 @@ const names = new Map([
 const plan: BookPlan = {
   book: "ROM",
   actions: [
-    { version: 128, op: "set", local: "ROM.8.28", color: "ff9999", canon: "ROM.8.28", reason: "fill" },
-    { version: 128, op: "set", local: "ROM.8.29", color: "ff9999", canon: "ROM.8.29", reason: "fill" },
-    { version: 1588, op: "remove", local: "ROM.8.1", color: null, canon: "ROM.8.1", reason: "remove" },
+    { version: 128, op: "set", local: "ROM.8.28", color: "ff9999", previous: null, canon: "ROM.8.28", reason: "fill" },
+    { version: 128, op: "set", local: "ROM.8.29", color: "ff9999", previous: null, canon: "ROM.8.29", reason: "fill" },
+    { version: 1588, op: "remove", local: "ROM.8.1", color: null, previous: "ff9999", canon: "ROM.8.1", reason: "remove" },
   ],
   differences: [
     // Keyed by bible id, so the object's keys come back sorted by id: NIV (111) before AMP (1588).
@@ -30,6 +30,7 @@ const plan: BookPlan = {
   counts: {},
   maps: {},
   remapped: [],
+  disowned: {},
 };
 
 const summary: RunSummary = {
