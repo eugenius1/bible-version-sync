@@ -12,6 +12,8 @@ import {
 export interface VersionStats {
   bibleId: number;
   highlights: number;
+  /** Highlights the sync added and that are still as it left them, as far as it knows. */
+  added: number;
   /** Highlights by the nearest palette colour, every colour present (0 when unused). */
   colors: Record<HighlightColorId, number>;
   /** Verses YouVersion refused to take in this version. */
@@ -58,7 +60,7 @@ export function syncStats(state: SyncState, order: readonly number[] = []): Stat
   const versions = new Map<number, VersionStats>();
   const version = (id: number) => {
     let v = versions.get(id);
-    if (!v) versions.set(id, (v = { bibleId: id, highlights: 0, colors: noColors(), unwritable: 0 }));
+    if (!v) versions.set(id, (v = { bibleId: id, highlights: 0, added: 0, colors: noColors(), unwritable: 0 }));
     return v;
   };
   const counts = Standard.load().counts.org;
@@ -110,6 +112,11 @@ export function syncStats(state: SyncState, order: readonly number[] = []): Stat
   }
 
   for (const [id, refs] of Object.entries(state.unwritable)) if (refs.length) version(Number(id)).unwritable = refs.length;
+  // Only versions in the snapshot: a version taken off the list keeps its record, not its place here.
+  for (const [id, refs] of Object.entries(state.added)) {
+    const v = versions.get(Number(id));
+    if (v) v.added = Object.keys(refs).length;
+  }
 
   const rank = (id: number) => {
     const i = order.indexOf(id);

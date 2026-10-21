@@ -77,9 +77,20 @@ export interface SyncState {
    * can't be known, and a needless reset only costs one run of fills.
    */
   maps?: Record<number, Record<string, string>>;
+  /**
+   * bible id -> local ref -> colour: the highlights the sync added to a blank
+   * verse and that are still its own, so they can be told apart from the
+   * person's later. A recolour of one updates it and a removal drops it.
+   * Keyed by the version's own numbering, which is what YouVersion stores,
+   * so a remap doesn't move it, and kept when the version leaves the list,
+   * since the highlights stay at YouVersion and it may be added back.
+   * Empty in snapshots from before it existed, whose additions can't be told
+   * apart any more.
+   */
+  added: Record<number, Record<Ref, string>>;
 }
 
-export const emptyState = (): SyncState => ({ keys: "bibleId", verses: {}, members: {}, unwritable: {}, maps: {} });
+export const emptyState = (): SyncState => ({ keys: "bibleId", verses: {}, members: {}, unwritable: {}, maps: {}, added: {} });
 
 /**
  * A snapshot as saved, keyed by bible id: unchanged if it already is, else
@@ -120,7 +131,10 @@ export function migrateState(saved: Partial<SyncState> | undefined, ids: Readonl
 /** The canonical chapter a canonical verse is in, as `members` keys it: "PSA.51.3" -> "PSA.51". */
 export const chapterKey = (canon: Ref) => canon.slice(0, canon.lastIndexOf("."));
 
-/** Forget a version everywhere in the snapshot (call when it's removed from the list). */
+/**
+ * Forget a version everywhere in the snapshot (call when it's removed from
+ * the list), except what the sync added to it, which is still there.
+ */
 export function forgetVersion(state: SyncState, bibleId: number): void {
   for (const colors of Object.values(state.verses)) delete colors[bibleId];
   for (const [k, list] of Object.entries(state.members)) state.members[k] = list.filter((a) => a !== bibleId);
@@ -197,6 +211,8 @@ export interface Action {
   op: "set" | "remove";
   local: Ref;
   color: string | null;
+  /** The colour the verse had in this version before (null: none). */
+  previous: string | null;
   canon: Ref;
   reason: "fill" | "recolor" | "remove";
 }
@@ -231,6 +247,12 @@ export interface BookPlan {
    * dropped when applied.
    */
   remapped: number[];
+  /**
+   * bible id -> local refs the sync added that the person has since
+   * recoloured or removed, so they're theirs now; dropped from `added` when
+   * applied.
+   */
+  disowned: Record<number, Ref[]>;
 }
 
 /** bible id -> local ref -> color */
@@ -370,7 +392,7 @@ export function planBook(
   // again, what it changed meanwhile reads as its own change, as usual.
   const refused = all.filter((v) => !versions.includes(v)).map((v) => v.bibleId);
   const plan: BookPlan = {
-    book, actions: [], differences: [], newState: {}, members: {}, counts: {}, maps: {}, remapped: [],
+    book, actions: [], differences: [], newState: {}, members: {}, counts: {}, maps: {}, remapped: [], disowned: {},
   };
   const priority = versions.map((v) => v.bibleId);
   // The first of `ids` (in version order) by colour, or simply the first.
@@ -389,6 +411,15 @@ export function planBook(
   const without = <T>(o: Record<number, T>): Record<number, T> =>
     remapped.size ? Object.fromEntries(Object.entries(o).filter(([a]) => !remapped.has(Number(a)))) : o;
   const unwritable = (id: number) => (remapped.has(id) ? [] : (state.unwritable[id] ?? []));
+
+  // Only verses that were read: a chapter scope reads just part of the book.
+  for (const v of versions) {
+    for (const [local, color] of Object.entries(state.added[v.bibleId] ?? {})) {
+      const canon = v.map.toCanon.get(local);
+      if (!local.startsWith(`${book}.`) || !canon || (only && !only.has(canon))) continue;
+      if ((current[v.bibleId]?.get(local) ?? null) !== color) (plan.disowned[v.bibleId] ??= []).push(local);
+    }
+  }
 
   // Canonical view per version. A canonical verse can cover several local
   // verses (e.g. 2 Cor 13:12-13 in English = 13:12 in French); any
@@ -441,9 +472,9 @@ export function planBook(
       for (const local of v.map.fromCanon.get(canon)!) {
         const lhave = current[v.bibleId]?.get(local) ?? null;
         if (op === "remove" && lhave !== null) {
-          plan.actions.push({ version: v.bibleId, op, local, color: null, canon, reason });
+          plan.actions.push({ version: v.bibleId, op, local, color: null, previous: lhave, canon, reason });
         } else if (op === "set" && lhave !== color) {
-          plan.actions.push({ version: v.bibleId, op, local, color, canon, reason });
+          plan.actions.push({ version: v.bibleId, op, local, color, previous: lhave, canon, reason });
         }
       }
       if (op === "remove") delete result[v.bibleId];
@@ -495,14 +526,29 @@ export function planBook(
   return plan;
 }
 
-/** Execute the plan and update `state` in place. Returns error messages. */
+/** Keep `state.added` in step with a write that went through. */
+function recordAdded(state: SyncState, a: Action): void {
+  if (a.op === "set" && a.previous === null) {
+    (state.added[a.version] ??= {})[a.local] = a.color!;
+    return;
+  }
+  const own = state.added[a.version];
+  if (!own || !(a.local in own)) return; // the person's highlight, recoloured or removed
+  if (a.op === "set") own[a.local] = a.color!;
+  else delete own[a.local];
+}
+
+/**
+ * Execute the plan and update `state` in place. Returns error messages, and
+ * the actions that were written.
+ */
 export async function applyPlan(
   api: HighlightsApi,
   versions: SyncVersion[],
   plan: BookPlan,
   state: SyncState,
   onAction?: () => void,
-): Promise<{ errors: string[]; stoppedBy?: ApiError; sets: number; removals: number }> {
+): Promise<{ errors: string[]; stoppedBy?: ApiError; sets: number; removals: number; written: Action[] }> {
   const byId = new Map(versions.map((v) => [v.bibleId, v]));
   const retry = new Set<Ref>(); // canonical refs to leave for next run
   const rejected = new Map<Ref, Set<number>>(); // canonical ref -> bible ids the API refused
@@ -510,6 +556,9 @@ export async function applyPlan(
   let stoppedBy: ApiError | undefined;
   let sets = 0; // written, not just planned
   let removals = 0;
+  const written: Action[] = [];
+  // Before the writes: a version just added back may have one filled again.
+  for (const [id, refs] of Object.entries(plan.disowned)) for (const r of refs) delete state.added[Number(id)]?.[r];
   for (const [i, a] of plan.actions.entries()) {
     const v = byId.get(a.version)!;
     try {
@@ -520,6 +569,8 @@ export async function applyPlan(
         await api.deleteHighlight(v.bibleId, a.local);
         removals++;
       }
+      written.push(a);
+      recordAdded(state, a);
     } catch (e) {
       if (!(e instanceof ApiError)) throw e;
       errors.push(`${v.abbr} ${a.op} ${a.local}: ${e.message}`);
@@ -561,5 +612,5 @@ export async function applyPlan(
     if (Object.keys(kept).length) state.verses[canon] = kept;
     else delete state.verses[canon];
   }
-  return { errors, stoppedBy, sets, removals };
+  return { errors, stoppedBy, sets, removals, written };
 }

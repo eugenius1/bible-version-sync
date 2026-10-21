@@ -245,6 +245,7 @@ export const de: Dictionary = {
     versions: ["Übersetzung", "Übersetzungen"],
     perVersion: "Nach Übersetzung",
     highlights: ["{n} Markierung", "{n} Markierungen"],
+    added: ["{n} durch die Synchronisierung hinzugefügt", "{n} durch die Synchronisierung hinzugefügt"],
     unwritable: ["{n} Vers, den YouVersion nicht annahm", "{n} Verse, die YouVersion nicht annahm"],
     colorCount: "{color}: {n}",
     overlap: "Zwischen den Übersetzungen",

@@ -245,6 +245,7 @@ export const es: Dictionary = {
     versions: ["versión", "versiones"],
     perVersion: "Por versión",
     highlights: ["{n} resaltado", "{n} resaltados"],
+    added: ["{n} añadido por la sincronización", "{n} añadidos por la sincronización"],
     unwritable: ["{n} versículo que YouVersion no aceptó", "{n} versículos que YouVersion no aceptó"],
     colorCount: "{color}: {n}",
     overlap: "Entre versiones",

@@ -44,7 +44,11 @@ export function demoState(): SyncState {
           if (roll < 0.06) continue; // highlighted in only some versions
           colors[id] = roll < 0.12 ? pick(palette) : color;
         }
-        if (Object.keys(colors).length) state.verses[ref(book, ch, 1 + Math.floor(random() * verses))] = colors;
+        const verse = ref(book, ch, 1 + Math.floor(random() * verses));
+        if (Object.keys(colors).length) state.verses[verse] = colors;
+        // Copies of the first version's colour count as the sync's.
+        const lead = colors[members[0]];
+        if (lead) for (const id of members.slice(1)) if (colors[id] === lead) (state.added[id] ??= {})[verse] = lead;
       }
     }
   }

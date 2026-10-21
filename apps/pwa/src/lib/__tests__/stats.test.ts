@@ -1,9 +1,9 @@
-import type { SyncState } from "@bvs/core";
+import { emptyState, type SyncState } from "@bvs/core";
 import { describe, expect, it } from "vitest";
 import { demoState } from "../demo";
 import { syncStats } from "../stats";
 
-const state = (s: Partial<SyncState>): SyncState => ({ keys: "bibleId", verses: {}, members: {}, unwritable: {}, maps: {}, ...s });
+const state = (s: Partial<SyncState>): SyncState => ({ ...emptyState(), ...s });
 
 describe("syncStats", () => {
   it("counts verses per version, colour, book and chapter", () => {
@@ -16,13 +16,16 @@ describe("syncStats", () => {
           "PSA.23.1": { 111: "ff95ef" },
         },
         unwritable: { 1588: ["PSA.23.6"] },
+        // 59 left the list, keeping its record but not its place in the stats.
+        added: { 1588: { "JHN.3.16": "fffe00", "JHN.3.17": "00d6ff" }, 59: { "JHN.3.16": "fffe00" } },
       }),
       [1588, 111],
     );
     expect(s.verses).toBe(3);
     expect(s.versions.map((v) => v.bibleId)).toEqual([1588, 111]);
     expect(s.versions[1]).toMatchObject({ highlights: 3, colors: { yellow: 2, pink: 1, blue: 0 } });
-    expect(s.versions[0]).toMatchObject({ highlights: 2, unwritable: 1 });
+    expect(s.versions[0]).toMatchObject({ highlights: 2, added: 2, unwritable: 1 });
+    expect(s.versions[1].added).toBe(0);
     expect({ everywhere: s.everywhere, some: s.some, one: s.one, differing: s.differing }).toEqual({
       everywhere: 2, some: 0, one: 1, differing: 1,
     });

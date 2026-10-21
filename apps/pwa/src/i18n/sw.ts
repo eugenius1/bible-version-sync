@@ -245,6 +245,7 @@ export const sw: Dictionary = {
     versions: ["toleo", "matoleo"],
     perVersion: "Kwa toleo",
     highlights: ["Alama {n}", "Alama {n}"],
+    added: ["{n} imeongezwa na usawazishaji", "{n} zimeongezwa na usawazishaji"],
     unwritable: [
       "Mstari {n} ambao YouVersion haikuukubali",
       "Mistari {n} ambayo YouVersion haikuikubali",

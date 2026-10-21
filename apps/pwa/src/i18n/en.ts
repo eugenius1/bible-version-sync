@@ -250,6 +250,7 @@ export const en = {
     versions: ["version", "versions"],
     perVersion: "By version",
     highlights: ["{n} highlight", "{n} highlights"],
+    added: ["{n} added by the sync", "{n} added by the sync"],
     unwritable: ["{n} verse YouVersion wouldn't take", "{n} verses YouVersion wouldn't take"],
     colorCount: "{color}: {n}",
     overlap: "Across versions",

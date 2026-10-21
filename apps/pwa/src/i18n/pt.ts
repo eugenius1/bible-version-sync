@@ -248,6 +248,7 @@ export const pt: Dictionary = {
     versions: ["versão", "versões"],
     perVersion: "Por versão",
     highlights: ["{n} destaque", "{n} destaques"],
+    added: ["{n} adicionado pela sincronização", "{n} adicionados pela sincronização"],
     unwritable: [
       "{n} versículo que o YouVersion não aceitou",
       "{n} versículos que o YouVersion não aceitou",

@@ -248,6 +248,7 @@ export const id: Dictionary = {
     versions: ["versi", "versi"],
     perVersion: "Per versi",
     highlights: ["{n} tanda", "{n} tanda"],
+    added: ["{n} ditambahkan oleh sinkronisasi", "{n} ditambahkan oleh sinkronisasi"],
     unwritable: ["{n} ayat ditolak YouVersion", "{n} ayat ditolak YouVersion"],
     colorCount: "{color}: {n}",
     overlap: "Antarversi",

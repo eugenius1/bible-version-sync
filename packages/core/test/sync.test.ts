@@ -247,6 +247,94 @@ describe("sync", () => {
   });
 });
 
+describe("the record of what the sync added", () => {
+  const added = () => named(state.added);
+
+  it("records fills, follows a recolour of one and drops it once removed", async () => {
+    api.hl("NIV", "JHN.3.16", "ffe066");
+    api.hl("AMP", "JHN.1.1", "ff9999");
+    api.hl("NIV", "JHN.1.1", "ff9999");
+    await sync("JHN");
+    expect(added()).toEqual({
+      AMP: { "JHN.3.16": "ffe066" },
+      LSG: { "JHN.1.1": "ff9999", "JHN.3.16": "ffe066" },
+      S21: { "JHN.1.1": "ff9999", "JHN.3.16": "ffe066" },
+    });
+    api.hl("NIV", "JHN.3.16", "a3d9ff");
+    delete api.store[IDS.AMP]["JHN.1.1"];
+    await sync("JHN");
+    // NIV's own JHN.1.1 is removed too, but it was never the sync's.
+    expect(added()).toEqual({
+      AMP: { "JHN.3.16": "a3d9ff" },
+      LSG: { "JHN.3.16": "a3d9ff" },
+      S21: { "JHN.3.16": "a3d9ff" },
+    });
+  });
+
+  it("gives each action the colour it replaces", async () => {
+    api.hl("AMP", "JHN.1.1", "ff9999");
+    await sync("JHN");
+    api.hl("AMP", "JHN.1.1", "a3d9ff");
+    const plan = await sync("JHN");
+    expect(plan.actions.map((a) => [NAMES[a.version], a.color, a.previous])).toEqual([
+      ["NIV", "a3d9ff", "ff9999"],
+      ["LSG", "a3d9ff", "ff9999"],
+      ["S21", "a3d9ff", "ff9999"],
+    ]);
+  });
+
+  it("drops an addition the person has since recoloured or removed", async () => {
+    api.hl("NIV", "JHN.3.16", "ffe066");
+    api.hl("NIV", "JHN.1.1", "ffe066");
+    await sync("JHN");
+    api.hl("AMP", "JHN.3.16", "a3d9ff");
+    delete api.store[IDS.LSG]["JHN.1.1"];
+    await sync("JHN");
+    // Both changes spread: AMP's JHN.1.1 was removed by the sync, LSG's JHN.3.16 recoloured.
+    expect(added()?.AMP).toEqual({});
+    expect(added()?.LSG).toEqual({ "JHN.3.16": "a3d9ff" });
+  });
+
+  it("drops only additions in the chapter a chapter sync read", async () => {
+    api.hl("NIV", "JHN.3.16", "ffe066");
+    api.hl("NIV", "JHN.1.1", "ffe066");
+    await sync("JHN");
+    delete api.store[IDS.AMP]["JHN.3.16"];
+    delete api.store[IDS.AMP]["JHN.1.1"];
+    await runSync({ api, versions: VERSIONS, scope: { kind: "chapter", book: "JHN", chapter: 1 }, state, apply: true });
+    expect(added()?.AMP).toEqual({ "JHN.3.16": "ffe066" });
+  });
+
+  it("leaves out writes that failed", async () => {
+    api.hl("NIV", "JHN.3.16", "ffe066");
+    api.flakyWrites.add(`${IDS.AMP}:JHN.3.16`);
+    api.rejectWrites.add(`${IDS.LSG}:JHN.3.16`);
+    await sync("JHN");
+    expect(added()).toEqual({ S21: { "JHN.3.16": "ffe066" } });
+  });
+
+  it("is kept when the version is forgotten, for when it's added back", async () => {
+    api.hl("NIV", "JHN.3.16", "ffe066");
+    await sync("JHN");
+    forgetVersion(state, IDS.AMP);
+    expect(added()?.AMP).toEqual({ "JHN.3.16": "ffe066" });
+    await sync("JHN"); // back as a newcomer, with nothing left to fill
+    expect(added()?.AMP).toEqual({ "JHN.3.16": "ffe066" });
+  });
+
+  it("starts empty for a snapshot saved before it existed", () => {
+    const { added: _, ...old } = emptyState();
+    expect(migrateState(old, new Map()).added).toEqual({});
+  });
+
+  it("lists the written actions per book", async () => {
+    api.hl("NIV", "JHN.3.16", "ffe066");
+    api.flakyWrites.add(`${IDS.AMP}:JHN.3.16`);
+    const s = await runSync({ api, versions: VERSIONS, scope: { kind: "books", books: ["JHN"] }, state, apply: true });
+    expect(s.books[0].written?.map((a) => NAMES[a.version])).toEqual(["LSG", "S21"]);
+  });
+});
+
 describe("a colour order", () => {
   const YELLOW = "fffe00";
   const PINK = "ff95ef";
@@ -860,7 +948,8 @@ describe("a snapshot saved when versions were keyed by name", () => {
   it("carries over unchanged, so the next sync plans exactly as it would have", async () => {
     const saved = structuredClone(state);
     const migrated = migrateState(byName(state), ids);
-    expect(migrated).toEqual({ ...saved, keys: "bibleId" });
+    // Snapshots keyed by name predate the record of additions.
+    expect(migrated).toEqual({ ...saved, keys: "bibleId", added: {} });
 
     delete api.store[IDS.NIV]["JHN.3.16"]; // a real removal still propagates
     state = migrated;

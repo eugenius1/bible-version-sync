@@ -300,6 +300,17 @@ version, until names stopped being chosen; `migrateState` converts a
 snapshot from then using the names saved with the settings, and drops what
 it can't place, which only makes that version a newcomer.
 
+The snapshot also keeps **what the sync added** (`added`): per version, each
+highlight it wrote into a blank verse, by the version's own reference, with
+the colour. The sync's own recolour of one follows it and its removal drops
+it; one the person recolours or removes is dropped the next time its chapter
+is read, being theirs now. The person's own highlights are never in it. It's
+kept when a version leaves the list, since its highlights stay at YouVersion
+and it may be added back. It's the only record of where a highlight
+came from, and starts from when it was introduced: additions made before
+can't be told apart. Every planned action also carries the colour it
+replaces (`previous`), and `BookResult.written` lists the ones that landed.
+
 **Which colour blank versions get.** When versions changed a verse to
 different colours, the one blank versions follow is the first listed
 version's, or, given a colour order (`PlanOptions.colorOrder`, the app's

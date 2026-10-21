@@ -253,6 +253,7 @@ export const fr: Dictionary = {
     versions: ["version", "versions"],
     perVersion: "Par version",
     highlights: ["{n} surlignage", "{n} surlignages"],
+    added: ["{n} ajouté par la synchronisation", "{n} ajoutés par la synchronisation"],
     unwritable: ["{n} verset refusé par YouVersion", "{n} versets refusés par YouVersion"],
     colorCount: "{color} : {n}",
     overlap: "D'une version à l'autre",

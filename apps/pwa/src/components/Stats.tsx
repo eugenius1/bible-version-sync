@@ -88,7 +88,10 @@ function Body({ stats: s, versions, colorOrder }: { stats: Stats; versions: Vers
               <li key={v.bibleId} className="space-y-1.5">
                 <p className="flex items-baseline justify-between gap-3 text-sm">
                   <span className="font-medium">{names.get(v.bibleId) ?? v.bibleId}</span>
-                  <span className={muted}>{plural(t.stats.highlights, v.highlights)}</span>
+                  <span className={muted}>
+                    {plural(t.stats.highlights, v.highlights)}
+                    {v.added > 0 && ` · ${plural(t.stats.added, v.added)}`}
+                  </span>
                 </p>
                 <ColorBar colors={v.colors} used={used} />
                 <ColorLegend colors={v.colors} used={used} />
