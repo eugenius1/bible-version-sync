@@ -63,32 +63,36 @@ export function App() {
 function Shell({ children, account }: { children: React.ReactNode; account?: React.ReactNode }) {
   const { t, f } = useI18n();
   return (
-    <div className="mx-auto flex min-h-dvh max-w-2xl flex-col gap-4 px-4 py-6 sm:py-10">
-      <header className="flex items-center gap-3">
-        <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="size-9" />
-        <h1 className="text-lg font-semibold">Bible Version Sync</h1>
-        <div className="ml-auto flex items-center">
-          <LanguageSwitcher />
-          <ThemeSwitcher />
+    <div className="flex min-h-dvh flex-col">
+      <header className="sticky top-0 z-20 bg-stone-50/90 px-4 pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-3 backdrop-blur dark:bg-stone-950/90">
+        <div className="mx-auto flex max-w-2xl items-center gap-3">
+          <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="size-9" />
+          <h1 className="text-lg font-semibold">Bible Version Sync</h1>
+          <div className="ml-auto flex items-center">
+            <LanguageSwitcher />
+            <ThemeSwitcher />
+          </div>
         </div>
       </header>
-      {children}
-      <footer className="mt-auto space-y-3 pt-6 text-xs text-stone-600 dark:text-stone-400">
-        {account && <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">{account}</div>}
-        <p className="text-center">
-          {f(t.app.copyright, { years: copyrightYears() })} ·{" "}
-          <a
-            href={LICENCE_URL}
-            target="_blank"
-            rel="noreferrer"
-            title={t.app.licenceTitle}
-            className="underline underline-offset-2 hover:text-stone-900 dark:hover:text-stone-100"
-          >
-            {t.app.licence}
-          </a>{" "}
-          · {t.app.notAffiliated}
-        </p>
-      </footer>
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 px-4 pt-1 pb-6 sm:pb-10">
+        {children}
+        <footer className="mt-auto space-y-3 pt-6 text-xs text-stone-600 dark:text-stone-400">
+          {account && <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">{account}</div>}
+          <p className="text-center">
+            {f(t.app.copyright, { years: copyrightYears() })} ·{" "}
+            <a
+              href={LICENCE_URL}
+              target="_blank"
+              rel="noreferrer"
+              title={t.app.licenceTitle}
+              className="underline underline-offset-2 hover:text-stone-900 dark:hover:text-stone-100"
+            >
+              {t.app.licence}
+            </a>{" "}
+            · {t.app.notAffiliated}
+          </p>
+        </footer>
+      </div>
     </div>
   );
 }

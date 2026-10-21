@@ -16,8 +16,9 @@
   html.dark {
     color-scheme: dark;
   }
+  /* The top inset is the sticky header's, so stuck content never shows
+     through the status bar. */
   body {
-    padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
   }
 }

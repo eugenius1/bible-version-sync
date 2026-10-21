@@ -79,7 +79,7 @@ Content-Security-Policy (see `apps/pwa/vite.config.ts`).
 |---|---|
 | `packages/core` | The sync engine: verse mapping, merge rules, API client, sign-in helpers, and the runner that ties them together. Framework-free TypeScript, so a future server can use it unchanged. |
 | `packages/core/data` | Verse-numbering data and correction tables, bundled into `src/data.generated.ts` by `npm run gen -w @bvs/core`. |
-| `apps/pwa` | The web app: Vite, React, Tailwind CSS v4, lucide icons, Dexie (IndexedDB), vite-plugin-pwa. |
+| `apps/pwa` | The web app: Vite, React, Tailwind CSS v4, lucide icons, Dexie (IndexedDB), dnd-kit, vite-plugin-pwa. |
 | `tools/python-cli` | The original Python prototype, kept for reference. The TypeScript mapping was checked against it verse for verse. |
 | `tools/versification-survey` | The scanner and data behind the bundled verse counts, labels and names. The app never reads it; `import-survey` copies from it. |
 | `tools/youversion-skill.sh` | Refreshes the vendored YouVersion agent skill (see below). |
@@ -486,12 +486,13 @@ the two in step.
 **Dark mode is a class, not a media query.** `@custom-variant dark` keys off
 `.dark` on `<html>`, so the theme icon in the header can override the system.
 
-**Reordering uses pointer events, not HTML drag and drop**, which touch
-screens never fire (`apps/pwa/src/components/Sortable.tsx`). The drag is
-followed on the window, since reordering moves the dragged row's element and
-moving an element drops pointer capture; it's kept in a ref as well as state,
-since a release can arrive before the re-render after the press; and only the
-pointer that started it counts.
+**Reordering uses dnd-kit's pointer sensor, not HTML drag and drop**, which
+touch screens never fire (`apps/pwa/src/components/Sortable.tsx`). Only the
+grip handle starts a drag, so the rest of the row still scrolls the page. The
+handles take the arrow keys themselves rather than dnd-kit's keyboard sensor,
+and dnd-kit's announcements are silenced, since they're English only. In
+jsdom, give the `<ol>` a size as well as the rows: the drag is kept inside
+the list, and an unmeasured list clamps every drop to the top.
 
 **Some embedded browsers don't allow service workers.** Test offline support in
 a real Chrome. For screenshots of signed-in screens without a real account, a

@@ -27,6 +27,11 @@ export interface Settings {
   colorOrder: HighlightColorId[];
 }
 
+/** The strong colours first, the pale ones that read as background last. A test keeps it complete. */
+export const DEFAULT_COLOR_ORDER: HighlightColorId[] = [
+  "purple", "pink", "green", "blue", "aqua", "orange", "peach", "yellow", "paleYellow", "grey",
+];
+
 export const DEFAULT_SETTINGS: Settings = {
   versions: [
     { abbr: "NIV", bibleId: 111 },
@@ -34,17 +39,15 @@ export const DEFAULT_SETTINGS: Settings = {
   ],
   maxRemovals: 25,
   byColor: false,
-  // The strong colours first, the pale ones that read as background last.
-  colorOrder: ["purple", "pink", "green", "blue", "aqua", "orange", "peach", "yellow", "paleYellow", "grey"],
+  colorOrder: DEFAULT_COLOR_ORDER,
 };
 
 /**
  * A saved color order with every palette color exactly once: unknown ones
- * dropped and any the palette gains since appended in the default order
- * (which a test keeps complete).
+ * dropped and any the palette gains since appended in the default order.
  */
 export function completeColorOrder(saved: readonly string[] | undefined): HighlightColorId[] {
-  const ids = DEFAULT_SETTINGS.colorOrder;
+  const ids = DEFAULT_COLOR_ORDER;
   const kept = [...new Set(saved ?? [])].filter((id): id is HighlightColorId => (ids as string[]).includes(id));
   return [...kept, ...ids.filter((id) => !kept.includes(id))];
 }

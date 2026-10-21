@@ -94,6 +94,10 @@ describe("formerNames", () => {
 });
 
 describe("completeColorOrder", () => {
+  it("starts with purple and pink when nothing is saved", () => {
+    expect(completeColorOrder(undefined).slice(0, 3)).toEqual(["purple", "pink", "green"]);
+  });
+
   it("keeps a saved order, drops unknown colors and appends ones it lacks", () => {
     const order = completeColorOrder(["pink", "teal", "yellow", "pink"]);
     expect(order.slice(0, 4)).toEqual(["pink", "yellow", "purple", "green"]);
