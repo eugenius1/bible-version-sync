@@ -28,6 +28,13 @@ export interface Settings {
   colorOrder: HighlightColorId[];
 }
 
+/** Purple and pink first, then the rest of the palette in its rainbow order. */
+export const DEFAULT_COLOR_ORDER: HighlightColorId[] = [
+  "purple",
+  "pink",
+  ...HIGHLIGHT_COLORS.map((c) => c.id).filter((id) => id !== "purple" && id !== "pink"),
+];
+
 export const DEFAULT_SETTINGS: Settings = {
   versions: [
     { abbr: "NIV", bibleId: 111 },
@@ -35,15 +42,15 @@ export const DEFAULT_SETTINGS: Settings = {
   ],
   maxRemovals: 25,
   byColor: false,
-  colorOrder: HIGHLIGHT_COLORS.map((c) => c.id),
+  colorOrder: DEFAULT_COLOR_ORDER,
 };
 
 /**
  * A saved color order with every palette color exactly once: unknown ones
- * dropped and any the palette gains since appended in palette order.
+ * dropped and any the palette gains since appended in the default order.
  */
 export function completeColorOrder(saved: readonly string[] | undefined): HighlightColorId[] {
-  const ids = HIGHLIGHT_COLORS.map((c) => c.id);
+  const ids = DEFAULT_COLOR_ORDER;
   const kept = [...new Set(saved ?? [])].filter((id): id is HighlightColorId => (ids as string[]).includes(id));
   return [...kept, ...ids.filter((id) => !kept.includes(id))];
 }
