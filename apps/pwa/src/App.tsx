@@ -1,6 +1,8 @@
 import {
   emptyState,
+  estimateRun,
   forgetVersion,
+  RunClock,
   runSync,
   type HighlightColorId,
   type Progress,
@@ -18,13 +20,21 @@ import { useI18n } from "./i18n";
 import { copyrightYears } from "./lib/copyright";
 import { APP_KEY, client, completeSignIn, isCallback, SignInError, signOut, startSignIn } from "./lib/auth";
 import { labelVersions, store, tokenStore, type Settings } from "./lib/db";
+import { persistPace, storedPace } from "./lib/pace";
 import { resolveVersions, type ResolvedVersion } from "./lib/versions";
 
 type Auth = "loading" | "signed-out" | "signed-in";
 
 export type RunState =
   | { status: "idle" }
-  | { status: "running"; apply: boolean; scope: Scope; progress: Progress | null }
+  | {
+      status: "running";
+      apply: boolean;
+      scope: Scope;
+      progress: Progress | null;
+      /** Time left, while the run looks like taking more than a few seconds. */
+      remainingMs: number | null;
+    }
   | { status: "done"; apply: boolean; scope: Scope; summary: RunSummary }
   | { status: "error"; message: string };
 
@@ -175,7 +185,11 @@ function Main() {
       const controller = new AbortController();
       abort.current = controller;
       setStopping(false);
-      setRun({ status: "running", apply, scope, progress: null });
+      const pace = storedPace();
+      const expected = estimateRun(versions, scope, pace.msPerRead);
+      const clock = new RunClock(performance.now(), { ...pace, expectedMs: expected.ms });
+      const left = () => (clock.long ? clock.remainingMs() : null);
+      setRun({ status: "running", apply, scope, progress: null, remainingMs: clock.long ? expected.ms : null });
       let wakeLock: { release(): Promise<void> } | null = null;
       try {
         wakeLock = (await navigator.wakeLock?.request("screen").catch(() => null)) ?? null;
@@ -191,7 +205,10 @@ function Main() {
           allowRemovals,
           colorOrder: settings.byColor ? settings.colorOrder : undefined,
           signal: controller.signal,
-          onProgress: (progress) => setRun({ status: "running", apply, scope, progress }),
+          onProgress: (progress) => {
+            clock.tick(progress, performance.now());
+            setRun({ status: "running", apply, scope, progress, remainingMs: left() });
+          },
           onBookDone: async () => {
             if (apply) await store.setState(state);
           },
@@ -201,6 +218,10 @@ function Main() {
       } catch (e) {
         setRun({ status: "error", message: e instanceof Error ? e.message : String(e) });
       } finally {
+        persistPace({
+          ...(clock.readsTimed && { msPerRead: clock.msPerRead }),
+          ...(clock.writesTimed && { msPerWrite: clock.msPerWrite }),
+        });
         await wakeLock?.release().catch(() => undefined);
         abort.current = null;
         setStopping(false);

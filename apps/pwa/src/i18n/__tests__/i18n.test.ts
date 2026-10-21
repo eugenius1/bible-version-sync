@@ -253,3 +253,25 @@ describe("copyright notice", () => {
     expect(copyrightYears(new Date("2028-01-01"))).toBe("2026–2028");
   });
 });
+
+describe("duration", () => {
+  const { duration } = createI18n("en");
+
+  it("rounds seconds up to the next five, so a running estimate never says zero", () => {
+    expect(duration(0)).toBe("5 seconds");
+    expect(duration(31_000)).toBe("35 seconds");
+    expect(duration(85_000)).toBe("85 seconds");
+  });
+
+  it("switches to minutes, then hours", () => {
+    expect(duration(90_000)).toBe("2 minutes");
+    expect(duration(40 * 60_000)).toBe("40 minutes");
+    expect(duration(90 * 60_000)).toBe("1.5 hours");
+  });
+
+  it("uses the language's own units", () => {
+    expect(createI18n("fr").duration(4 * 60_000)).toBe("4 minutes");
+    expect(createI18n("de").duration(4 * 60_000)).toBe("4 Minuten");
+    expect(createI18n("ru").duration(2 * 60_000)).toBe("2 минуты");
+  });
+});
