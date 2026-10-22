@@ -155,7 +155,10 @@ export const id: Dictionary = {
     book: "Kitab",
     bible: "Seluruh Alkitab",
     chapterCount: ["{book} memiliki {n} pasal di {abbr}.", "{book} memiliki {n} pasal di {abbr}."],
-    estimate: ["Membaca {n} pasal, sekitar {time}. Biarkan halaman ini tetap terbuka.", "Membaca {n} pasal, sekitar {time}. Biarkan halaman ini tetap terbuka."],
+    estimate: [
+      "Membaca {n} pasal: sekitar {preview} untuk pratinjau, {sync} untuk sinkronisasi. Biarkan halaman ini tetap terbuka.",
+      "Membaca {n} pasal: sekitar {preview} untuk pratinjau, {sync} untuk sinkronisasi. Biarkan halaman ini tetap terbuka.",
+    ],
     preview: "Pratinjau perubahan",
     syncNow: "Sinkronkan sekarang",
     confirmBible: "Sinkronkan seluruh Alkitab sekarang, tanpa pratinjau?",

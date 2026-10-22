@@ -16,6 +16,8 @@ interface Props {
   run: RunState;
   /** Stop was asked for; the run is winding down to a safe point. */
   stopping: boolean;
+  /** The sync memory's highlighted verses per book, for the most a sync may take. */
+  remembered?: Readonly<Record<string, number>>;
   onRun: (scope: Scope, apply: boolean) => void;
   /** The book a preview or sync of this scope would pick up at, after an earlier one stopped. */
   resumesAt?: (scope: Scope, apply: boolean) => string | undefined;
@@ -23,8 +25,8 @@ interface Props {
   onCancel: () => void;
 }
 
-export function SyncCard({ versions, run, stopping, onRun, resumesAt, onStartOver, onCancel }: Props) {
-  const { t, f, plural, duration, book: bookName } = useI18n();
+export function SyncCard({ versions, run, stopping, remembered, onRun, resumesAt, onStartOver, onCancel }: Props) {
+  const { t, f, plural, duration, durationRange, book: bookName } = useI18n();
   const ts = t.sync;
   const [kind, setKind] = useState<Kind>("chapter");
   const [book, setBook] = useState("JHN");
@@ -44,8 +46,12 @@ export function SyncCard({ versions, run, stopping, onRun, resumesAt, onStartOve
   const ready = !!versions && !tooFew && !running && (kind !== "chapter" || validChapter);
   // A whole-Bible estimate walks every chapter of every version: not on every keystroke.
   const estimate = useMemo(
-    () => (versions && !tooFew && !running ? estimateRun(versions, scope, storedPace().msPerRead) : null),
-    [versions, tooFew, running, scope],
+    () => {
+      if (!versions || tooFew || running) return null;
+      const pace = storedPace();
+      return estimateRun(versions, scope, pace.msPerRead, { remembered: remembered ?? {}, msPerWrite: pace.msPerWrite });
+    },
+    [versions, tooFew, running, scope, remembered],
   );
 
   const previewAt = running ? undefined : resumesAt?.(scope, false);
@@ -101,9 +107,9 @@ export function SyncCard({ versions, run, stopping, onRun, resumesAt, onStartOve
             {plural(ts.chapterCount, chapters.length, { book: bookName(book), abbr: versions[0].abbr })}
           </p>
         )}
-        {estimate && estimate.ms > ESTIMATE_THRESHOLD_MS && (
+        {estimate && estimate.maxMs > ESTIMATE_THRESHOLD_MS && (
           <p className="text-sm text-stone-600 dark:text-stone-400">
-            {plural(ts.estimate, estimate.reads, { time: duration(estimate.ms) })}
+            {plural(ts.estimate, estimate.reads, { preview: duration(estimate.ms), sync: durationRange(estimate.ms, estimate.maxMs) })}
           </p>
         )}
         {(previewAt || syncAt) && (

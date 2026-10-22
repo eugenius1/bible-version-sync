@@ -40,17 +40,27 @@ export function chaptersInScope(versions: SyncVersion[], scope: Scope): number {
 
 export interface RunEstimate {
   reads: number;
+  /** The reads alone: all a preview takes, and the least a sync does. */
   ms: number;
+  /** The most a sync over books may take, writes included (see WriteForecast); `ms` otherwise. */
+  maxMs: number;
 }
 
-/** What a run over `scope` reads and how long that takes, before any of it is timed. */
+/**
+ * What a run over `scope` reads and how long that takes, before any of it is
+ * timed. Given `writes`, the most a sync may take too.
+ */
 export function estimateRun(
   versions: SyncVersion[],
   scope: Scope,
   msPerRead = ASSUMED_MS_PER_READ,
+  writes?: { remembered: Readonly<Record<string, number>>; msPerWrite?: number },
 ): RunEstimate {
   const reads = chaptersInScope(versions, scope);
-  return { reads, ms: reads * msPerRead };
+  const ms = reads * msPerRead;
+  if (!writes || scope.kind !== "books") return { reads, ms, maxMs: ms };
+  const most = new WriteForecast(scope.books, supported(versions).length, writes.remembered).maxWrites();
+  return { reads, ms, maxMs: ms + most * (writes.msPerWrite ?? ASSUMED_MS_PER_WRITE) };
 }
 
 /** Canonical verses with a highlight in some version, per book, as the sync memory has them. */

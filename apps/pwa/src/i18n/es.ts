@@ -152,7 +152,10 @@ export const es: Dictionary = {
     book: "Libro",
     bible: "Toda la Biblia",
     chapterCount: ["{book} tiene {n} capítulo en {abbr}.", "{book} tiene {n} capítulos en {abbr}."],
-    estimate: ["Lee {n} capítulo; tarda aproximadamente {time}. Mantén esta página abierta.", "Lee {n} capítulos; tarda aproximadamente {time}. Mantén esta página abierta."],
+    estimate: [
+      "Lee {n} capítulo: aprox. {preview} para revisar, {sync} para sincronizar. Mantén esta página abierta.",
+      "Lee {n} capítulos: aprox. {preview} para revisar, {sync} para sincronizar. Mantén esta página abierta.",
+    ],
     preview: "Ver los cambios",
     syncNow: "Sincronizar ahora",
     confirmBible: "¿Sincronizar toda la Biblia ahora, sin ver antes los cambios?",

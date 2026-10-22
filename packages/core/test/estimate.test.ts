@@ -28,7 +28,7 @@ const writing = (done: number, total: number, readDone: number, readTotal: numbe
 
 describe("estimateRun", () => {
   it("counts every chapter each version reads, and times them at the given rate", () => {
-    expect(estimateRun([NIV, AMP], { kind: "books", books: ["PSA"] })).toEqual({ reads: 300, ms: 300 * ASSUMED_MS_PER_READ });
+    expect(estimateRun([NIV, AMP], { kind: "books", books: ["PSA"] })).toEqual({ reads: 300, ms: 300 * ASSUMED_MS_PER_READ, maxMs: 300 * ASSUMED_MS_PER_READ });
     expect(estimateRun([NIV, AMP], { kind: "books", books: BOOKS }).reads).toBe(2 * 1189);
     expect(estimateRun([NIV, AMP], { kind: "books", books: ["JHN"] }, 250).ms).toBe(42 * 250);
   });
@@ -99,6 +99,19 @@ describe("RunClock", () => {
     expect(slower.long).toBe(false);
     slower.tick(reading(1, 10), 3000);
     expect(slower.long).toBe(true);
+  });
+});
+
+describe("estimateRun with writes", () => {
+  it("adds the most a sync may write to the reads", () => {
+    const e = estimateRun([NIV, AMP], { kind: "books", books: ["RUT"] }, 100, { remembered: { RUT: 40 }, msPerWrite: 300 });
+    expect(e.ms).toBe(8 * 100);
+    expect(e.maxMs).toBe(8 * 100 + 40 * 300); // forty verses, into the one other version
+  });
+
+  it("is the reads alone for a chapter", () => {
+    const e = estimateRun([NIV, AMP], { kind: "chapter", book: "JHN", chapter: 3 }, 100, { remembered: { JHN: 40 } });
+    expect(e.maxMs).toBe(e.ms);
   });
 });
 
