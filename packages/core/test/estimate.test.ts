@@ -4,6 +4,7 @@ import {
   ASSUMED_MS_PER_WRITE,
   BOOKS,
   ASSUMED_HIGHLIGHT_SHARE,
+  ESTIMATE_THRESHOLD_MS,
   RunClock,
   VersionMap,
   WriteForecast,
@@ -11,6 +12,7 @@ import {
   highlightedByBook,
   buildVersionMap,
   estimateRun,
+  type BookPlan,
   type Progress,
   type SyncVersion,
 } from "../src";
@@ -102,19 +104,29 @@ describe("RunClock", () => {
 
 describe("WriteForecast", () => {
   // Ruth has 85 verses, Jonah 48 (Hebrew numbering).
+  const plan = (book: string, highlighted: number) =>
+    ({ book, newState: Object.fromEntries(Array.from({ length: highlighted }, (_, i) => [`${book}.1.${i + 1}`, { 111: "fffe00" }])) }) as unknown as BookPlan;
+  const assumed = (verses: number) => Math.round(ASSUMED_HIGHLIGHT_SHARE * verses);
+
   it("assumes a share of verses highlighted before reading any, and every one copied to every other version", () => {
     const f = new WriteForecast(["RUT", "JON"], 3);
-    expect(f.maxWrites()).toBe(2 * (Math.round(ASSUMED_HIGHLIGHT_SHARE * 85) + Math.round(ASSUMED_HIGHLIGHT_SHARE * 48)));
-    expect(f.maxWrites(1)).toBe(2 * Math.round(ASSUMED_HIGHLIGHT_SHARE * 48));
+    expect(f.maxWrites()).toBe(2 * (assumed(85) + assumed(48)));
+    expect(f.maxWrites("RUT")).toBe(2 * assumed(48));
   });
 
-  it("goes by the share in the books read, or the sync memory where that's more", () => {
+  it("goes by the share in the books read, or the sync memory, whichever is more", () => {
     const f = new WriteForecast(["RUT", "JON"], 2, { JON: 30 });
-    f.bookRead("RUT", 17); // a fifth
-    expect(f.maxWrites(1)).toBe(30);
+    f.bookRead(plan("RUT", 17)); // a fifth
+    expect(f.maxWrites()).toBe(30);
     const g = new WriteForecast(["RUT", "JON"], 2, { JON: 1 });
-    g.bookRead("RUT", 17);
-    expect(g.maxWrites(1)).toBe(Math.round(0.2 * 48));
+    g.bookRead(plan("RUT", 17));
+    expect(g.maxWrites()).toBe(Math.round(0.2 * 48));
+  });
+
+  it("never assumes less than the assumed share, however lightly the first books are highlighted", () => {
+    const f = new WriteForecast(["RUT", "JON"], 2);
+    f.bookRead(plan("RUT", 0));
+    expect(f.maxWrites()).toBe(assumed(48));
   });
 
   it("needs no writes with one version", () => {
@@ -131,10 +143,25 @@ describe("WriteForecast", () => {
     const clock = new RunClock(0, {}, f);
     clock.tick(reading(1, 8, "RUT"), 100);
     // Ruth is still being read, so its writes may come too.
-    expect(clock.maxRemainingMs() - clock.remainingMs()).toBeCloseTo(f.maxWrites(0) * clock.msPerWrite);
+    expect(clock.maxRemainingMs() - clock.remainingMs()).toBeCloseTo(f.maxWrites() * clock.msPerWrite);
     clock.tick(writing(1, 5, 4, 8, "RUT"), 100 + ASSUMED_MS_PER_WRITE);
     // Ruth's writes are known now: only Jonah's are a guess.
-    expect(clock.maxRemainingMs() - clock.remainingMs()).toBeCloseTo(f.maxWrites(1) * clock.msPerWrite);
+    expect(clock.maxRemainingMs() - clock.remainingMs()).toBeCloseTo(20 * clock.msPerWrite);
     expect(new RunClock(0).maxRemainingMs()).toBe(0);
+  });
+
+  it("stops counting a book once it's planned, though it needs no writes", () => {
+    const f = new WriteForecast(["RUT", "JON"], 2, { RUT: 10, JON: 20 });
+    const clock = new RunClock(0, {}, f);
+    clock.tick(reading(4, 4, "RUT"), 100);
+    f.bookRead(plan("RUT", 0));
+    expect(clock.maxRemainingMs() - clock.remainingMs()).toBeCloseTo(20 * clock.msPerWrite);
+  });
+
+  it("shows an estimate for a quick read with many writes to come", () => {
+    const clock = new RunClock(0, {}, new WriteForecast(["RUT"], 3, { RUT: 40 }));
+    clock.tick(reading(1, 12, "RUT"), 100);
+    expect(clock.remainingMs()).toBeLessThan(ESTIMATE_THRESHOLD_MS);
+    expect(clock.long).toBe(true);
   });
 });

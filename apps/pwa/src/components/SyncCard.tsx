@@ -152,18 +152,19 @@ function ProgressView({ run, stopping, onCancel }: {
   const ts = t.sync;
   const p = run.progress;
   const done = p && p.readTotal ? p.readDone / p.readTotal : 0;
+  const doing = p && f(p.phase === "reading" ? ts.reading : ts.writing, { book: book(p.book) });
   // Over several books, how far into this one: the bar is the whole run.
-  const ofBook = p && p.total && run.scope.kind === "books" && run.scope.books.length > 1 ? ` — ${percent(p.done / p.total)}` : "";
+  const severalBooks = run.scope.kind === "books" && run.scope.books.length > 1;
   const now = stopping
     ? run.apply && p?.phase === "writing" ? f(ts.stoppingWriting, { book: book(p.book) }) : ts.stopping
-    : !p
+    : !p || !doing
     ? ts.starting
-    : f(p.phase === "reading" ? ts.reading : ts.writing, { book: book(p.book) }) + ofBook;
+    : severalBooks && p.total ? f(ts.bookProgress, { doing, percent: percent(p.done / p.total) })
+    : doing;
   const r = run.remaining;
-  const range = r && durationRange(r.minMs, r.maxMs);
-  const left = stopping || !r || !range ? null
-    : range === duration(r.minMs) ? f(ts.remaining, { time: range })
-    : f(ts.remainingRange, { time: range });
+  const left = stopping || !r ? null
+    : duration(r.minMs) === duration(r.maxMs) ? f(ts.remaining, { time: duration(r.minMs) })
+    : f(ts.remainingRange, { time: durationRange(r.minMs, r.maxMs) });
   const label = percent(done, 1);
   return (
     <div className="space-y-2" role="status" aria-live="polite">

@@ -12,7 +12,7 @@
  */
 
 import type { Progress, Scope } from "./runner";
-import { chapterScope, chaptersToRead, supported, type SyncState, type SyncVersion } from "./sync";
+import { chapterScope, chaptersToRead, supported, type BookPlan, type SyncState, type SyncVersion } from "./sync";
 import { parseRef, Standard } from "./versification";
 
 /** About 350 ms a request (the client's 50 ms pause included), four reads at a time. */
@@ -64,37 +64,44 @@ export function highlightedByBook(state: SyncState): Record<string, number> {
   return out;
 }
 
-const versesIn = (book: string) => (Standard.load().counts.org[book] ?? []).reduce((n, v) => n + v, 0);
-
 /**
  * The most a sync may still write in books it hasn't read: every highlighted
  * verse copied to every other version, as if nothing were in sync yet. A book's
- * highlighted verses are what the sync memory has for it, or, if more, the
- * share highlighted in the books read so far (ASSUMED_HIGHLIGHT_SHARE before any).
+ * highlighted verses are taken as the most of what the sync memory has for it,
+ * the share highlighted in the books read so far and ASSUMED_HIGHLIGHT_SHARE,
+ * so a lightly highlighted early book can't bring the bound down to nothing.
  */
 export class WriteForecast {
+  private readonly verses: ReadonlyMap<string, number>;
+  private readonly read = new Set<string>();
   private versesRead = 0;
   private highlightedRead = 0;
 
-  /** `books` in the order the run reads them; `versions` the ones it may write to. */
+  /** `versions`: how many the sync may write to. */
   constructor(
-    readonly books: readonly string[],
+    books: readonly string[],
     private readonly versions: number,
     private readonly remembered: Readonly<Record<string, number>> = {},
-  ) {}
-
-  /** Record what a book read had: its canonical verses with a highlight in some version. */
-  bookRead(book: string, highlighted: number): void {
-    this.versesRead += versesIn(book);
-    this.highlightedRead += highlighted;
+  ) {
+    const counts = Standard.load().counts.org;
+    this.verses = new Map(books.map((b) => [b, (counts[b] ?? []).reduce((n, v) => n + v, 0)]));
   }
 
-  /** The most writes the books from `from` (an index into `books`) on may need. */
-  maxWrites(from = 0): number {
-    const share = this.versesRead ? this.highlightedRead / this.versesRead : ASSUMED_HIGHLIGHT_SHARE;
-    const highlighted = this.books
-      .slice(from)
-      .reduce((n, b) => n + Math.max(this.remembered[b] ?? 0, Math.round(share * versesIn(b))), 0);
+  /** Record a book read and planned: its writes are known from here on. */
+  bookRead(plan: BookPlan): void {
+    this.read.add(plan.book);
+    this.versesRead += this.verses.get(plan.book) ?? 0;
+    this.highlightedRead += Object.values(plan.newState).filter((c) => Object.keys(c).length).length;
+  }
+
+  /** The most writes the books not yet read may need, leaving out `except` (one being written). */
+  maxWrites(except?: string): number {
+    const share = Math.max(ASSUMED_HIGHLIGHT_SHARE, this.versesRead ? this.highlightedRead / this.versesRead : 0);
+    let highlighted = 0;
+    for (const [book, verses] of this.verses) {
+      if (book === except || this.read.has(book)) continue;
+      highlighted += Math.max(this.remembered[book] ?? 0, Math.round(share * verses));
+    }
     return highlighted * Math.max(0, this.versions - 1);
   }
 }
@@ -147,7 +154,7 @@ export class RunClock {
       }
     }
     this.prev = p;
-    this.longest = Math.max(this.longest, now - this.start + this.remainingMs());
+    this.longest = Math.max(this.longest, now - this.start + this.maxRemainingMs());
   }
 
   /** Milliseconds per chapter read, measured and eased in from the prior. */
@@ -184,14 +191,11 @@ export class RunClock {
    * may need (see WriteForecast). The same as remainingMs without a forecast.
    */
   maxRemainingMs(): number {
-    const f = this.forecast;
-    if (!f) return this.remainingMs();
-    const p = this.prev;
-    // The book being read may still need writes; one being written has them counted.
-    const at = p ? f.books.indexOf(p.book) : 0;
-    const from = at === -1 ? 0 : p?.phase === "writing" ? at + 1 : at;
-    return this.remainingMs() + f.maxWrites(from) * this.msPerWrite;
+    // A book being written has its writes counted in remainingMs.
+    const writing = this.prev?.phase === "writing" ? this.prev.book : undefined;
+    return this.remainingMs() + (this.forecast?.maxWrites(writing) ?? 0) * this.msPerWrite;
   }
+
 
   /**
    * Whether the run has looked, at any point, like taking longer than the

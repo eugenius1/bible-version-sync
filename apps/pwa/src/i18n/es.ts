@@ -163,6 +163,7 @@ export const es: Dictionary = {
     remaining: "tiempo restante: aprox. {time}",
     remainingRange: "tiempo restante: {time}",
     writing: "Escribiendo {book}",
+    bookProgress: "{doing} — {percent}",
     stop: "Detener",
     stopping: "Deteniendo…",
     stoppingWriting: "Se detendrá cuando termine de escribir {book}…",

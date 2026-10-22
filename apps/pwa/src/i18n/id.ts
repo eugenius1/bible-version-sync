@@ -166,6 +166,7 @@ export const id: Dictionary = {
     remaining: "sisa sekitar {time}",
     remainingRange: "sisa {time}",
     writing: "Menulis {book}",
+    bookProgress: "{doing} — {percent}",
     stop: "Hentikan",
     stopping: "Menghentikan…",
     stoppingWriting: "Berhenti setelah {book} selesai ditulis…",

@@ -124,6 +124,16 @@ export function createI18n(lang: Lang, setLang: (lang: Lang) => void = () => {})
   const books: BookLang = lang === "en-GB" ? "en" : lang;
   const pluralRules = new Intl.PluralRules(t.meta.localeTag);
   const numberFormat = new Intl.NumberFormat(t.meta.localeTag);
+  // Progress re-renders on every chapter read, so the formatters are made once.
+  const percents = new Map<number, Intl.NumberFormat>();
+  const percentFormat = (digits: number) => {
+    let format = percents.get(digits);
+    if (!format) {
+      format = new Intl.NumberFormat(t.meta.localeTag, { style: "percent", minimumFractionDigits: digits, maximumFractionDigits: digits });
+      percents.set(digits, format);
+    }
+    return format;
+  };
   return {
     lang,
     setLang,
@@ -141,8 +151,7 @@ export function createI18n(lang: Lang, setLang: (lang: Lang) => void = () => {})
     num: (v) => numberFormat.format(v),
     duration: (ms) => formatDuration(t.meta.localeTag, ms),
     durationRange: (min, max) => formatDurationRange(t.meta.localeTag, min, max),
-    percent: (v, digits = 0) =>
-      new Intl.NumberFormat(t.meta.localeTag, { style: "percent", minimumFractionDigits: digits, maximumFractionDigits: digits }).format(v),
+    percent: (v, digits = 0) => percentFormat(digits).format(v),
     book: (code) => bookName(code, books),
     ref: (r) => displayRef(r, books),
   };

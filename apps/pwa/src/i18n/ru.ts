@@ -183,6 +183,7 @@ export const ru: Dictionary = {
     remaining: "осталось примерно {time}",
     remainingRange: "осталось {time}",
     writing: "Записываем «{book}»",
+    bookProgress: "{doing} — {percent}",
     stop: "Остановить",
     stopping: "Останавливаем…",
     stoppingWriting: "Остановимся, когда «{book}» будет записана…",

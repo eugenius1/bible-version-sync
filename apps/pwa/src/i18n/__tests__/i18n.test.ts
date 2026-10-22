@@ -102,7 +102,7 @@ describe("dictionaries", () => {
   it("have no strings left identical to English by accident", () => {
     // Names, symbols and format-only strings are legitimately shared, and some
     // words are the same in both languages.
-    const shared = ["app.copyright", "app.licence", "stats.colorCount"];
+    const shared = ["app.copyright", "app.licence", "stats.colorCount", "sync.bookProgress"];
     const allowed: Partial<Record<Lang, string[]>> = {
       fr: ["results.more", "priority.names.orange", "stats.versions[0]", "stats.versions[1]"],
       de: ["themes.system", "priority.names.orange"],

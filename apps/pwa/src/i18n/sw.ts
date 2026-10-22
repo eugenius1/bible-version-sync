@@ -163,6 +163,7 @@ export const sw: Dictionary = {
     remaining: "muda uliobaki: takriban {time}",
     remainingRange: "muda uliobaki: {time}",
     writing: "Inaandika {book}",
+    bookProgress: "{doing} — {percent}",
     stop: "Simamisha",
     stopping: "Inasimamisha…",
     stoppingWriting: "Itasimama {book} kikishaandikwa…",

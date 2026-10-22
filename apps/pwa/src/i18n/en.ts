@@ -168,6 +168,7 @@ export const en = {
     remaining: "about {time} left",
     remainingRange: "{time} left",
     writing: "Writing {book}",
+    bookProgress: "{doing} — {percent}",
     stop: "Stop",
     stopping: "Stopping…",
     stoppingWriting: "Stopping once {book} is written…",

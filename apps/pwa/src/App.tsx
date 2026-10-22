@@ -1,4 +1,5 @@
 import {
+  ASSUMED_MS_PER_WRITE,
   emptyState,
   ESTIMATE_THRESHOLD_MS,
   estimateRun,
@@ -264,12 +265,10 @@ function Main() {
           : undefined;
         // Started only now, so neither the wake lock nor loading the snapshot
         // is timed as the first read and saved as this browser's pace.
-        const timer = (clock = new RunClock(performance.now(), { ...pace, expectedMs: expected.ms }, forecast));
+        const most = expected.ms + (forecast?.maxWrites() ?? 0) * (pace.msPerWrite ?? ASSUMED_MS_PER_WRITE);
+        const timer = (clock = new RunClock(performance.now(), { ...pace, expectedMs: most }, forecast));
         const left = () => (timer.long ? { minMs: timer.remainingMs(), maxMs: timer.maxRemainingMs() } : null);
-        if (expected.ms > ESTIMATE_THRESHOLD_MS) {
-          const most = expected.ms + (forecast?.maxWrites() ?? 0) * timer.msPerWrite;
-          setRun({ status: "running", apply, scope, progress: null, remaining: { minMs: expected.ms, maxMs: most } });
-        }
+        if (timer.long) setRun({ status: "running", apply, scope, progress: null, remaining: { minMs: expected.ms, maxMs: most } });
         const summary = await runSync({
           api: client,
           // Unsupported ones too: the sync leaves them out but keeps their snapshot.
@@ -289,7 +288,7 @@ function Main() {
           // Saved as each book finishes, so a page closed mid-run picks up too.
           // Only stored for now: the card shows it once the run is over.
           onBookDone: async (r, results) => {
-            if (r.plan) forecast?.bookRead(r.book, Object.values(r.plan.newState).filter((c) => Object.keys(c).length).length);
+            if (r.plan) forecast?.bookRead(r.plan);
             if (apply) await store.setState(state);
             await saveProgress(results);
           },

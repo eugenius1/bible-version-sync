@@ -163,6 +163,7 @@ export const de: Dictionary = {
     remaining: "noch etwa {time}",
     remainingRange: "noch {time}",
     writing: "Schreibe {book}",
+    bookProgress: "{doing} — {percent}",
     stop: "Anhalten",
     stopping: "Wird angehalten…",
     stoppingWriting: "Wird angehalten, sobald {book} geschrieben ist…",
