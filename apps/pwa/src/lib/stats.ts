@@ -45,6 +45,8 @@ export interface Stats {
   books: BookStats[];
   /** Most highlighted first, at most five. */
   topChapters: { chapter: string; verses: number }[];
+  /** Highest share of the chapter's verses first, the most verses breaking ties; at most five. */
+  topShare: { chapter: string; verses: number; of: number }[];
 }
 
 const BOOK_INDEX = new Map(BOOKS.map((b, i) => [b, i]));
@@ -69,7 +71,8 @@ export function syncStats(state: SyncState, order: readonly number[] = []): Stat
     if (!v) versions.set(id, (v = { bibleId: id, highlights: 0, added: 0, colors: noColors(), unwritable: 0 }));
     return v;
   };
-  const counts = Standard.load().counts.org;
+  const std = Standard.load();
+  const counts = std.counts.org;
   const books = new Map<string, BookStats>(
     BOOKS.map((book) => [book, { book, verses: 0, chaptersSynced: 0, chapters: counts[book]?.length ?? 0 }]),
   );
@@ -84,7 +87,7 @@ export function syncStats(state: SyncState, order: readonly number[] = []): Stat
   };
   const stats: Stats = {
     verses: 0, everywhere: 0, some: 0, one: 0, differing: 0, chaptersSynced: 0, chapters: 0,
-    versions: [], books: [], topChapters: [],
+    versions: [], books: [], topChapters: [], topShare: [],
   };
 
   for (const [chapter, ids] of Object.entries(state.members)) {
@@ -138,5 +141,13 @@ export function syncStats(state: SyncState, order: readonly number[] = []): Stat
     .sort((a, b) => b[1] - a[1] || chapterOrder(a[0]) - chapterOrder(b[0]))
     .slice(0, 5)
     .map(([chapter, verses]) => ({ chapter, verses }));
+  stats.topShare = [...byChapter]
+    .map(([chapter, verses]) => {
+      const [book, ch] = chapter.split(".");
+      return { chapter, verses, of: std.count("org", book, Number(ch)) };
+    })
+    .filter((c) => c.of > 0)
+    .sort((a, b) => b.verses / b.of - a.verses / a.of || b.verses - a.verses || chapterOrder(a.chapter) - chapterOrder(b.chapter))
+    .slice(0, 5);
   return stats;
 }

@@ -102,7 +102,7 @@ describe("dictionaries", () => {
   it("have no strings left identical to English by accident", () => {
     // Names, symbols and format-only strings are legitimately shared, and some
     // words are the same in both languages.
-    const shared = ["app.copyright", "app.licence", "stats.colorCount"];
+    const shared = ["app.copyright", "app.licence", "stats.colorCount", "sync.bookProgress"];
     const allowed: Partial<Record<Lang, string[]>> = {
       fr: ["results.more", "priority.names.orange", "stats.versions[0]", "stats.versions[1]"],
       de: ["themes.system", "priority.names.orange"],
@@ -273,5 +273,21 @@ describe("duration", () => {
     expect(createI18n("fr").duration(4 * 60_000)).toBe("4 minutes");
     expect(createI18n("de").duration(4 * 60_000)).toBe("4 Minuten");
     expect(createI18n("ru").duration(2 * 60_000)).toBe("2 минуты");
+  });
+});
+
+describe("durationRange", () => {
+  const { durationRange } = createI18n("en");
+
+  it("says the unit once when both ends share it", () => {
+    expect(durationRange(7 * 60_000, 77 * 60_000)).toBe("7–77 minutes");
+  });
+
+  it("says both units when they differ", () => {
+    expect(durationRange(50 * 60_000, 3 * 3600_000)).toBe("50 minutes – 3 hours");
+  });
+
+  it("is a single time when both ends round the same", () => {
+    expect(durationRange(3 * 60_000, 3.2 * 60_000)).toBe("3 minutes");
   });
 });

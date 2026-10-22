@@ -152,6 +152,21 @@ function Body({ stats: s, versions, colorOrder }: { stats: Stats; versions: Vers
         </Section>
       )}
 
+      {s.topShare.length > 0 && (
+        <Section title={t.stats.topShare}>
+          <ol className="space-y-1 text-sm">
+            {s.topShare.map((c, i) => (
+              <li key={c.chapter} className="flex items-baseline gap-3">
+                <span className={`w-4 tabular-nums ${muted}`}>{num(i + 1)}</span>
+                <span className="flex-1">{ref(c.chapter)}</span>
+                <span className={`tabular-nums ${muted}`}>{f(t.stats.versesOf, { n: num(c.verses), total: num(c.of) })}</span>
+                <span className="w-14 text-right tabular-nums">{percent.format(c.verses / c.of)}</span>
+              </li>
+            ))}
+          </ol>
+        </Section>
+      )}
+
       <Section title={t.stats.pace}>
         {pace.msPerRead || pace.msPerWrite ? (
           <ul className={`space-y-1 text-sm ${muted}`}>

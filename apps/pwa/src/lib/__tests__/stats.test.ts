@@ -52,6 +52,25 @@ describe("syncStats", () => {
     expect(s.topChapters.map((c) => c.chapter)).toEqual(["GEN.1", "PSA.23", "PSA.119"]);
   });
 
+  it("ranks chapters by the share of their verses highlighted, the most verses breaking ties", () => {
+    const verses = (chapter: string, n: number) => Array.from({ length: n }, (_, i) => [`${chapter}.${i + 1}`, { 111: "fffe00" }]);
+    const s = syncStats(state({
+      verses: Object.fromEntries([
+        ...verses("PSA.117", 2), // all of it
+        ...verses("PSA.134", 3), // all of it, and more verses
+        ...verses("PSA.23", 3), // half
+        ...verses("PSA.119", 100), // 100 of 176
+      ]),
+    }));
+    expect(s.topShare).toEqual([
+      { chapter: "PSA.134", verses: 3, of: 3 },
+      { chapter: "PSA.117", verses: 2, of: 2 },
+      { chapter: "PSA.119", verses: 100, of: 176 },
+      { chapter: "PSA.23", verses: 3, of: 6 },
+    ]);
+    expect(s.topChapters[0].chapter).toBe("PSA.119");
+  });
+
   it("matches a highlight to the nearest palette colour", () => {
     const s = syncStats(state({ verses: { "JHN.3.16": { 111: "fffd00" } } }));
     expect(s.versions[0].colors.yellow).toBe(1);
