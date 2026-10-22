@@ -171,6 +171,9 @@ export const pt: Dictionary = {
     stoppingButton: "Parando",
     stopNote: "Se você parar agora, o livro que está sendo gravado termina primeiro, para que nada fique pela metade.",
     tooFew: "Para sincronizar, são necessárias pelo menos duas versões com numeração suportada.",
+    resumePreview: "A próxima verificação continua em {book}, onde a anterior parou.",
+    resumeSync: "A próxima sincronização continua em {book}, onde a anterior parou.",
+    startOver: "Começar de novo",
   },
 
   results: {

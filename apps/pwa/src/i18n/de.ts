@@ -168,6 +168,9 @@ export const de: Dictionary = {
     stoppingButton: "Wird angehalten",
     stopNote: "Wenn du jetzt anhältst, wird ein Buch, das gerade geschrieben wird, erst fertig geschrieben, damit nichts halb erledigt bleibt.",
     tooFew: "Zum Synchronisieren braucht es mindestens zwei Übersetzungen mit unterstützter Zählung.",
+    resumePreview: "Die nächste Vorschau macht bei {book} weiter, wo die letzte angehalten hat.",
+    resumeSync: "Die nächste Synchronisierung macht bei {book} weiter, wo die letzte angehalten hat.",
+    startOver: "Neu beginnen",
   },
 
   results: {

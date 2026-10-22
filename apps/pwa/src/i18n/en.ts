@@ -173,6 +173,9 @@ export const en = {
     stoppingButton: "Stopping",
     stopNote: "Stopping now leaves a book that's being written to finish first, so nothing is left half-done.",
     tooFew: "At least two versions whose numbering is supported are needed to sync.",
+    resumePreview: "The next preview picks up at {book}, where the last one stopped.",
+    resumeSync: "The next sync picks up at {book}, where the last one stopped.",
+    startOver: "Start over",
   },
 
   results: {

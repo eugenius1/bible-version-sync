@@ -108,3 +108,28 @@ describe("SyncCard before running", () => {
     expect(screen.getByText(/Reads 42 chapters, which takes about 20 seconds/)).toBeInTheDocument();
   });
 });
+
+describe("SyncCard after a run stopped", () => {
+  it("says where the next sync picks up, and can start over", async () => {
+    const onStartOver = vi.fn();
+    render(
+      <I18nProvider>
+        <SyncCard
+          versions={VERSIONS}
+          run={{ status: "idle" }}
+          stopping={false}
+          onRun={vi.fn()}
+          resumesAt={(scope, apply) => (apply && scope.kind === "books" && scope.books.length > 1 ? "PSA" : undefined)}
+          onStartOver={onStartOver}
+          onCancel={vi.fn()}
+        />
+      </I18nProvider>,
+    );
+    expect(screen.queryByText(/picks up at/)).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("radio", { name: "Whole Bible" }));
+    expect(screen.getByText("The next sync picks up at Psalms, where the last one stopped.")).toBeInTheDocument();
+    expect(screen.queryByText(/next preview/)).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Start over" }));
+    expect(onStartOver).toHaveBeenCalledOnce();
+  });
+});

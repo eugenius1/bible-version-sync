@@ -1,5 +1,5 @@
 import { BOOKS, ESTIMATE_THRESHOLD_MS, estimateRun, type Scope } from "@bvs/core";
-import { Eye, RefreshCw, Square } from "lucide-react";
+import { Eye, RefreshCw, RotateCcw, Square } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { RunState } from "../App";
 import { useI18n } from "../i18n";
@@ -17,11 +17,14 @@ interface Props {
   /** Stop was asked for; the run is winding down to a safe point. */
   stopping: boolean;
   onRun: (scope: Scope, apply: boolean) => void;
+  /** The book a preview or sync of this scope would pick up at, after an earlier one stopped. */
+  resumesAt?: (scope: Scope, apply: boolean) => string | undefined;
+  onStartOver?: () => void;
   onCancel: () => void;
 }
 
-export function SyncCard({ versions, run, stopping, onRun, onCancel }: Props) {
-  const { t, plural, duration, book: bookName } = useI18n();
+export function SyncCard({ versions, run, stopping, onRun, resumesAt, onStartOver, onCancel }: Props) {
+  const { t, f, plural, duration, book: bookName } = useI18n();
   const ts = t.sync;
   const [kind, setKind] = useState<Kind>("chapter");
   const [book, setBook] = useState("JHN");
@@ -44,6 +47,10 @@ export function SyncCard({ versions, run, stopping, onRun, onCancel }: Props) {
     () => (versions && !tooFew && !running ? estimateRun(versions, scope, storedPace().msPerRead) : null),
     [versions, tooFew, running, scope],
   );
+
+  const resumes = running ? [] : ([[false, ts.resumePreview], [true, ts.resumeSync]] as const)
+    .map(([apply, text]) => [resumesAt?.(scope, apply), text] as const)
+    .filter((r): r is readonly [string, string] => r[0] !== undefined);
 
   return (
     <section className="card space-y-4" aria-labelledby="sync-title">
@@ -99,6 +106,17 @@ export function SyncCard({ versions, run, stopping, onRun, onCancel }: Props) {
           <p className="text-sm text-stone-600 dark:text-stone-400">
             {plural(ts.estimate, estimate.reads, { time: duration(estimate.ms) })}
           </p>
+        )}
+        {resumes.length > 0 && (
+          <div className="flex flex-wrap items-center gap-x-2 text-sm text-stone-600 dark:text-stone-400">
+            {resumes.map(([at, text]) => (
+              <p key={text}>{f(text, { book: bookName(at) })}</p>
+            ))}
+            <button className="btn-ghost min-h-0 gap-1 px-1 py-0.5 text-sm" onClick={onStartOver}>
+              <RotateCcw size={14} aria-hidden />
+              {ts.startOver}
+            </button>
+          </div>
         )}
       </fieldset>
 

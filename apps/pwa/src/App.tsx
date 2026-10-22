@@ -3,8 +3,10 @@ import {
   ESTIMATE_THRESHOLD_MS,
   estimateRun,
   forgetVersion,
+  remainingScope,
   RunClock,
   runSync,
+  type BookResult,
   type HighlightColorId,
   type Progress,
   type RunSummary,
@@ -21,7 +23,7 @@ import { VersionsCard } from "./components/VersionsCard";
 import { useI18n } from "./i18n";
 import { copyrightYears } from "./lib/copyright";
 import { APP_KEY, client, completeSignIn, isCallback, SignInError, signOut, startSignIn } from "./lib/auth";
-import { labelVersions, store, tokenStore, type Settings } from "./lib/db";
+import { labelVersions, runKey, store, tokenStore, type Settings, type Unfinished } from "./lib/db";
 import { persistPace, storedPace } from "./lib/pace";
 import { resolveVersions, type ResolvedVersion } from "./lib/versions";
 
@@ -148,6 +150,7 @@ function Main() {
   const [customised, setCustomised] = useState(true);
   const abort = useRef<AbortController | null>(null);
   const [stopping, setStopping] = useState(false);
+  const [unfinished, setUnfinished] = useState<{ preview?: Unfinished; sync?: Unfinished }>({});
   const [page, query] = useHash().slice(1).split("?");
 
   useEffect(() => {
@@ -156,6 +159,7 @@ function Main() {
       setSettings(await store.getSettings());
       setCustomised(await store.hasSettings());
       setRemembered(Object.keys((await store.getState()).verses).length);
+      setUnfinished({ preview: await store.getUnfinished(false), sync: await store.getUnfinished(true) });
     })();
   }, []);
 
@@ -200,20 +204,50 @@ function Main() {
     [settings],
   );
 
+  const saveUnfinished = useCallback(async (apply: boolean, u: Unfinished | null) => {
+    await store.setUnfinished(apply, u);
+    setUnfinished((prev) => ({ ...prev, [apply ? "sync" : "preview"]: u ?? undefined }));
+  }, []);
+
+  const forgetUnfinished = useCallback(async () => {
+    await saveUnfinished(false, null);
+    await saveUnfinished(true, null);
+  }, [saveUnfinished]);
+
+  /** The books an earlier preview or sync of this scope finished before it stopped, to pick up after. */
+  const earlierRun = useCallback(
+    (scope: Scope, apply: boolean): BookResult[] => {
+      const u = unfinished[apply ? "sync" : "preview"];
+      const same = u && settings && scope.kind === "books" && u.key === runKey(settings) && u.books.join() === scope.books.join();
+      return same ? u.results : [];
+    },
+    [unfinished, settings],
+  );
+
   const startRun = useCallback(
     async (scope: Scope, apply: boolean, allowRemovals = false) => {
       if (!versions || !settings) return;
       const controller = new AbortController();
       abort.current = controller;
       setStopping(false);
+      const earlier = earlierRun(scope, apply);
+      // Only several books are worth picking up after; one book is the smallest step anyway.
+      const resumable = scope.kind === "books" && scope.books.length > 1;
+      const record = (results: BookResult[]) =>
+        // Nothing read and planned yet: starting over is the same as picking up.
+        saveUnfinished(apply, resumable && results.some((r) => r.plan) ? { books: scope.books, key: runKey(settings), results } : null);
       const pace = storedPace();
-      const expected = estimateRun(versions, scope, pace.msPerRead);
+      const expected = estimateRun(versions, remainingScope(scope, earlier, allowRemovals), pace.msPerRead);
       setRun({ status: "running", apply, scope, progress: null, remainingMs: expected.ms > ESTIMATE_THRESHOLD_MS ? expected.ms : null });
       let wakeLock: { release(): Promise<void> } | null = null;
       let clock: RunClock | null = null;
       try {
         wakeLock = (await navigator.wakeLock?.request("screen").catch(() => null)) ?? null;
+        // A sync changes the snapshot, so a stopped preview's books no longer hold.
+        if (apply) await saveUnfinished(false, null);
         const state = await store.getState();
+        // Saved as each book finishes, so a page closed mid-run picks up too.
+        const results = [...earlier];
         // Started only now, so neither the wake lock nor loading the snapshot
         // is timed as the first read and saved as this browser's pace.
         const timer = (clock = new RunClock(performance.now(), { ...pace, expectedMs: expected.ms }));
@@ -225,6 +259,7 @@ function Main() {
           scope,
           state,
           apply,
+          resume: earlier,
           maxRemovals: settings.maxRemovals,
           allowRemovals,
           colorOrder: settings.byColor ? settings.colorOrder : undefined,
@@ -233,10 +268,16 @@ function Main() {
             timer.tick(progress, performance.now());
             setRun({ status: "running", apply, scope, progress, remainingMs: left() });
           },
-          onBookDone: async () => {
+          onBookDone: async (r) => {
             if (apply) await store.setState(state);
+            // A book done again replaces what the earlier attempt left of it.
+            const i = results.findIndex((e) => e.book === r.book);
+            if (i >= 0) results.splice(i, 1);
+            results.push(r);
+            await record(results);
           },
         });
+        await record(summary.aborted || summary.fatal ? summary.books : []);
         if (apply) setRemembered(Object.keys(state.verses).length);
         setRun({ status: "done", apply, scope, summary });
       } catch (e) {
@@ -253,7 +294,7 @@ function Main() {
         setStopping(false);
       }
     },
-    [versions, settings],
+    [versions, settings, earlierRun, saveUnfinished],
   );
 
   if (!APP_KEY) {
@@ -286,6 +327,7 @@ function Main() {
           onClick={async () => {
             if (!confirm(t.footer.confirmReset)) return;
             await store.setState(emptyState());
+            await forgetUnfinished();
             setRemembered(0);
           }}
         >
@@ -338,6 +380,12 @@ function Main() {
         run={run}
         stopping={stopping}
         onRun={startRun}
+        resumesAt={(scope, apply) => {
+          const earlier = earlierRun(scope, apply);
+          const left = remainingScope(scope, earlier);
+          return earlier.length && left.kind === "books" ? left.books[0] : undefined;
+        }}
+        onStartOver={forgetUnfinished}
         onCancel={() => {
           abort.current?.abort();
           setStopping(true);
