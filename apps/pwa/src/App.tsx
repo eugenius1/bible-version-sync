@@ -178,12 +178,24 @@ function Main() {
     };
   }, [chosen, auth]);
 
+  const saveUnfinished = useCallback(async (apply: boolean, u: Unfinished | null) => {
+    await store.setUnfinished(apply, u);
+    setUnfinished((prev) => ({ ...prev, [runKind(apply)]: u ?? undefined }));
+  }, []);
+
+  const forgetUnfinished = useCallback(async () => {
+    await saveUnfinished(false, null);
+    await saveUnfinished(true, null);
+  }, [saveUnfinished]);
+
   const saveVersions = useCallback(
     async (next: number[], removed?: number) => {
       if (removed !== undefined) {
         const state = await store.getState();
         forgetVersion(state, removed);
         await store.setState(state);
+        // Its snapshot is gone, so what a stopped run planned with it no longer holds.
+        await forgetUnfinished();
       }
       const s = { ...settings!, versions: labelVersions(next) };
       await store.setSettings(s);
@@ -191,7 +203,7 @@ function Main() {
       setCustomised(true);
       setRun({ status: "idle" });
     },
-    [settings],
+    [settings, forgetUnfinished],
   );
 
   const saveColors = useCallback(
@@ -204,16 +216,6 @@ function Main() {
     },
     [settings],
   );
-
-  const saveUnfinished = useCallback(async (apply: boolean, u: Unfinished | null) => {
-    await store.setUnfinished(apply, u);
-    setUnfinished((prev) => ({ ...prev, [runKind(apply)]: u ?? undefined }));
-  }, []);
-
-  const forgetUnfinished = useCallback(async () => {
-    await saveUnfinished(false, null);
-    await saveUnfinished(true, null);
-  }, [saveUnfinished]);
 
   /** The books an earlier preview or sync of this scope finished before it stopped, to pick up after. */
   const earlierRun = useCallback(
@@ -237,7 +239,7 @@ function Main() {
       const saveProgress = async (results: readonly BookResult[]) => {
         if (!resumable || scope.kind !== "books") return;
         // Nothing planned, or nothing left: starting over is the same as picking up.
-        const worth = results.some((r) => r.plan) && remainingScope(scope, results).books.length > 0;
+        const worth = results.some((r) => r.plan || r.written?.length) && remainingScope(scope, results).books.length > 0;
         await store.setUnfinished(apply, worth ? { key: runKey(settings, scope.books), results: [...results] } : null);
       };
       const pace = storedPace();

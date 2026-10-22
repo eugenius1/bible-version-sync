@@ -40,7 +40,10 @@ export interface RunOptions extends PlanOptions {
   resume?: BookResult[];
   signal?: AbortSignal;
   onProgress?: (p: Progress) => void;
-  /** `books` is every result so far, with those kept from `resume`: what a later run would resume from. */
+  /**
+   * `books` is every result so far, with what's carried over from `resume`:
+   * what a later run would resume from.
+   */
   onBookDone?: (r: BookResult, books: readonly BookResult[]) => void | Promise<void>;
 }
 
@@ -64,7 +67,7 @@ export interface BookResult {
   writeErrors: string[];
   /** The actions that were written, each with the colour it replaced. */
   written?: Action[];
-  /** Set when writing stopped partway (see RunSummary.fatal); a resumed run does the book again. */
+  /** Set when some writes didn't land (stopped partway, or failed); a resumed run does the book again. */
   unfinished?: boolean;
 }
 
@@ -170,7 +173,7 @@ export async function runSync(o: RunOptions): Promise<RunSummary> {
       readDone += bookTotal - bookDone;
       carry(result, partly);
       count(summary, result, o.apply);
-      await o.onBookDone?.(result, summary.books);
+      await o.onBookDone?.(result, [...summary.books, ...partly.values()]);
       if (e.stopsRun) {
         // Every other book would fail the same way; stop instead of hammering.
         summary.fatal = fatal(e);
@@ -196,15 +199,13 @@ export async function runSync(o: RunOptions): Promise<RunSummary> {
         });
         result.writeErrors = applied.errors;
         result.written = applied.written;
-        if (applied.stoppedBy) {
-          summary.fatal = fatal(applied.stoppedBy);
-          result.unfinished = true;
-        }
+        if (applied.stoppedBy) summary.fatal = fatal(applied.stoppedBy);
+        if (applied.stoppedBy || applied.errors.length) result.unfinished = true;
       }
       carry(result, partly);
     }
     count(summary, result, o.apply);
-    await o.onBookDone?.(result, summary.books);
+    await o.onBookDone?.(result, [...summary.books, ...partly.values()]);
     if (summary.fatal) break;
   }
   if (o.signal?.aborted) summary.aborted = true;

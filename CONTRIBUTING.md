@@ -357,11 +357,14 @@ Safety rules, all tested:
   one of the same kind, books, versions and colour order passes those results
   as `RunOptions.resume`. `runSync` keeps the books they finished
   (`finishedBooks`) and reads only the rest, so the report covers every
-  attempt. A book that failed to read or was cut off mid-write is done again;
-  the removals already written count towards the limit, so stopping and
-  resuming can't get round it; a book held back by the limit is done again
-  once removals are allowed. A sync drops a stopped preview, since the snapshot
-  it was planned against has changed.
+  attempt. A book that failed to read, or whose writes didn't all land, is
+  done again, and what it did write stays in the report. The limit on
+  removals counts every attempt, as if the run had never stopped (a run
+  started over counts from nothing, as any new run does); a book held back by
+  it is done again once removals are allowed. A sync, removing a version and
+  resetting the sync memory drop a stopped run, since the snapshot it was
+  planned against has changed; "Apply" under a preview reads afresh rather
+  than pick up an older stopped sync.
 
 ## The YouVersion API: things that will bite you
 

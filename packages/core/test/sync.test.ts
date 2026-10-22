@@ -742,6 +742,29 @@ describe("runSync", () => {
     expect(s.books[0].written).toHaveLength(2);
   });
 
+  it("does a book whose writes failed again on resuming, rather than keep it", async () => {
+    api.hl("NIV", "RUT.1.16", "ffe066");
+    api.hl("NIV", "JHN.3.16", "ffe066");
+    const orig = api.setHighlight.bind(api);
+    api.setHighlight = async (id, p, c) => {
+      if (id === IDS.AMP && p === "RUT.1.16") throw new ApiError(500, "boom", p);
+      return orig(id, p, c);
+    };
+    const controller = new AbortController();
+    const scope: Scope = { kind: "books", books: ["RUT", "JHN"] };
+    const first = await runSync({
+      api, versions: VERSIONS, scope, state, apply: true, signal: controller.signal,
+      onProgress: (p) => p.book === "JHN" && controller.abort(),
+    });
+    expect(first.books).toMatchObject([{ book: "RUT", unfinished: true }]);
+
+    api.setHighlight = orig;
+    const s = await runSync({ api, versions: VERSIONS, scope, state, apply: true, resume: first.books });
+    expect(api.color("AMP", "RUT.1.16")).toBe("ffe066");
+    expect(s.sets).toBe(6);
+    expect(s.writeErrors).toBe(0);
+  });
+
   it("reports progress up to the total", async () => {
     const seen: number[] = [];
     await runSync({
