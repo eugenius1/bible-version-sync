@@ -91,6 +91,11 @@ describe("SyncCard while running", () => {
     expect(screen.getByRole("progressbar")).toHaveAttribute("value", "12.3");
   });
 
+  it("holds the bar short of 100% while the last book is written", () => {
+    renderCard({ ...reading(true), progress: { phase: "writing", book: "JHN", done: 1, total: 9, readDone: 84, readTotal: 84 } } as RunState, false);
+    expect(screen.getAllByText("99.9%")).toHaveLength(2);
+  });
+
   it("leaves the book's progress out when the run is one book", () => {
     renderCard(reading(false), false);
     expect(screen.getByText("Reading John")).toBeInTheDocument();

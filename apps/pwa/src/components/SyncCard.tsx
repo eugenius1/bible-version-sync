@@ -151,7 +151,9 @@ function ProgressView({ run, stopping, onCancel }: {
   const { t, f, book, duration, durationRange, percent } = useI18n();
   const ts = t.sync;
   const p = run.progress;
-  const done = p && p.readTotal ? p.readDone / p.readTotal : 0;
+  // The bar counts chapters read; the last book's writes come after them, so
+  // it holds short of 100% until the run is over.
+  const done = p && p.readTotal ? Math.min(p.readDone / p.readTotal, 0.999) : 0;
   const doing = p && f(p.phase === "reading" ? ts.reading : ts.writing, { book: book(p.book) });
   // Over several books, how far into this one: the bar is the whole run.
   const severalBooks = run.scope.kind === "books" && run.scope.books.length > 1;
