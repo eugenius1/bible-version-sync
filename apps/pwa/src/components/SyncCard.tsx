@@ -48,9 +48,8 @@ export function SyncCard({ versions, run, stopping, onRun, resumesAt, onStartOve
     [versions, tooFew, running, scope],
   );
 
-  const resumes = running ? [] : ([[false, ts.resumePreview], [true, ts.resumeSync]] as const)
-    .map(([apply, text]) => [resumesAt?.(scope, apply), text] as const)
-    .filter((r): r is readonly [string, string] => r[0] !== undefined);
+  const previewAt = running ? undefined : resumesAt?.(scope, false);
+  const syncAt = running ? undefined : resumesAt?.(scope, true);
 
   return (
     <section className="card space-y-4" aria-labelledby="sync-title">
@@ -107,11 +106,10 @@ export function SyncCard({ versions, run, stopping, onRun, resumesAt, onStartOve
             {plural(ts.estimate, estimate.reads, { time: duration(estimate.ms) })}
           </p>
         )}
-        {resumes.length > 0 && (
+        {(previewAt || syncAt) && (
           <div className="flex flex-wrap items-center gap-x-2 text-sm text-stone-600 dark:text-stone-400">
-            {resumes.map(([at, text]) => (
-              <p key={text}>{f(text, { book: bookName(at) })}</p>
-            ))}
+            {previewAt && <p>{f(ts.resumePreview, { book: bookName(previewAt) })}</p>}
+            {syncAt && <p>{f(ts.resumeSync, { book: bookName(syncAt) })}</p>}
             <button className="btn-ghost min-h-0 gap-1 px-1 py-0.5 text-sm" onClick={onStartOver}>
               <RotateCcw size={14} aria-hidden />
               {ts.startOver}

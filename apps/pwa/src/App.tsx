@@ -23,7 +23,7 @@ import { VersionsCard } from "./components/VersionsCard";
 import { useI18n } from "./i18n";
 import { copyrightYears } from "./lib/copyright";
 import { APP_KEY, client, completeSignIn, isCallback, SignInError, signOut, startSignIn } from "./lib/auth";
-import { labelVersions, runKey, store, tokenStore, type Settings, type Unfinished } from "./lib/db";
+import { labelVersions, runKey, runKind, store, tokenStore, type Settings, type Unfinished } from "./lib/db";
 import { persistPace, storedPace } from "./lib/pace";
 import { resolveVersions, type ResolvedVersion } from "./lib/versions";
 
@@ -150,7 +150,7 @@ function Main() {
   const [customised, setCustomised] = useState(true);
   const abort = useRef<AbortController | null>(null);
   const [stopping, setStopping] = useState(false);
-  const [unfinished, setUnfinished] = useState<{ preview?: Unfinished; sync?: Unfinished }>({});
+  const [unfinished, setUnfinished] = useState<Partial<Record<"preview" | "sync", Unfinished>>>({});
   const [page, query] = useHash().slice(1).split("?");
 
   useEffect(() => {
@@ -159,7 +159,8 @@ function Main() {
       setSettings(await store.getSettings());
       setCustomised(await store.hasSettings());
       setRemembered(Object.keys((await store.getState()).verses).length);
-      setUnfinished({ preview: await store.getUnfinished(false), sync: await store.getUnfinished(true) });
+      const [preview, sync] = await Promise.all([store.getUnfinished(false), store.getUnfinished(true)]);
+      setUnfinished({ preview, sync });
     })();
   }, []);
 
@@ -206,7 +207,7 @@ function Main() {
 
   const saveUnfinished = useCallback(async (apply: boolean, u: Unfinished | null) => {
     await store.setUnfinished(apply, u);
-    setUnfinished((prev) => ({ ...prev, [apply ? "sync" : "preview"]: u ?? undefined }));
+    setUnfinished((prev) => ({ ...prev, [runKind(apply)]: u ?? undefined }));
   }, []);
 
   const forgetUnfinished = useCallback(async () => {
@@ -217,9 +218,8 @@ function Main() {
   /** The books an earlier preview or sync of this scope finished before it stopped, to pick up after. */
   const earlierRun = useCallback(
     (scope: Scope, apply: boolean): BookResult[] => {
-      const u = unfinished[apply ? "sync" : "preview"];
-      const same = u && settings && scope.kind === "books" && u.key === runKey(settings) && u.books.join() === scope.books.join();
-      return same ? u.results : [];
+      const u = unfinished[runKind(apply)];
+      return u && settings && scope.kind === "books" && u.key === runKey(settings, scope.books) ? u.results : [];
     },
     [unfinished, settings],
   );
@@ -233,9 +233,9 @@ function Main() {
       const earlier = earlierRun(scope, apply);
       // Only several books are worth picking up after; one book is the smallest step anyway.
       const resumable = scope.kind === "books" && scope.books.length > 1;
-      const record = (results: BookResult[]) =>
-        // Nothing read and planned yet: starting over is the same as picking up.
-        saveUnfinished(apply, resumable && results.some((r) => r.plan) ? { books: scope.books, key: runKey(settings), results } : null);
+      // Nothing read and planned yet: starting over is the same as picking up.
+      const unfinishedRun = (results: readonly BookResult[]): Unfinished | null =>
+        resumable && results.some((r) => r.plan) ? { key: runKey(settings, scope.books), results: [...results] } : null;
       const pace = storedPace();
       const expected = estimateRun(versions, remainingScope(scope, earlier, allowRemovals), pace.msPerRead);
       setRun({ status: "running", apply, scope, progress: null, remainingMs: expected.ms > ESTIMATE_THRESHOLD_MS ? expected.ms : null });
@@ -246,8 +246,6 @@ function Main() {
         // A sync changes the snapshot, so a stopped preview's books no longer hold.
         if (apply) await saveUnfinished(false, null);
         const state = await store.getState();
-        // Saved as each book finishes, so a page closed mid-run picks up too.
-        const results = [...earlier];
         // Started only now, so neither the wake lock nor loading the snapshot
         // is timed as the first read and saved as this browser's pace.
         const timer = (clock = new RunClock(performance.now(), { ...pace, expectedMs: expected.ms }));
@@ -268,16 +266,14 @@ function Main() {
             timer.tick(progress, performance.now());
             setRun({ status: "running", apply, scope, progress, remainingMs: left() });
           },
-          onBookDone: async (r) => {
+          // Saved as each book finishes, so a page closed mid-run picks up too.
+          // Only stored for now: the card shows it once the run is over.
+          onBookDone: async (_, results) => {
             if (apply) await store.setState(state);
-            // A book done again replaces what the earlier attempt left of it.
-            const i = results.findIndex((e) => e.book === r.book);
-            if (i >= 0) results.splice(i, 1);
-            results.push(r);
-            await record(results);
+            await store.setUnfinished(apply, unfinishedRun(results));
           },
         });
-        await record(summary.aborted || summary.fatal ? summary.books : []);
+        await saveUnfinished(apply, unfinishedRun(summary.aborted || summary.fatal ? summary.books : []));
         if (apply) setRemembered(Object.keys(state.verses).length);
         setRun({ status: "done", apply, scope, summary });
       } catch (e) {

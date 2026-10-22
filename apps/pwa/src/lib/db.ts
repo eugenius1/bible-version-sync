@@ -167,17 +167,18 @@ interface SavedSettings extends Omit<Settings, "versions" | "byColor" | "colorOr
  * end, kept so the next one of the same kind picks up where it stopped.
  */
 export interface Unfinished {
-  books: string[];
-  /** The versions and colour order it ran with (see runKey); a run with others starts over. */
+  /** Its books, versions and colour order (see runKey); a run with others starts over. */
   key: string;
   /** Every book it finished, from all its attempts. */
   results: BookResult[];
 }
 
-/** What a preview or sync's results depend on besides the snapshot. */
-export const runKey = (s: Settings) => `${s.versions.map((v) => v.bibleId).join()}|${s.byColor ? s.colorOrder.join() : ""}`;
+/** What a preview or sync of these books depends on besides the snapshot. */
+export const runKey = (s: Settings, books: readonly string[]) =>
+  `${books.join()}|${s.versions.map((v) => v.bibleId).join()}|${s.byColor ? s.colorOrder.join() : ""}`;
 
-const unfinishedKey = (apply: boolean) => (apply ? "unfinished:sync" : "unfinished:preview");
+/** Where a stopped preview or sync is kept: one of each. */
+export const runKind = (apply: boolean) => (apply ? "sync" : "preview");
 
 interface KV {
   key: string;
@@ -263,9 +264,9 @@ export const store = {
   getIndex: (bibleId: number) => get<unknown | null>(`index:${bibleId}`),
   setIndex: (bibleId: number, index: unknown | null) => put(`index:${bibleId}`, index),
 
-  getUnfinished: (apply: boolean) => get<Unfinished>(unfinishedKey(apply)),
+  getUnfinished: (apply: boolean) => get<Unfinished>(`unfinished:${runKind(apply)}`),
   setUnfinished: (apply: boolean, u: Unfinished | null) =>
-    u ? put(unfinishedKey(apply), u) : db.kv.delete(unfinishedKey(apply)),
+    u ? put(`unfinished:${runKind(apply)}`, u) : db.kv.delete(`unfinished:${runKind(apply)}`),
 
   clearAll: () => db.kv.clear(),
 };

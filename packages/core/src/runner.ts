@@ -40,7 +40,8 @@ export interface RunOptions extends PlanOptions {
   resume?: BookResult[];
   signal?: AbortSignal;
   onProgress?: (p: Progress) => void;
-  onBookDone?: (r: BookResult) => void | Promise<void>;
+  /** `books` is every result so far, with those kept from `resume`: what a later run would resume from. */
+  onBookDone?: (r: BookResult, books: readonly BookResult[]) => void | Promise<void>;
 }
 
 export interface Progress {
@@ -119,12 +120,13 @@ export async function runSync(o: RunOptions): Promise<RunSummary> {
     refused,
   };
   if (versions.length === 0) return summary;
-  const resume = o.scope.kind === "books" ? (o.resume ?? []) : [];
-  for (const r of finishedBooks(resume, o.allowRemovals)) if (books.includes(r.book)) count(summary, r, o.apply);
+  const order = new Map(books.map((b, i) => [b, i]));
+  const resume = o.scope.kind === "books" ? (o.resume ?? []).filter((r) => order.has(r.book)) : [];
+  const kept = finishedBooks(resume, o.allowRemovals);
+  for (const r of kept) count(summary, r, o.apply);
   // What a book cut off mid-write did write, so this run's report includes it.
   const partly = new Map(resume.filter((r) => r.unfinished).map((r) => [r.book, r.written ?? []]));
-  const left = remainingScope(o.scope, resume, o.allowRemovals);
-  const todo = left.kind === "books" ? left.books : books;
+  const todo = books.filter((b) => !kept.some((r) => r.book === b));
   const scope = o.scope.kind === "chapter" ? chapterScope(versions, o.scope.book, o.scope.chapter) : undefined;
   const readTotal = todo.reduce((n, b) => n + chaptersToRead(versions, b, scope?.chapters).length, 0);
   const maxRemovals = o.maxRemovals ?? 25;
@@ -163,7 +165,7 @@ export async function runSync(o: RunOptions): Promise<RunSummary> {
       result.readError = e.message;
       readDone += bookTotal - bookDone;
       count(summary, result, o.apply);
-      await o.onBookDone?.(result);
+      await o.onBookDone?.(result, summary.books);
       if (e.stopsRun) {
         // Every other book would fail the same way; stop instead of hammering.
         summary.fatal = fatal(e);
@@ -173,11 +175,11 @@ export async function runSync(o: RunOptions): Promise<RunSummary> {
     }
 
     const plan = result.plan;
-    const rems = plan.actions.filter((a) => a.op === "remove").length;
     // A preview counts what it would do; a run that applies counts only what
     // it went on to write, so a book held back by the limit, or a write that
     // failed or never went out, isn't reported as done.
     if (o.apply) {
+      const rems = plan.actions.filter((a) => a.op === "remove").length;
       if (rems && removalsSoFar + rems > maxRemovals && !o.allowRemovals) {
         result.blocked = { removals: rems, limit: maxRemovals };
       } else {
@@ -201,12 +203,12 @@ export async function runSync(o: RunOptions): Promise<RunSummary> {
       }
     }
     count(summary, result, o.apply);
-    await o.onBookDone?.(result);
+    await o.onBookDone?.(result, summary.books);
     if (summary.fatal) break;
   }
   if (o.signal?.aborted) summary.aborted = true;
   // Books done again on resuming come after the ones kept: back in the scope's order.
-  summary.books.sort((a, b) => books.indexOf(a.book) - books.indexOf(b.book));
+  summary.books.sort((a, b) => order.get(a.book)! - order.get(b.book)!);
   return summary;
 }
 

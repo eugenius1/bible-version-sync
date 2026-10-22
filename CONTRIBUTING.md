@@ -354,7 +354,7 @@ Safety rules, all tested:
 - **A stopped run picks up where it stopped, a book at a time.** A whole-Bible
   preview or sync that stops (Stop, a rate limit, a closed page) is saved as
   each book finishes (`Unfinished` in `apps/pwa/src/lib/db.ts`), and the next
-  one of the same kind, scope, versions and colour order passes those results
+  one of the same kind, books, versions and colour order passes those results
   as `RunOptions.resume`. `runSync` keeps the books they finished
   (`finishedBooks`) and reads only the rest, so the report covers every
   attempt. A book that failed to read or was cut off mid-write is done again;
