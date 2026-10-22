@@ -196,7 +196,6 @@ export class RunClock {
     return this.remainingMs() + (this.forecast?.maxWrites(writing) ?? 0) * this.msPerWrite;
   }
 
-
   /**
    * Whether the run has looked, at any point, like taking longer than the
    * threshold. Once it has, the estimate stays up to the end rather than

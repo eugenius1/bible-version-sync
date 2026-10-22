@@ -182,13 +182,21 @@ export function formatDurationRange(localeTag: string, minMs: number, maxMs: num
   return lo.unit === hi.unit && range ? range.call(lo.format, lo.value, hi.value) : `${a} – ${b}`;
 }
 
+// The time left is formatted on every chapter read, so each formatter is made once.
+const unitFormats = new Map<string, Intl.NumberFormat>();
+
 function durationParts(localeTag: string, ms: number) {
   const s = ms / 1000;
   const [value, unit, digits] =
     s < 90 ? [Math.max(5, Math.ceil(s / 5) * 5), "second", 0]
     : s < 90 * 60 ? [Math.round(s / 60), "minute", 0]
     : [s / 3600, "hour", 1];
-  const format = new Intl.NumberFormat(localeTag, { style: "unit", unit, unitDisplay: "long", maximumFractionDigits: digits });
+  const key = `${localeTag}|${unit}`;
+  let format = unitFormats.get(key);
+  if (!format) {
+    format = new Intl.NumberFormat(localeTag, { style: "unit", unit, unitDisplay: "long", maximumFractionDigits: digits });
+    unitFormats.set(key, format);
+  }
   return { value, unit, format };
 }
 

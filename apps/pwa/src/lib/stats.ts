@@ -71,7 +71,8 @@ export function syncStats(state: SyncState, order: readonly number[] = []): Stat
     if (!v) versions.set(id, (v = { bibleId: id, highlights: 0, added: 0, colors: noColors(), unwritable: 0 }));
     return v;
   };
-  const counts = Standard.load().counts.org;
+  const std = Standard.load();
+  const counts = std.counts.org;
   const books = new Map<string, BookStats>(
     BOOKS.map((book) => [book, { book, verses: 0, chaptersSynced: 0, chapters: counts[book]?.length ?? 0 }]),
   );
@@ -143,7 +144,7 @@ export function syncStats(state: SyncState, order: readonly number[] = []): Stat
   stats.topShare = [...byChapter]
     .map(([chapter, verses]) => {
       const [book, ch] = chapter.split(".");
-      return { chapter, verses, of: counts[book]?.[Number(ch) - 1] ?? 0 };
+      return { chapter, verses, of: std.count("org", book, Number(ch)) };
     })
     .filter((c) => c.of > 0)
     .sort((a, b) => b.verses / b.of - a.verses / a.of || b.verses - a.verses || chapterOrder(a.chapter) - chapterOrder(b.chapter))
