@@ -3,9 +3,12 @@ import {
   ESTIMATE_THRESHOLD_MS,
   estimateRun,
   forgetVersion,
+  highlightedByBook,
   remainingScope,
   RunClock,
   runSync,
+  supported,
+  WriteForecast,
   type BookResult,
   type HighlightColorId,
   type Progress,
@@ -36,8 +39,11 @@ export type RunState =
       apply: boolean;
       scope: Scope;
       progress: Progress | null;
-      /** Time left, while the run looks like taking more than a few seconds. */
-      remainingMs: number | null;
+      /**
+       * Time left, while the run looks like taking more than a few seconds:
+       * at least the reads, at most those and every write they could lead to.
+       */
+      remaining: { minMs: number; maxMs: number } | null;
     }
   | { status: "done"; apply: boolean; scope: Scope; summary: RunSummary }
   | { status: "error"; message: string };
@@ -243,8 +249,9 @@ function Main() {
         await store.setUnfinished(apply, worth ? { key: runKey(settings, scope.books), results: [...results] } : null);
       };
       const pace = storedPace();
-      const expected = estimateRun(versions, remainingScope(scope, earlier, allowRemovals), pace.msPerRead);
-      setRun({ status: "running", apply, scope, progress: null, remainingMs: expected.ms > ESTIMATE_THRESHOLD_MS ? expected.ms : null });
+      const todo = remainingScope(scope, earlier, allowRemovals);
+      const expected = estimateRun(versions, todo, pace.msPerRead);
+      setRun({ status: "running", apply, scope, progress: null, remaining: null });
       let wakeLock: { release(): Promise<void> } | null = null;
       let clock: RunClock | null = null;
       try {
@@ -252,10 +259,17 @@ function Main() {
         // A sync changes the snapshot, so a stopped preview's books no longer hold.
         if (apply) await saveUnfinished(false, null);
         const state = await store.getState();
+        const forecast = apply && todo.kind === "books"
+          ? new WriteForecast(todo.books, supported(versions).length, highlightedByBook(state))
+          : undefined;
         // Started only now, so neither the wake lock nor loading the snapshot
         // is timed as the first read and saved as this browser's pace.
-        const timer = (clock = new RunClock(performance.now(), { ...pace, expectedMs: expected.ms }));
-        const left = () => (timer.long ? timer.remainingMs() : null);
+        const timer = (clock = new RunClock(performance.now(), { ...pace, expectedMs: expected.ms }, forecast));
+        const left = () => (timer.long ? { minMs: timer.remainingMs(), maxMs: timer.maxRemainingMs() } : null);
+        if (expected.ms > ESTIMATE_THRESHOLD_MS) {
+          const most = expected.ms + (forecast?.maxWrites() ?? 0) * timer.msPerWrite;
+          setRun({ status: "running", apply, scope, progress: null, remaining: { minMs: expected.ms, maxMs: most } });
+        }
         const summary = await runSync({
           api: client,
           // Unsupported ones too: the sync leaves them out but keeps their snapshot.
@@ -270,11 +284,12 @@ function Main() {
           signal: controller.signal,
           onProgress: (progress) => {
             timer.tick(progress, performance.now());
-            setRun({ status: "running", apply, scope, progress, remainingMs: left() });
+            setRun({ status: "running", apply, scope, progress, remaining: left() });
           },
           // Saved as each book finishes, so a page closed mid-run picks up too.
           // Only stored for now: the card shows it once the run is over.
-          onBookDone: async (_, results) => {
+          onBookDone: async (r, results) => {
+            if (r.plan) forecast?.bookRead(r.book, Object.values(r.plan.newState).filter((c) => Object.keys(c).length).length);
             if (apply) await store.setState(state);
             await saveProgress(results);
           },

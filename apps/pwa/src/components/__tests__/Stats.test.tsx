@@ -52,7 +52,10 @@ describe("StatsPage", () => {
     const legend = screen.getAllByRole("listitem").map((li) => li.textContent).filter((t) => /^(Pink|Yellow)/.test(t ?? ""));
     expect(legend).toEqual(["Pink 1", "Yellow 1", "Pink 1", "Yellow 1"]);
     expect(screen.getByText("John")).toBeInTheDocument();
-    expect(screen.getByText("John 3")).toBeInTheDocument();
+    // Once by verses highlighted, once by their share of the chapter's 36.
+    expect(screen.getAllByText("John 3")).toHaveLength(2);
+    expect(screen.getByText("2 of 36 verses")).toBeInTheDocument();
+    expect(screen.getByText("5.6%")).toBeInTheDocument();
     expect(screen.getByText(/Not measured yet/)).toBeInTheDocument();
   });
 

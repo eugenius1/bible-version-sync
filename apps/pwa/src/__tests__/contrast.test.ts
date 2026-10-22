@@ -139,6 +139,18 @@ const PAIRS: Array<[Pair, Pair]> = [
     { label: "progress bar in its track", fg: "amber-500", bg: "stone-800", need: 3 },
   ],
   [
+    { label: "progress percentage on the track", fg: "stone-900", bg: "stone-200", need: 4.5 },
+    { label: "progress percentage on the track", fg: "stone-100", bg: "stone-800", need: 4.5 },
+  ],
+  [
+    { label: "progress percentage on the bar", fg: "white", bg: "amber-700", need: 4.5 },
+    { label: "progress percentage on the bar", fg: "stone-950", bg: "amber-500", need: 4.5 },
+  ],
+  [
+    { label: "Stop button", fg: "white", bg: "red-700", need: 4.5 },
+    { label: "Stop button", fg: "white", bg: "red-700", need: 4.5 },
+  ],
+  [
     { label: "badge hint text", fg: "white", bg: "stone-900", need: 4.5 },
     { label: "badge hint text", fg: "stone-900", bg: "stone-100", need: 4.5 },
   ],

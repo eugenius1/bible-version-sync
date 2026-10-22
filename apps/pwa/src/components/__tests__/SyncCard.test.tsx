@@ -23,7 +23,7 @@ const reading = (apply: boolean): RunState => ({
   apply,
   scope: { kind: "books", books: ["JHN"] },
   progress: { phase: "reading", book: "JHN", done: 3, total: 84, readDone: 3, readTotal: 84 },
-  remainingMs: null,
+  remaining: null,
 });
 
 function renderCard(run: RunState, stopping: boolean, onCancel = vi.fn(), versions: ResolvedVersion[] | null = null) {
@@ -61,7 +61,7 @@ describe("SyncCard while running", () => {
       apply: true,
       scope: { kind: "books", books: ["RUT", "JHN"] },
       progress: { phase: "writing", book: "RUT", done: 1, total: 4, readDone: 16, readTotal: 100 },
-      remainingMs: 4000,
+      remaining: { minMs: 4000, maxMs: 4000 },
     };
     renderCard(run, true);
     expect(screen.getByText(/Stopping once Ruth is written…/)).toBeInTheDocument();
@@ -70,8 +70,30 @@ describe("SyncCard while running", () => {
   });
 
   it("shows the time left on a long run", () => {
-    renderCard({ ...reading(false), remainingMs: 150_000 } as RunState, false);
-    expect(screen.getByText(/Reading John · 3 of 84 chapters · about 3 minutes left/)).toBeInTheDocument();
+    renderCard({ ...reading(false), remaining: { minMs: 150_000, maxMs: 150_000 } } as RunState, false);
+    expect(screen.getByText("Previewing — about 3 minutes left")).toBeInTheDocument();
+  });
+
+  it("gives a sync's time left as a range, at least the reads and at most every write", () => {
+    renderCard({ ...reading(true), remaining: { minMs: 7 * 60_000, maxMs: 77 * 60_000 } } as RunState, false);
+    expect(screen.getByText("Syncing — 7–77 minutes left")).toBeInTheDocument();
+  });
+
+  it("shows the whole run's progress in the bar, and the book's only over several books", () => {
+    const run: RunState = {
+      ...reading(true),
+      scope: { kind: "books", books: ["GEN", "JHN"] },
+      progress: { phase: "reading", book: "JHN", done: 21, total: 84, readDone: 123, readTotal: 1000 },
+    } as RunState;
+    renderCard(run, false);
+    expect(screen.getByText("Reading John — 25%")).toBeInTheDocument();
+    expect(screen.getAllByText("12.3%")).toHaveLength(2); // one copy for each side of the fill
+    expect(screen.getByRole("progressbar")).toHaveAttribute("value", "12.3");
+  });
+
+  it("leaves the book's progress out when the run is one book", () => {
+    renderCard(reading(false), false);
+    expect(screen.getByText("Reading John")).toBeInTheDocument();
   });
 
   it("shows no time left on a quick one", () => {

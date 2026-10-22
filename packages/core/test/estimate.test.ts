@@ -3,8 +3,12 @@ import {
   ASSUMED_MS_PER_READ,
   ASSUMED_MS_PER_WRITE,
   BOOKS,
+  ASSUMED_HIGHLIGHT_SHARE,
   RunClock,
   VersionMap,
+  WriteForecast,
+  emptyState,
+  highlightedByBook,
   buildVersionMap,
   estimateRun,
   type Progress,
@@ -93,5 +97,44 @@ describe("RunClock", () => {
     expect(slower.long).toBe(false);
     slower.tick(reading(1, 10), 3000);
     expect(slower.long).toBe(true);
+  });
+});
+
+describe("WriteForecast", () => {
+  // Ruth has 85 verses, Jonah 48 (Hebrew numbering).
+  it("assumes a share of verses highlighted before reading any, and every one copied to every other version", () => {
+    const f = new WriteForecast(["RUT", "JON"], 3);
+    expect(f.maxWrites()).toBe(2 * (Math.round(ASSUMED_HIGHLIGHT_SHARE * 85) + Math.round(ASSUMED_HIGHLIGHT_SHARE * 48)));
+    expect(f.maxWrites(1)).toBe(2 * Math.round(ASSUMED_HIGHLIGHT_SHARE * 48));
+  });
+
+  it("goes by the share in the books read, or the sync memory where that's more", () => {
+    const f = new WriteForecast(["RUT", "JON"], 2, { JON: 30 });
+    f.bookRead("RUT", 17); // a fifth
+    expect(f.maxWrites(1)).toBe(30);
+    const g = new WriteForecast(["RUT", "JON"], 2, { JON: 1 });
+    g.bookRead("RUT", 17);
+    expect(g.maxWrites(1)).toBe(Math.round(0.2 * 48));
+  });
+
+  it("needs no writes with one version", () => {
+    expect(new WriteForecast(["RUT"], 1, { RUT: 50 }).maxWrites()).toBe(0);
+  });
+
+  it("counts the sync memory's highlighted verses per book", () => {
+    const state = { ...emptyState(), verses: { "RUT.1.16": { 111: "fffe00" }, "RUT.1.17": {}, "JON.2.1": { 1588: "fffe00" } } };
+    expect(highlightedByBook(state)).toEqual({ RUT: 1, JON: 1 });
+  });
+
+  it("adds the most the unread books may write to what's left", () => {
+    const f = new WriteForecast(["RUT", "JON"], 2, { RUT: 10, JON: 20 });
+    const clock = new RunClock(0, {}, f);
+    clock.tick(reading(1, 8, "RUT"), 100);
+    // Ruth is still being read, so its writes may come too.
+    expect(clock.maxRemainingMs() - clock.remainingMs()).toBeCloseTo(f.maxWrites(0) * clock.msPerWrite);
+    clock.tick(writing(1, 5, 4, 8, "RUT"), 100 + ASSUMED_MS_PER_WRITE);
+    // Ruth's writes are known now: only Jonah's are a guess.
+    expect(clock.maxRemainingMs() - clock.remainingMs()).toBeCloseTo(f.maxWrites(1) * clock.msPerWrite);
+    expect(new RunClock(0).maxRemainingMs()).toBe(0);
   });
 });

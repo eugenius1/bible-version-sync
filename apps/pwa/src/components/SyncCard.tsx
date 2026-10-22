@@ -148,35 +148,54 @@ function ProgressView({ run, stopping, onCancel }: {
   stopping: boolean;
   onCancel: () => void;
 }) {
-  const { t, f, num, book, duration } = useI18n();
+  const { t, f, book, duration, durationRange, percent } = useI18n();
   const ts = t.sync;
   const p = run.progress;
-  const pct = p && p.readTotal ? Math.round((p.readDone / p.readTotal) * 100) : 0;
-  const text = stopping
+  const done = p && p.readTotal ? p.readDone / p.readTotal : 0;
+  // Over several books, how far into this one: the bar is the whole run.
+  const ofBook = p && p.total && run.scope.kind === "books" && run.scope.books.length > 1 ? ` — ${percent(p.done / p.total)}` : "";
+  const now = stopping
     ? run.apply && p?.phase === "writing" ? f(ts.stoppingWriting, { book: book(p.book) }) : ts.stopping
     : !p
     ? ts.starting
-    : p.phase === "reading"
-      ? f(ts.reading, { book: book(p.book), done: num(p.readDone), total: num(p.readTotal) })
-      : f(ts.writing, { book: book(p.book), done: num(p.done), total: num(p.total) });
-  const left = !stopping && run.remainingMs !== null ? f(ts.remaining, { time: duration(run.remainingMs) }) : null;
+    : f(p.phase === "reading" ? ts.reading : ts.writing, { book: book(p.book) }) + ofBook;
+  const r = run.remaining;
+  const range = r && durationRange(r.minMs, r.maxMs);
+  const left = stopping || !r || !range ? null
+    : range === duration(r.minMs) ? f(ts.remaining, { time: range })
+    : f(ts.remainingRange, { time: range });
+  const label = percent(done, 1);
   return (
     <div className="space-y-2" role="status" aria-live="polite">
-      <div className="flex items-center justify-between gap-3 text-sm">
-        <span className="inline-flex items-center gap-2">
-          <RefreshCw size={14} className="shrink-0 animate-spin motion-reduce:animate-none" aria-hidden />
-          {run.apply ? ts.syncing : ts.previewing} — {text}
-          {left && ` · ${left}`}
+      <p className="flex items-center gap-2 text-sm font-medium">
+        <RefreshCw size={14} className="shrink-0 animate-spin motion-reduce:animate-none" aria-hidden />
+        {run.apply ? ts.syncing : ts.previewing}
+        {left && ` — ${left}`}
+      </p>
+      <p className="text-sm text-stone-600 dark:text-stone-400">{now}</p>
+      <div className="relative h-6 overflow-hidden rounded-full bg-stone-200 text-xs font-semibold tabular-nums dark:bg-stone-800">
+        <progress className="sr-only" max={100} value={done * 100} />
+        <div className="h-full rounded-full bg-amber-700 transition-[width] dark:bg-amber-500" style={{ width: `${done * 100}%` }} />
+        {/* The label twice, each clipped to its side of the fill's edge, so it reads on both. */}
+        <span className="absolute inset-0 flex items-center justify-center text-stone-900 dark:text-stone-100" aria-hidden>
+          {label}
         </span>
-        <button className="btn-ghost shrink-0" disabled={stopping} onClick={onCancel}>
-          <Square size={14} aria-hidden />
-          {stopping ? ts.stoppingButton : ts.stop}
-        </button>
+        <span
+          className="absolute inset-0 flex items-center justify-center text-white transition-[clip-path] dark:text-stone-950"
+          style={{ clipPath: `inset(0 ${100 - done * 100}% 0 0)` }}
+          aria-hidden
+        >
+          {label}
+        </span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-stone-200 dark:bg-stone-800">
-        <progress className="sr-only" max={100} value={pct} />
-        <div className="h-full rounded-full bg-amber-700 transition-[width] dark:bg-amber-500" style={{ width: `${pct}%` }} />
-      </div>
+      <button
+        className="btn w-full bg-red-700 text-white hover:bg-red-800 sm:w-auto"
+        disabled={stopping}
+        onClick={onCancel}
+      >
+        <Square size={14} aria-hidden />
+        {stopping ? ts.stoppingButton : ts.stop}
+      </button>
       {run.apply && <p className="text-xs text-stone-600 dark:text-stone-400">{ts.stopNote}</p>}
     </div>
   );

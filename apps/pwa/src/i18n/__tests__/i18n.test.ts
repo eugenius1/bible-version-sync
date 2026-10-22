@@ -275,3 +275,19 @@ describe("duration", () => {
     expect(createI18n("ru").duration(2 * 60_000)).toBe("2 минуты");
   });
 });
+
+describe("durationRange", () => {
+  const { durationRange } = createI18n("en");
+
+  it("says the unit once when both ends share it", () => {
+    expect(durationRange(7 * 60_000, 77 * 60_000)).toBe("7–77 minutes");
+  });
+
+  it("says both units when they differ", () => {
+    expect(durationRange(50 * 60_000, 3 * 3600_000)).toBe("50 minutes – 3 hours");
+  });
+
+  it("is a single time when both ends round the same", () => {
+    expect(durationRange(3 * 60_000, 3.2 * 60_000)).toBe("3 minutes");
+  });
+});

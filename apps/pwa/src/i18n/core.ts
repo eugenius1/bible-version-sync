@@ -109,6 +109,10 @@ export interface I18n {
    * "3 minutes", "1.5 hours". Rounded, since it's always an estimate.
    */
   duration: (ms: number) => string;
+  /** A range of time, as rough as duration: "7–77 minutes", "50 minutes – 2 hours". */
+  durationRange: (minMs: number, maxMs: number) => string;
+  /** A fraction as a percentage with `digits` decimals: 0.123 -> "12.3%". */
+  percent: (fraction: number, digits?: number) => string;
   /** Book name in the active language: GEN -> Genesis / Genèse. */
   book: (code: string) => string;
   /** "PSA.51.3" -> "Psalms 51:3" / "Psaumes 51:3". */
@@ -136,6 +140,9 @@ export function createI18n(lang: Lang, setLang: (lang: Lang) => void = () => {})
     },
     num: (v) => numberFormat.format(v),
     duration: (ms) => formatDuration(t.meta.localeTag, ms),
+    durationRange: (min, max) => formatDurationRange(t.meta.localeTag, min, max),
+    percent: (v, digits = 0) =>
+      new Intl.NumberFormat(t.meta.localeTag, { style: "percent", minimumFractionDigits: digits, maximumFractionDigits: digits }).format(v),
     book: (code) => bookName(code, books),
     ref: (r) => displayRef(r, books),
   };
@@ -147,12 +154,33 @@ export function createI18n(lang: Lang, setLang: (lang: Lang) => void = () => {})
  * shows while something is still running.
  */
 export function formatDuration(localeTag: string, ms: number): string {
+  const { value, format } = durationParts(localeTag, ms);
+  return format.format(value);
+}
+
+/**
+ * Both ends rounded as formatDuration rounds them; one unit said once when
+ * they share it, and a single time when they round the same.
+ */
+export function formatDurationRange(localeTag: string, minMs: number, maxMs: number): string {
+  const lo = durationParts(localeTag, minMs);
+  const hi = durationParts(localeTag, maxMs);
+  const a = lo.format.format(lo.value);
+  const b = hi.format.format(hi.value);
+  if (a === b) return a;
+  // formatRange is ES2023 (Chrome 106, Safari 15.4); older browsers get the long form.
+  const range = (lo.format as { formatRange?: (x: number, y: number) => string }).formatRange;
+  return lo.unit === hi.unit && range ? range.call(lo.format, lo.value, hi.value) : `${a} – ${b}`;
+}
+
+function durationParts(localeTag: string, ms: number) {
   const s = ms / 1000;
   const [value, unit, digits] =
     s < 90 ? [Math.max(5, Math.ceil(s / 5) * 5), "second", 0]
     : s < 90 * 60 ? [Math.round(s / 60), "minute", 0]
     : [s / 3600, "hour", 1];
-  return new Intl.NumberFormat(localeTag, { style: "unit", unit, unitDisplay: "long", maximumFractionDigits: digits }).format(value);
+  const format = new Intl.NumberFormat(localeTag, { style: "unit", unit, unitDisplay: "long", maximumFractionDigits: digits });
+  return { value, unit, format };
 }
 
 /** Keep <html lang> in step, so screen readers and hyphenation follow. */
