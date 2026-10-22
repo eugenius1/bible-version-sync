@@ -351,6 +351,20 @@ Safety rules, all tested:
   mid-read is dropped unplanned; `readBook` checks the signal once more before
   it returns. Writes don't take it: a book being written is finished, since a
   request cut off mid-flight may or may not have landed.
+- **A stopped run picks up where it stopped, a book at a time.** A whole-Bible
+  preview or sync that stops (Stop, a rate limit, a closed page) is saved as
+  each book finishes (`Unfinished` in `apps/pwa/src/lib/db.ts`), and the next
+  one of the same kind, books, versions and colour order passes those results
+  as `RunOptions.resume`. `runSync` keeps the books they finished
+  (`finishedBooks`) and reads only the rest, so the report covers every
+  attempt. A book that failed to read, or whose writes didn't all land, is
+  done again, and what it did write stays in the report. The limit on
+  removals counts every attempt, as if the run had never stopped (a run
+  started over counts from nothing, as any new run does); a book held back by
+  it is done again once removals are allowed. A sync, removing a version and
+  resetting the sync memory drop a stopped run, since the snapshot it was
+  planned against has changed; "Apply" under a preview reads afresh rather
+  than pick up an older stopped sync.
 
 ## The YouVersion API: things that will bite you
 

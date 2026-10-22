@@ -168,6 +168,9 @@ export const es: Dictionary = {
     stoppingButton: "Deteniendo",
     stopNote: "Si detienes ahora, el libro que se está escribiendo termina primero, para que nada quede a medias.",
     tooFew: "Para sincronizar hacen falta al menos dos versiones con numeración compatible.",
+    resumePreview: "La próxima revisión continúa en {book}, donde se detuvo la anterior.",
+    resumeSync: "La próxima sincronización continúa en {book}, donde se detuvo la anterior.",
+    startOver: "Empezar de nuevo",
   },
 
   results: {

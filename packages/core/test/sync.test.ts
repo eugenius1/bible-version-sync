@@ -22,6 +22,7 @@ import {
   versificationLabel,
   type Highlight,
   type HighlightsApi,
+  type Scope,
   type SyncState,
   type SyncVersion,
 } from "../src";
@@ -598,6 +599,170 @@ describe("runSync", () => {
     expect(s.books.map((b) => b.book)).toEqual(["RUT"]);
     for (let v = 1; v <= 3; v++) expect(every(`RUT.1.${v}`)).toEqual({ AMP: "ffe066", NIV: "ffe066", LSG: "ffe066", S21: "ffe066" });
     expect(api.color("AMP", "JHN.3.16")).toBeNull();
+  });
+
+  it("resumes a stopped run at the book it stopped in, keeping what it finished", async () => {
+    api.hl("NIV", "RUT.1.16", "ffe066");
+    api.hl("NIV", "JHN.3.16", "ffe066");
+    const orig = api.getHighlights.bind(api);
+    api.getHighlights = async (id, p) => {
+      if (p === "JHN.2") throw new ApiError(429, "too many requests", p);
+      return orig(id, p);
+    };
+    const scope: Scope = { kind: "books", books: ["RUT", "JHN"] };
+    const first = await runSync({ api, versions: VERSIONS, scope, state, apply: true });
+    expect(first.fatal?.reason).toBe("rateLimited");
+    expect(first.sets).toBe(3);
+
+    api.getHighlights = orig;
+    api.reads.length = 0;
+    const progress: number[] = [];
+    const s = await runSync({
+      api, versions: VERSIONS, scope, state, apply: true, resume: first.books,
+      onProgress: (p) => progress.push(p.readTotal),
+    });
+    expect(api.reads).toHaveLength(4 * 21); // John only, in four versions
+    expect(new Set(progress)).toEqual(new Set([4 * 21]));
+    expect(s.fatal).toBeUndefined();
+    expect(s.failedBooks).toBe(0);
+    expect(s.sets).toBe(6); // Ruth's three from before, John's three now
+    expect(s.books.map((b) => b.book)).toEqual(["RUT", "JHN"]);
+    expect(every("JHN.3.16")).toEqual({ AMP: "ffe066", NIV: "ffe066", LSG: "ffe066", S21: "ffe066" });
+  });
+
+  it("resumes a preview, combining what both attempts found", async () => {
+    api.hl("NIV", "RUT.1.16", "ffe066");
+    api.hl("NIV", "JHN.3.16", "ffe066");
+    const controller = new AbortController();
+    const scope: Scope = { kind: "books", books: ["RUT", "JHN"] };
+    const first = await runSync({
+      api, versions: VERSIONS, scope, state, apply: false, signal: controller.signal,
+      onProgress: (p) => p.book === "JHN" && controller.abort(),
+    });
+    expect(first.aborted).toBe(true);
+    const s = await runSync({ api, versions: VERSIONS, scope, state, apply: false, resume: first.books });
+    expect(s.aborted).toBe(false);
+    expect(s.sets).toBe(6);
+    expect(s.books.map((b) => b.book)).toEqual(["RUT", "JHN"]);
+    expect(api.writes).toBe(0);
+  });
+
+  it("does a book cut off mid-write again on resuming, counting what it wrote before", async () => {
+    for (const v of [16, 17, 18]) api.hl("NIV", `RUT.1.${v}`, "ffe066");
+    const orig = api.setHighlight.bind(api);
+    let attempts = 0;
+    api.setHighlight = async (id, p, c) => {
+      if (++attempts === 2) throw new ApiError(429, "too many requests", p);
+      return orig(id, p, c);
+    };
+    const scope: Scope = { kind: "books", books: ["RUT"] };
+    const first = await runSync({ api, versions: VERSIONS, scope, state, apply: true });
+    expect(first.books[0].unfinished).toBe(true);
+    expect(first.sets).toBe(1);
+
+    api.setHighlight = orig;
+    const s = await runSync({ api, versions: VERSIONS, scope, state, apply: true, resume: first.books });
+    expect(s.sets).toBe(9); // three verses in three versions, over both attempts
+    expect(s.books[0].written).toHaveLength(9);
+    expect(s.books[0].plan?.actions).toHaveLength(9);
+    for (const v of [16, 17, 18]) expect(every(`RUT.1.${v}`)).toEqual({ AMP: "ffe066", NIV: "ffe066", LSG: "ffe066", S21: "ffe066" });
+  });
+
+  it("counts the removals of the books it keeps towards the limit", async () => {
+    for (let v = 1; v <= 3; v++) api.hl("NIV", `RUT.1.${v}`, "ffe066");
+    api.hl("NIV", "JHN.3.16", "ffe066");
+    const scope: Scope = { kind: "books", books: ["RUT", "JHN"] };
+    await runSync({ api, versions: VERSIONS, scope, state, apply: true });
+    for (let v = 1; v <= 3; v++) delete api.store[IDS.NIV][`RUT.1.${v}`];
+    delete api.store[IDS.NIV]["JHN.3.16"];
+    const controller = new AbortController();
+    const first = await runSync({
+      api, versions: VERSIONS, scope, state, apply: true, maxRemovals: 10, signal: controller.signal,
+      onProgress: (p) => p.book === "JHN" && controller.abort(),
+    });
+    expect(first.removals).toBe(9);
+    const s = await runSync({ api, versions: VERSIONS, scope, state, apply: true, maxRemovals: 10, resume: first.books });
+    expect(s.removals).toBe(9);
+    expect(s.blockedBooks).toBe(1); // John's three more would make 12
+    expect(api.color("AMP", "JHN.3.16")).toBe("ffe066");
+
+    const allowed = await runSync({
+      api, versions: VERSIONS, scope, state, apply: true, maxRemovals: 10, allowRemovals: true, resume: s.books,
+    });
+    expect(allowed.blockedBooks).toBe(0);
+    expect(allowed.removals).toBe(12);
+    expect(api.color("AMP", "JHN.3.16")).toBeNull();
+  });
+
+  it("counts removals written before a cut-off towards the limit when resuming", async () => {
+    for (let v = 1; v <= 3; v++) api.hl("NIV", `RUT.1.${v}`, "ffe066");
+    for (let v = 1; v <= 2; v++) api.hl("NIV", `JHN.3.${v}`, "ffe066");
+    const scope: Scope = { kind: "books", books: ["RUT", "JHN"] };
+    await runSync({ api, versions: VERSIONS, scope, state, apply: true });
+    for (let v = 1; v <= 3; v++) delete api.store[IDS.NIV][`RUT.1.${v}`];
+    for (let v = 1; v <= 2; v++) delete api.store[IDS.NIV][`JHN.3.${v}`];
+    const orig = api.deleteHighlight.bind(api);
+    let attempts = 0;
+    api.deleteHighlight = async (id, p) => {
+      if (++attempts === 6) throw new ApiError(429, "too many requests", p);
+      return orig(id, p);
+    };
+    const first = await runSync({ api, versions: VERSIONS, scope, state, apply: true, maxRemovals: 12 });
+    expect(first.removals).toBe(5);
+
+    api.deleteHighlight = orig;
+    const s = await runSync({ api, versions: VERSIONS, scope, state, apply: true, maxRemovals: 12, resume: first.books });
+    // Ruth's nine, five of them from before, and John's six would make 15.
+    expect(s.removals).toBe(9);
+    expect(s.blockedBooks).toBe(1);
+    expect(api.color("AMP", "JHN.3.1")).toBe("ffe066");
+  });
+
+  it("keeps what a cut-off book wrote when the resumed run stops before redoing it", async () => {
+    for (const v of [16, 17, 18]) api.hl("NIV", `RUT.1.${v}`, "ffe066");
+    const orig = api.setHighlight.bind(api);
+    let attempts = 0;
+    api.setHighlight = async (id, p, c) => {
+      if (++attempts === 3) throw new ApiError(429, "too many requests", p);
+      return orig(id, p, c);
+    };
+    const scope: Scope = { kind: "books", books: ["RUT", "JHN"] };
+    const first = await runSync({ api, versions: VERSIONS, scope, state, apply: true });
+    expect(first.sets).toBe(2);
+
+    api.setHighlight = orig;
+    const controller = new AbortController();
+    const s = await runSync({
+      api, versions: VERSIONS, scope, state, apply: true, resume: first.books, signal: controller.signal,
+      onProgress: () => controller.abort(),
+    });
+    expect(s.aborted).toBe(true);
+    expect(s.sets).toBe(2);
+    expect(s.books).toMatchObject([{ book: "RUT", unfinished: true }]);
+    expect(s.books[0].written).toHaveLength(2);
+  });
+
+  it("does a book whose writes failed again on resuming, rather than keep it", async () => {
+    api.hl("NIV", "RUT.1.16", "ffe066");
+    api.hl("NIV", "JHN.3.16", "ffe066");
+    const orig = api.setHighlight.bind(api);
+    api.setHighlight = async (id, p, c) => {
+      if (id === IDS.AMP && p === "RUT.1.16") throw new ApiError(500, "boom", p);
+      return orig(id, p, c);
+    };
+    const controller = new AbortController();
+    const scope: Scope = { kind: "books", books: ["RUT", "JHN"] };
+    const first = await runSync({
+      api, versions: VERSIONS, scope, state, apply: true, signal: controller.signal,
+      onProgress: (p) => p.book === "JHN" && controller.abort(),
+    });
+    expect(first.books).toMatchObject([{ book: "RUT", unfinished: true }]);
+
+    api.setHighlight = orig;
+    const s = await runSync({ api, versions: VERSIONS, scope, state, apply: true, resume: first.books });
+    expect(api.color("AMP", "RUT.1.16")).toBe("ffe066");
+    expect(s.sets).toBe(6);
+    expect(s.writeErrors).toBe(0);
   });
 
   it("reports progress up to the total", async () => {

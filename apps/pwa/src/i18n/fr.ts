@@ -173,6 +173,9 @@ export const fr: Dictionary = {
     stoppingButton: "Arrêt",
     stopNote: "Un livre en cours d'écriture est terminé avant l'arrêt, pour que rien ne reste à moitié fait.",
     tooFew: "Il faut au moins deux versions dont la numérotation est prise en charge pour synchroniser.",
+    resumePreview: "Le prochain aperçu reprend à {book}, là où le précédent s'est arrêté.",
+    resumeSync: "La prochaine synchronisation reprend à {book}, là où la précédente s'est arrêtée.",
+    startOver: "Recommencer",
   },
 
   results: {

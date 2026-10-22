@@ -1,6 +1,7 @@
 import Dexie, { type Table } from "dexie";
 import {
   loadVersionNames,
+  type BookResult,
   migrateState,
   mostUsedVersions,
   versionName,
@@ -161,6 +162,24 @@ interface SavedSettings extends Omit<Settings, "versions" | "byColor" | "colorOr
   colorOrder?: string[];
 }
 
+/**
+ * A whole-Bible (or several-book) preview or sync that stopped before the
+ * end, kept so the next one of the same kind picks up where it stopped.
+ */
+export interface Unfinished {
+  /** Its books, versions and colour order (see runKey); a run with others starts over. */
+  key: string;
+  /** Every book it finished, from all its attempts. */
+  results: BookResult[];
+}
+
+/** What a preview or sync of these books depends on besides the snapshot. */
+export const runKey = (s: Settings, books: readonly string[]) =>
+  `${books.join()}|${s.versions.map((v) => v.bibleId).join()}|${s.byColor ? s.colorOrder.join() : ""}`;
+
+/** Where a stopped preview or sync is kept: one of each. */
+export const runKind = (apply: boolean) => (apply ? "sync" : "preview");
+
 interface KV {
   key: string;
   value: unknown;
@@ -244,6 +263,10 @@ export const store = {
   /** Cached /v1/bibles/{id}/index, or null when the app key may not read it. */
   getIndex: (bibleId: number) => get<unknown | null>(`index:${bibleId}`),
   setIndex: (bibleId: number, index: unknown | null) => put(`index:${bibleId}`, index),
+
+  getUnfinished: (apply: boolean) => get<Unfinished>(`unfinished:${runKind(apply)}`),
+  setUnfinished: (apply: boolean, u: Unfinished | null) =>
+    u ? put(`unfinished:${runKind(apply)}`, u) : db.kv.delete(`unfinished:${runKind(apply)}`),
 
   clearAll: () => db.kv.clear(),
 };

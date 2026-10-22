@@ -168,6 +168,9 @@ export const sw: Dictionary = {
     stoppingButton: "Inasimamisha",
     stopNote: "Ukisimamisha sasa, kitabu kinachoandikwa kitamalizika kwanza, ili kisibaki nusu.",
     tooFew: "Yanahitajika angalau matoleo mawili yenye namba zinazotumika ili kusawazisha.",
+    resumePreview: "Uhakiki unaofuata utaendelea kutoka {book}, ulipoishia uhakiki uliopita.",
+    resumeSync: "Usawazishaji unaofuata utaendelea kutoka {book}, ulipoishia usawazishaji uliopita.",
+    startOver: "Anza upya",
   },
 
   results: {

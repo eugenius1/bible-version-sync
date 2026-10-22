@@ -171,6 +171,9 @@ export const id: Dictionary = {
     stoppingButton: "Menghentikan",
     stopNote: "Jika dihentikan sekarang, kitab yang sedang ditulis diselesaikan dulu, supaya tidak ada yang setengah jadi.",
     tooFew: "Sinkronisasi membutuhkan setidaknya dua versi dengan penomoran yang didukung.",
+    resumePreview: "Pratinjau berikutnya dilanjutkan dari {book}, tempat pratinjau terakhir berhenti.",
+    resumeSync: "Sinkronisasi berikutnya dilanjutkan dari {book}, tempat sinkronisasi terakhir berhenti.",
+    startOver: "Mulai dari awal",
   },
 
   results: {
