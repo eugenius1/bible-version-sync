@@ -381,9 +381,11 @@ run, from the chapters it will read at the rate this browser measured last
 time (`apps/pwa/src/lib/pace.ts`, in localStorage), else an assumed 100 ms a
 read; during it, by `RunClock`, which times reads and writes apart and eases
 the measured rate in from that prior. Writes in books not yet read can't be
-known, so a sync's time left is a range (`WriteForecast`): at least the reads
-and the writes left in the book being written, at most those plus a write of
-every highlighted verse in every other version, as if nothing were in sync. A
+known, so a sync's time is a range (`WriteForecast`), before it starts as
+well as while it runs; a preview's is the reads alone. The range is at least
+the reads and the writes left in the book being written, at most those plus
+a write of every highlighted verse in every other version, as if nothing
+were in sync. A
 book's highlighted verses are taken as the most of what the sync memory has
 for it, the share seen in the books read so far and 10%. Nothing that looks
 like taking under five seconds, writes included, shows one.

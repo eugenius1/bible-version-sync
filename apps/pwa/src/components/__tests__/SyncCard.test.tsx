@@ -113,18 +113,28 @@ describe("SyncCard before running", () => {
   it("estimates the whole Bible", async () => {
     renderCard(idle, false, vi.fn(), VERSIONS);
     await userEvent.click(screen.getByRole("radio", { name: "Whole Bible" }));
-    // 2 × 1,189 chapters at the assumed 100 ms.
-    expect(screen.getByText("Reads 2,378 chapters, which takes about 4 minutes. Keep this page open.")).toBeInTheDocument();
+    // 2 × 1,189 chapters at the assumed 100 ms; a sync may also copy a
+    // tenth of the Bible's verses into the other version, at 350 ms each.
+    expect(
+      screen.getByText("Reads 2,378 chapters: about 4 minutes for a preview, 4–22 minutes for a sync. Keep this page open."),
+    ).toBeInTheDocument();
   });
 
   it("estimates a long book, but not a chapter or a short book", async () => {
-    renderCard(idle, false, vi.fn(), VERSIONS);
-    expect(screen.queryByText(/which takes about/)).not.toBeInTheDocument();
+    render(
+      <I18nProvider>
+        <SyncCard versions={VERSIONS} run={idle} stopping={false} remembered={{ PSA: 900 }} onRun={vi.fn()} onCancel={vi.fn()} />
+      </I18nProvider>,
+    );
+    expect(screen.queryByText(/Reads/)).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("radio", { name: "Book" }));
-    // John: 42 reads, about 4 seconds.
-    expect(screen.queryByText(/which takes about/)).not.toBeInTheDocument();
+    // John: 42 reads, about 4 seconds, too quick to say however much a sync may write.
+    expect(screen.queryByText(/Reads/)).not.toBeInTheDocument();
     await userEvent.selectOptions(screen.getByRole("combobox", { name: "Book" }), "PSA");
-    expect(screen.getByText(/Reads 300 chapters, which takes about 30 seconds/)).toBeInTheDocument();
+    // 300 reads at 100 ms; 900 remembered verses into the other version at 350 ms.
+    expect(
+      screen.getByText("Reads 300 chapters: about 30 seconds for a preview, 30 seconds – 6 minutes for a sync. Keep this page open."),
+    ).toBeInTheDocument();
   });
 
   it("starts from the pace this browser measured last time", async () => {
@@ -132,7 +142,7 @@ describe("SyncCard before running", () => {
     renderCard(idle, false, vi.fn(), VERSIONS);
     await userEvent.click(screen.getByRole("radio", { name: "Book" }));
     // John at 400 ms a chapter: 17 seconds, rounded up to 20.
-    expect(screen.getByText(/Reads 42 chapters, which takes about 20 seconds/)).toBeInTheDocument();
+    expect(screen.getByText(/Reads 42 chapters: about 20 seconds for a preview/)).toBeInTheDocument();
   });
 });
 

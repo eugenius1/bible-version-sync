@@ -157,7 +157,10 @@ export const en = {
     book: "Book",
     bible: "Whole Bible",
     chapterCount: ["{book} has {n} chapter in {abbr}.", "{book} has {n} chapters in {abbr}."],
-    estimate: ["Reads {n} chapter, which takes about {time}. Keep this page open.", "Reads {n} chapters, which takes about {time}. Keep this page open."],
+    estimate: [
+      "Reads {n} chapter: about {preview} for a preview, {sync} for a sync. Keep this page open.",
+      "Reads {n} chapters: about {preview} for a preview, {sync} for a sync. Keep this page open.",
+    ],
     preview: "Preview changes",
     syncNow: "Sync now",
     confirmBible: "Sync the whole Bible now, without a preview?",

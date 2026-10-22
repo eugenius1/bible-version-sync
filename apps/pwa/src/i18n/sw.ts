@@ -152,7 +152,10 @@ export const sw: Dictionary = {
     book: "Kitabu",
     bible: "Biblia nzima",
     chapterCount: ["{book} kina sura {n} katika {abbr}.", "{book} kina sura {n} katika {abbr}."],
-    estimate: ["Husoma sura {n}, takriban {time}. Acha ukurasa huu wazi.", "Husoma sura {n}, takriban {time}. Acha ukurasa huu wazi."],
+    estimate: [
+      "Husoma sura {n}: takriban {preview} kwa uhakiki, {sync} kwa kusawazisha. Acha ukurasa huu wazi.",
+      "Husoma sura {n}: takriban {preview} kwa uhakiki, {sync} kwa kusawazisha. Acha ukurasa huu wazi.",
+    ],
     preview: "Hakiki mabadiliko",
     syncNow: "Sawazisha sasa",
     confirmBible: "Sawazisha Biblia nzima sasa, bila kuhakiki?",

@@ -1,5 +1,4 @@
 import {
-  ASSUMED_MS_PER_WRITE,
   emptyState,
   ESTIMATE_THRESHOLD_MS,
   estimateRun,
@@ -8,16 +7,15 @@ import {
   remainingScope,
   RunClock,
   runSync,
-  supported,
-  WriteForecast,
   type BookResult,
   type HighlightColorId,
   type Progress,
   type RunSummary,
+  type SyncState,
   type Scope,
 } from "@bvs/core";
 import { ChartColumn, LogIn, LogOut, RotateCcw } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LanguageSwitcher, ThemeSwitcher } from "./components/Pickers";
 import { Priority } from "./components/Priority";
 import { Results } from "./components/Results";
@@ -153,7 +151,9 @@ function Main() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [versions, setVersions] = useState<ResolvedVersion[] | null>(null);
   const [run, setRun] = useState<RunState>({ status: "idle" });
-  const [remembered, setRemembered] = useState(0);
+  /** The sync memory's size, and its highlighted verses per book for the estimates. */
+  const [memory, setMemory] = useState<{ verses: number; byBook: Record<string, number> }>({ verses: 0, byBook: {} });
+  const remember = (state: SyncState) => setMemory({ verses: Object.keys(state.verses).length, byBook: highlightedByBook(state) });
   const [customised, setCustomised] = useState(true);
   const abort = useRef<AbortController | null>(null);
   const [stopping, setStopping] = useState(false);
@@ -165,11 +165,14 @@ function Main() {
       setAuth((await tokenStore.get()) ? "signed-in" : "signed-out");
       setSettings(await store.getSettings());
       setCustomised(await store.hasSettings());
-      setRemembered(Object.keys((await store.getState()).verses).length);
+      remember(await store.getState());
       const [preview, sync] = await Promise.all([store.getUnfinished(false), store.getUnfinished(true)]);
       setUnfinished({ preview, sync });
     })();
   }, []);
+
+  // Memoised: the sync card's whole-Bible estimate is worked out again whenever this changes.
+  const syncable = useMemo(() => versions?.filter((v) => v.source !== "unsupported") ?? null, [versions]);
 
   // Only the versions: reordering colors shouldn't check every version's numbering again.
   const chosen = settings?.versions;
@@ -201,6 +204,7 @@ function Main() {
         const state = await store.getState();
         forgetVersion(state, removed);
         await store.setState(state);
+        remember(state);
         // Its snapshot is gone, so what a stopped run planned with it no longer holds.
         await forgetUnfinished();
       }
@@ -251,7 +255,6 @@ function Main() {
       };
       const pace = storedPace();
       const todo = remainingScope(scope, earlier, allowRemovals);
-      const expected = estimateRun(versions, todo, pace.msPerRead);
       setRun({ status: "running", apply, scope, progress: null, remaining: null });
       let wakeLock: { release(): Promise<void> } | null = null;
       let clock: RunClock | null = null;
@@ -260,15 +263,14 @@ function Main() {
         // A sync changes the snapshot, so a stopped preview's books no longer hold.
         if (apply) await saveUnfinished(false, null);
         const state = await store.getState();
-        const forecast = apply && todo.kind === "books"
-          ? new WriteForecast(todo.books, supported(versions).length, highlightedByBook(state))
-          : undefined;
+        const writes = apply ? { remembered: highlightedByBook(state), msPerWrite: pace.msPerWrite } : undefined;
+        const expected = estimateRun(versions, todo, pace.msPerRead, writes);
+        const { forecast } = expected;
         // Started only now, so neither the wake lock nor loading the snapshot
         // is timed as the first read and saved as this browser's pace.
-        const most = expected.ms + (forecast?.maxWrites() ?? 0) * (pace.msPerWrite ?? ASSUMED_MS_PER_WRITE);
-        const timer = (clock = new RunClock(performance.now(), { ...pace, expectedMs: most }, forecast));
+        const timer = (clock = new RunClock(performance.now(), { ...pace, expectedMs: expected.maxMs }, expected.forecast));
         const left = () => (timer.long ? { minMs: timer.remainingMs(), maxMs: timer.maxRemainingMs() } : null);
-        if (timer.long) setRun({ status: "running", apply, scope, progress: null, remaining: { minMs: expected.ms, maxMs: most } });
+        if (timer.long) setRun({ status: "running", apply, scope, progress: null, remaining: { minMs: expected.ms, maxMs: expected.maxMs } });
         const summary = await runSync({
           api: client,
           // Unsupported ones too: the sync leaves them out but keeps their snapshot.
@@ -289,12 +291,15 @@ function Main() {
           // Only stored for now: the card shows it once the run is over.
           onBookDone: async (r, results) => {
             if (r.plan) forecast?.bookRead(r.plan);
-            if (apply) await store.setState(state);
+            if (apply) {
+              await store.setState(state);
+              // Each book, so a run that fails partway still leaves the counts right.
+              remember(state);
+            }
             await saveProgress(results);
           },
         });
         await saveProgress(summary.aborted || summary.fatal ? summary.books : []);
-        if (apply) setRemembered(Object.keys(state.verses).length);
         setRun({ status: "done", apply, scope, summary });
       } catch (e) {
         setRun({ status: "error", message: e instanceof Error ? e.message : String(e) });
@@ -341,15 +346,16 @@ function Main() {
   const account = (
     <>
       <span className="inline-flex items-center">
-        {plural(t.footer.memory, remembered)}
+        {plural(t.footer.memory, memory.verses)}
         <button
           className="btn-ghost ml-1 min-h-0 gap-1 px-1 py-0.5 text-xs"
           disabled={running}
           onClick={async () => {
             if (!confirm(t.footer.confirmReset)) return;
-            await store.setState(emptyState());
+            const state = emptyState();
+            await store.setState(state);
             await forgetUnfinished();
-            setRemembered(0);
+            remember(state);
           }}
         >
           <RotateCcw size={12} aria-hidden />
@@ -385,7 +391,7 @@ function Main() {
         settings={settings.versions}
         resolved={versions}
         disabled={running}
-        fresh={!customised && remembered === 0}
+        fresh={!customised && memory.verses === 0}
         onChange={saveVersions}
       />
       <Priority
@@ -397,9 +403,10 @@ function Main() {
         onColors={saveColors}
       />
       <SyncCard
-        versions={versions?.filter((v) => v.source !== "unsupported") ?? null}
+        versions={syncable}
         run={run}
         stopping={stopping}
+        remembered={memory.byBook}
         onRun={startRun}
         resumesAt={(scope, apply) => {
           const earlier = earlierRun(scope, apply);
