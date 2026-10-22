@@ -694,6 +694,54 @@ describe("runSync", () => {
     expect(api.color("AMP", "JHN.3.16")).toBeNull();
   });
 
+  it("counts removals written before a cut-off towards the limit when resuming", async () => {
+    for (let v = 1; v <= 3; v++) api.hl("NIV", `RUT.1.${v}`, "ffe066");
+    for (let v = 1; v <= 2; v++) api.hl("NIV", `JHN.3.${v}`, "ffe066");
+    const scope: Scope = { kind: "books", books: ["RUT", "JHN"] };
+    await runSync({ api, versions: VERSIONS, scope, state, apply: true });
+    for (let v = 1; v <= 3; v++) delete api.store[IDS.NIV][`RUT.1.${v}`];
+    for (let v = 1; v <= 2; v++) delete api.store[IDS.NIV][`JHN.3.${v}`];
+    const orig = api.deleteHighlight.bind(api);
+    let attempts = 0;
+    api.deleteHighlight = async (id, p) => {
+      if (++attempts === 6) throw new ApiError(429, "too many requests", p);
+      return orig(id, p);
+    };
+    const first = await runSync({ api, versions: VERSIONS, scope, state, apply: true, maxRemovals: 12 });
+    expect(first.removals).toBe(5);
+
+    api.deleteHighlight = orig;
+    const s = await runSync({ api, versions: VERSIONS, scope, state, apply: true, maxRemovals: 12, resume: first.books });
+    // Ruth's nine, five of them from before, and John's six would make 15.
+    expect(s.removals).toBe(9);
+    expect(s.blockedBooks).toBe(1);
+    expect(api.color("AMP", "JHN.3.1")).toBe("ffe066");
+  });
+
+  it("keeps what a cut-off book wrote when the resumed run stops before redoing it", async () => {
+    for (const v of [16, 17, 18]) api.hl("NIV", `RUT.1.${v}`, "ffe066");
+    const orig = api.setHighlight.bind(api);
+    let attempts = 0;
+    api.setHighlight = async (id, p, c) => {
+      if (++attempts === 3) throw new ApiError(429, "too many requests", p);
+      return orig(id, p, c);
+    };
+    const scope: Scope = { kind: "books", books: ["RUT", "JHN"] };
+    const first = await runSync({ api, versions: VERSIONS, scope, state, apply: true });
+    expect(first.sets).toBe(2);
+
+    api.setHighlight = orig;
+    const controller = new AbortController();
+    const s = await runSync({
+      api, versions: VERSIONS, scope, state, apply: true, resume: first.books, signal: controller.signal,
+      onProgress: () => controller.abort(),
+    });
+    expect(s.aborted).toBe(true);
+    expect(s.sets).toBe(2);
+    expect(s.books).toMatchObject([{ book: "RUT", unfinished: true }]);
+    expect(s.books[0].written).toHaveLength(2);
+  });
+
   it("reports progress up to the total", async () => {
     const seen: number[] = [];
     await runSync({

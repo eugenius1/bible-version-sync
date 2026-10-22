@@ -225,17 +225,21 @@ function Main() {
   );
 
   const startRun = useCallback(
-    async (scope: Scope, apply: boolean, allowRemovals = false) => {
+    async (scope: Scope, apply: boolean, { allowRemovals = false, fresh = false } = {}) => {
       if (!versions || !settings) return;
       const controller = new AbortController();
       abort.current = controller;
       setStopping(false);
-      const earlier = earlierRun(scope, apply);
-      // Only several books are worth picking up after; one book is the smallest step anyway.
+      const earlier = fresh ? [] : earlierRun(scope, apply);
+      // Only several books are worth picking up after; one book is the smallest
+      // step anyway, and a run of one leaves a stopped whole-Bible run alone.
       const resumable = scope.kind === "books" && scope.books.length > 1;
-      // Nothing read and planned yet: starting over is the same as picking up.
-      const unfinishedRun = (results: readonly BookResult[]): Unfinished | null =>
-        resumable && results.some((r) => r.plan) ? { key: runKey(settings, scope.books), results: [...results] } : null;
+      const saveProgress = async (results: readonly BookResult[]) => {
+        if (!resumable || scope.kind !== "books") return;
+        // Nothing planned, or nothing left: starting over is the same as picking up.
+        const worth = results.some((r) => r.plan) && remainingScope(scope, results).books.length > 0;
+        await store.setUnfinished(apply, worth ? { key: runKey(settings, scope.books), results: [...results] } : null);
+      };
       const pace = storedPace();
       const expected = estimateRun(versions, remainingScope(scope, earlier, allowRemovals), pace.msPerRead);
       setRun({ status: "running", apply, scope, progress: null, remainingMs: expected.ms > ESTIMATE_THRESHOLD_MS ? expected.ms : null });
@@ -270,10 +274,10 @@ function Main() {
           // Only stored for now: the card shows it once the run is over.
           onBookDone: async (_, results) => {
             if (apply) await store.setState(state);
-            await store.setUnfinished(apply, unfinishedRun(results));
+            await saveProgress(results);
           },
         });
-        await saveUnfinished(apply, unfinishedRun(summary.aborted || summary.fatal ? summary.books : []));
+        await saveProgress(summary.aborted || summary.fatal ? summary.books : []);
         if (apply) setRemembered(Object.keys(state.verses).length);
         setRun({ status: "done", apply, scope, summary });
       } catch (e) {
@@ -286,6 +290,11 @@ function Main() {
           });
         }
         await wakeLock?.release().catch(() => undefined);
+        // From the store, which is ahead of the card if the run failed partway.
+        if (resumable) {
+          const u = await store.getUnfinished(apply).catch(() => undefined);
+          setUnfinished((prev) => ({ ...prev, [runKind(apply)]: u }));
+        }
         abort.current = null;
         setStopping(false);
       }
@@ -391,8 +400,9 @@ function Main() {
         <Results
           run={run}
           names={new Map((versions ?? []).map((v) => [v.bibleId, v.abbr]))}
-          onApply={() => startRun(run.scope, true)}
-          onApplyAllowingRemovals={() => startRun(run.scope, true, true)}
+          // What the preview showed, read afresh rather than picked up from an older stopped sync.
+          onApply={() => startRun(run.scope, true, { fresh: true })}
+          onApplyAllowingRemovals={() => startRun(run.scope, true, { allowRemovals: true })}
           onSignInAgain={async () => {
             await signOut();
             await startSignIn();
