@@ -120,16 +120,21 @@ describe("SyncCard before running", () => {
     ).toBeInTheDocument();
   });
 
-  it("estimates a book whose sync may write a lot, but not a chapter", async () => {
+  it("estimates a long book, but not a chapter or a short book", async () => {
     render(
       <I18nProvider>
-        <SyncCard versions={VERSIONS} run={idle} stopping={false} remembered={{ JHN: 300 }} onRun={vi.fn()} onCancel={vi.fn()} />
+        <SyncCard versions={VERSIONS} run={idle} stopping={false} remembered={{ PSA: 900 }} onRun={vi.fn()} onCancel={vi.fn()} />
       </I18nProvider>,
     );
     expect(screen.queryByText(/Reads/)).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("radio", { name: "Book" }));
-    // John: 42 reads, about 4 seconds; 300 remembered verses at 350 ms, about 2 minutes.
-    expect(screen.getByText("Reads 42 chapters: about 5 seconds for a preview, 5 seconds – 2 minutes for a sync. Keep this page open.")).toBeInTheDocument();
+    // John: 42 reads, about 4 seconds, too quick to say however much a sync may write.
+    expect(screen.queryByText(/Reads/)).not.toBeInTheDocument();
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Book" }), "PSA");
+    // 300 reads at 100 ms; 900 remembered verses into the other version at 350 ms.
+    expect(
+      screen.getByText("Reads 300 chapters: about 30 seconds for a preview, 30 seconds – 6 minutes for a sync. Keep this page open."),
+    ).toBeInTheDocument();
   });
 
   it("starts from the pace this browser measured last time", async () => {

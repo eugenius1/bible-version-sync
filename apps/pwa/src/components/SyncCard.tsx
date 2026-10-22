@@ -107,7 +107,7 @@ export function SyncCard({ versions, run, stopping, remembered, onRun, resumesAt
             {plural(ts.chapterCount, chapters.length, { book: bookName(book), abbr: versions[0].abbr })}
           </p>
         )}
-        {estimate && estimate.maxMs > ESTIMATE_THRESHOLD_MS && (
+        {estimate && estimate.ms > ESTIMATE_THRESHOLD_MS && (
           <p className="text-sm text-stone-600 dark:text-stone-400">
             {plural(ts.estimate, estimate.reads, { preview: duration(estimate.ms), sync: durationRange(estimate.ms, estimate.maxMs) })}
           </p>

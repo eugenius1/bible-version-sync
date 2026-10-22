@@ -7,8 +7,6 @@ import {
   remainingScope,
   RunClock,
   runSync,
-  supported,
-  WriteForecast,
   type BookResult,
   type HighlightColorId,
   type Progress,
@@ -17,7 +15,7 @@ import {
   type Scope,
 } from "@bvs/core";
 import { ChartColumn, LogIn, LogOut, RotateCcw } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LanguageSwitcher, ThemeSwitcher } from "./components/Pickers";
 import { Priority } from "./components/Priority";
 import { Results } from "./components/Results";
@@ -173,6 +171,9 @@ function Main() {
     })();
   }, []);
 
+  // Memoised: the sync card's whole-Bible estimate is worked out again whenever this changes.
+  const syncable = useMemo(() => versions?.filter((v) => v.source !== "unsupported") ?? null, [versions]);
+
   // Only the versions: reordering colors shouldn't check every version's numbering again.
   const chosen = settings?.versions;
   useEffect(() => {
@@ -262,14 +263,12 @@ function Main() {
         // A sync changes the snapshot, so a stopped preview's books no longer hold.
         if (apply) await saveUnfinished(false, null);
         const state = await store.getState();
-        const remembered = highlightedByBook(state);
-        const expected = estimateRun(versions, todo, pace.msPerRead, apply ? { remembered, msPerWrite: pace.msPerWrite } : undefined);
-        const forecast = apply && todo.kind === "books"
-          ? new WriteForecast(todo.books, supported(versions).length, remembered)
-          : undefined;
+        const writes = apply ? { remembered: highlightedByBook(state), msPerWrite: pace.msPerWrite } : undefined;
+        const expected = estimateRun(versions, todo, pace.msPerRead, writes);
+        const { forecast } = expected;
         // Started only now, so neither the wake lock nor loading the snapshot
         // is timed as the first read and saved as this browser's pace.
-        const timer = (clock = new RunClock(performance.now(), { ...pace, expectedMs: expected.maxMs }, forecast));
+        const timer = (clock = new RunClock(performance.now(), { ...pace, expectedMs: expected.maxMs }, expected.forecast));
         const left = () => (timer.long ? { minMs: timer.remainingMs(), maxMs: timer.maxRemainingMs() } : null);
         if (timer.long) setRun({ status: "running", apply, scope, progress: null, remaining: { minMs: expected.ms, maxMs: expected.maxMs } });
         const summary = await runSync({
@@ -292,12 +291,15 @@ function Main() {
           // Only stored for now: the card shows it once the run is over.
           onBookDone: async (r, results) => {
             if (r.plan) forecast?.bookRead(r.plan);
-            if (apply) await store.setState(state);
+            if (apply) {
+              await store.setState(state);
+              // Each book, so a run that fails partway still leaves the counts right.
+              remember(state);
+            }
             await saveProgress(results);
           },
         });
         await saveProgress(summary.aborted || summary.fatal ? summary.books : []);
-        if (apply) remember(state);
         setRun({ status: "done", apply, scope, summary });
       } catch (e) {
         setRun({ status: "error", message: e instanceof Error ? e.message : String(e) });
@@ -401,7 +403,7 @@ function Main() {
         onColors={saveColors}
       />
       <SyncCard
-        versions={versions?.filter((v) => v.source !== "unsupported") ?? null}
+        versions={syncable}
         run={run}
         stopping={stopping}
         remembered={memory.byBook}

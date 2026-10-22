@@ -44,6 +44,8 @@ export interface RunEstimate {
   ms: number;
   /** The most a sync over books may take, writes included (see WriteForecast); `ms` otherwise. */
   maxMs: number;
+  /** What maxMs was worked out from, for the run's RunClock to go on with. */
+  forecast?: WriteForecast;
 }
 
 /**
@@ -59,8 +61,8 @@ export function estimateRun(
   const reads = chaptersInScope(versions, scope);
   const ms = reads * msPerRead;
   if (!writes || scope.kind !== "books") return { reads, ms, maxMs: ms };
-  const most = new WriteForecast(scope.books, supported(versions).length, writes.remembered).maxWrites();
-  return { reads, ms, maxMs: ms + most * (writes.msPerWrite ?? ASSUMED_MS_PER_WRITE) };
+  const forecast = new WriteForecast(scope.books, supported(versions).length, writes.remembered);
+  return { reads, ms, maxMs: ms + forecast.maxWrites() * (writes.msPerWrite ?? ASSUMED_MS_PER_WRITE), forecast };
 }
 
 /** Canonical verses with a highlight in some version, per book, as the sync memory has them. */

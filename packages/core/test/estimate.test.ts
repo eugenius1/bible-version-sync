@@ -107,6 +107,7 @@ describe("estimateRun with writes", () => {
     const e = estimateRun([NIV, AMP], { kind: "books", books: ["RUT"] }, 100, { remembered: { RUT: 40 }, msPerWrite: 300 });
     expect(e.ms).toBe(8 * 100);
     expect(e.maxMs).toBe(8 * 100 + 40 * 300); // forty verses, into the one other version
+    expect(e.forecast?.maxWrites()).toBe(40);
   });
 
   it("is the reads alone for a chapter", () => {
