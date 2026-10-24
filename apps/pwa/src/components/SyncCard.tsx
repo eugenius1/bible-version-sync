@@ -1,5 +1,5 @@
 import { BOOKS, ESTIMATE_THRESHOLD_MS, estimateRun, type Scope } from "@bvs/core";
-import { Eye, RefreshCw, RotateCcw, Square } from "lucide-react";
+import { Eye, Info, RefreshCw, RotateCcw, Square } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { RunState } from "../App";
 import { useI18n } from "../i18n";
@@ -26,7 +26,7 @@ interface Props {
 }
 
 export function SyncCard({ versions, run, stopping, remembered, onRun, resumesAt, onStartOver, onCancel }: Props) {
-  const { t, f, plural, duration, durationRange, book: bookName } = useI18n();
+  const { t, f, num, plural, duration, durationRange, book: bookName } = useI18n();
   const ts = t.sync;
   const [kind, setKind] = useState<Kind>("chapter");
   const [book, setBook] = useState("JHN");
@@ -53,6 +53,8 @@ export function SyncCard({ versions, run, stopping, remembered, onRun, resumesAt
     },
     [versions, tooFew, running, scope, remembered],
   );
+
+  const timed = estimate && estimate.ms > ESTIMATE_THRESHOLD_MS ? estimate : null;
 
   const previewAt = running ? undefined : resumesAt?.(scope, false);
   const syncAt = running ? undefined : resumesAt?.(scope, true);
@@ -107,9 +109,9 @@ export function SyncCard({ versions, run, stopping, remembered, onRun, resumesAt
             {plural(ts.chapterCount, chapters.length, { book: bookName(book), abbr: versions[0].abbr })}
           </p>
         )}
-        {estimate && estimate.ms > ESTIMATE_THRESHOLD_MS && (
+        {timed && (
           <p className="text-sm text-stone-600 dark:text-stone-400">
-            {plural(ts.estimate, estimate.reads, { preview: duration(estimate.ms), sync: durationRange(estimate.ms, estimate.maxMs) })}
+            {f(ts.labelled, { label: ts.chaptersLabel, value: num(timed.reads) })}
           </p>
         )}
         {(previewAt || syncAt) && (
@@ -127,22 +129,43 @@ export function SyncCard({ versions, run, stopping, remembered, onRun, resumesAt
       {running ? (
         <ProgressView run={run} stopping={stopping} onCancel={onCancel} />
       ) : (
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <button className="btn-primary" disabled={!ready} onClick={() => onRun(scope, false)}>
-            <Eye size={16} aria-hidden />
-            {ts.preview}
-          </button>
-          <button
-            className="btn-secondary"
-            disabled={!ready}
-            onClick={() => {
-              if (kind === "bible" && !confirm(ts.confirmBible)) return;
-              onRun(scope, true);
-            }}
-          >
-            <RefreshCw size={16} aria-hidden />
-            {ts.syncNow}
-          </button>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {/* Each button with its own time under it, which a screen reader reads with it; side by side, half each, on a wide screen. */}
+          <div className="flex flex-col gap-1">
+            <button
+              className="btn-primary"
+              disabled={!ready}
+              aria-describedby={timed ? "preview-time" : undefined}
+              onClick={() => onRun(scope, false)}
+            >
+              <Eye size={16} aria-hidden />
+              {ts.preview}
+            </button>
+            {timed && (
+              <p id="preview-time" className="text-center text-sm text-stone-600 dark:text-stone-400">
+                {f(ts.about, { time: duration(timed.ms) })}
+              </p>
+            )}
+          </div>
+          <div className="flex flex-col gap-1">
+            <button
+              className="btn-secondary"
+              disabled={!ready}
+              aria-describedby={timed ? "sync-time" : undefined}
+              onClick={() => {
+                if (kind === "bible" && !confirm(ts.confirmBible)) return;
+                onRun(scope, true);
+              }}
+            >
+              <RefreshCw size={16} aria-hidden />
+              {ts.syncNow}
+            </button>
+            {timed && (
+              <p id="sync-time" className="text-center text-sm text-stone-600 dark:text-stone-400">
+                {durationRange(timed.ms, timed.maxMs)}
+              </p>
+            )}
+          </div>
         </div>
       )}
     </section>
@@ -167,7 +190,7 @@ function ProgressView({ run, stopping, onCancel }: {
     ? run.apply && p?.phase === "writing" ? f(ts.stoppingWriting, { book: book(p.book) }) : ts.stopping
     : !p || !doing
     ? ts.starting
-    : severalBooks && p.total ? f(ts.bookProgress, { doing, percent: percent(p.done / p.total) })
+    : severalBooks && p.total ? f(ts.labelled, { label: doing, value: percent(p.done / p.total) })
     : doing;
   const r = run.remaining;
   const left = stopping || !r ? null
@@ -178,8 +201,7 @@ function ProgressView({ run, stopping, onCancel }: {
     <div className="space-y-2" role="status" aria-live="polite">
       <p className="flex items-center gap-2 text-sm font-medium">
         <RefreshCw size={14} className="shrink-0 animate-spin motion-reduce:animate-none" aria-hidden />
-        {run.apply ? ts.syncing : ts.previewing}
-        {left && ` — ${left}`}
+        {left ? f(ts.labelled, { label: run.apply ? ts.syncing : ts.previewing, value: left }) : run.apply ? ts.syncing : ts.previewing}
       </p>
       <p className="text-sm text-stone-600 dark:text-stone-400">{now}</p>
       <div className="relative h-6 overflow-hidden rounded-full bg-stone-200 text-xs font-semibold tabular-nums dark:bg-stone-800">
@@ -197,6 +219,10 @@ function ProgressView({ run, stopping, onCancel }: {
           {label}
         </span>
       </div>
+      <p className="flex items-center gap-2 rounded-xl bg-sky-50 p-3 text-sm text-sky-900 dark:bg-sky-950 dark:text-sky-100">
+        <Info size={16} className="shrink-0" aria-hidden />
+        {ts.keepOpen}
+      </p>
       <button
         className="btn w-full bg-red-700 text-white hover:bg-red-800 sm:w-auto"
         disabled={stopping}
