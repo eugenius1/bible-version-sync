@@ -54,6 +54,8 @@ export function SyncCard({ versions, run, stopping, remembered, onRun, resumesAt
     [versions, tooFew, running, scope, remembered],
   );
 
+  const timed = estimate && estimate.ms > ESTIMATE_THRESHOLD_MS ? estimate : null;
+
   const previewAt = running ? undefined : resumesAt?.(scope, false);
   const syncAt = running ? undefined : resumesAt?.(scope, true);
 
@@ -107,12 +109,10 @@ export function SyncCard({ versions, run, stopping, remembered, onRun, resumesAt
             {plural(ts.chapterCount, chapters.length, { book: bookName(book), abbr: versions[0].abbr })}
           </p>
         )}
-        {estimate && estimate.ms > ESTIMATE_THRESHOLD_MS && (
-          <div className="text-sm text-stone-600 dark:text-stone-400">
-            <p>{f(ts.labelled, { label: ts.chaptersLabel, value: num(estimate.reads) })}</p>
-            <p>{f(ts.labelled, { label: ts.previewLabel, value: f(ts.about, { time: duration(estimate.ms) }) })}</p>
-            <p>{f(ts.labelled, { label: ts.syncLabel, value: durationRange(estimate.ms, estimate.maxMs) })}</p>
-          </div>
+        {timed && (
+          <p className="text-sm text-stone-600 dark:text-stone-400">
+            {f(ts.labelled, { label: ts.chaptersLabel, value: num(timed.reads) })}
+          </p>
         )}
         {(previewAt || syncAt) && (
           <div className="flex flex-wrap items-center gap-x-2 text-sm text-stone-600 dark:text-stone-400">
@@ -129,22 +129,43 @@ export function SyncCard({ versions, run, stopping, remembered, onRun, resumesAt
       {running ? (
         <ProgressView run={run} stopping={stopping} onCancel={onCancel} />
       ) : (
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <button className="btn-primary" disabled={!ready} onClick={() => onRun(scope, false)}>
-            <Eye size={16} aria-hidden />
-            {ts.preview}
-          </button>
-          <button
-            className="btn-secondary"
-            disabled={!ready}
-            onClick={() => {
-              if (kind === "bible" && !confirm(ts.confirmBible)) return;
-              onRun(scope, true);
-            }}
-          >
-            <RefreshCw size={16} aria-hidden />
-            {ts.syncNow}
-          </button>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+          {/* Each button with its own time under it, which a screen reader reads with it. */}
+          <div className="flex flex-col gap-1">
+            <button
+              className="btn-primary"
+              disabled={!ready}
+              aria-describedby={timed ? "preview-time" : undefined}
+              onClick={() => onRun(scope, false)}
+            >
+              <Eye size={16} aria-hidden />
+              {ts.preview}
+            </button>
+            {timed && (
+              <p id="preview-time" className="text-center text-xs text-stone-600 dark:text-stone-400">
+                {f(ts.about, { time: duration(timed.ms) })}
+              </p>
+            )}
+          </div>
+          <div className="flex flex-col gap-1">
+            <button
+              className="btn-secondary"
+              disabled={!ready}
+              aria-describedby={timed ? "sync-time" : undefined}
+              onClick={() => {
+                if (kind === "bible" && !confirm(ts.confirmBible)) return;
+                onRun(scope, true);
+              }}
+            >
+              <RefreshCw size={16} aria-hidden />
+              {ts.syncNow}
+            </button>
+            {timed && (
+              <p id="sync-time" className="text-center text-xs text-stone-600 dark:text-stone-400">
+                {durationRange(timed.ms, timed.maxMs)}
+              </p>
+            )}
+          </div>
         </div>
       )}
     </section>

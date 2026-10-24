@@ -170,8 +170,6 @@ export const ru: Dictionary = {
     ],
     labelled: "{label}: {value}",
     chaptersLabel: "Главы",
-    previewLabel: "Просмотр",
-    syncLabel: "Синхронизация",
     about: "примерно {time}",
     durationTo: "{from} – {to}",
     keepOpen: "Не закрывайте страницу.",

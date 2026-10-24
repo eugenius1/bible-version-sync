@@ -159,8 +159,6 @@ export const en = {
     chapterCount: ["{book} has {n} chapter in {abbr}.", "{book} has {n} chapters in {abbr}."],
     labelled: "{label}: {value}",
     chaptersLabel: "Chapters",
-    previewLabel: "Preview",
-    syncLabel: "Sync",
     about: "about {time}",
     durationTo: "{from} to {to}",
     keepOpen: "Keep this page open.",

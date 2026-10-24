@@ -117,8 +117,9 @@ describe("SyncCard before running", () => {
     // 2 × 1,189 chapters at the assumed 100 ms; a sync may also copy a
     // tenth of the Bible's verses into the other version, at 350 ms each.
     expect(screen.getByText("Chapters: 2,378")).toBeInTheDocument();
-    expect(screen.getByText("Preview: about 4 minutes")).toBeInTheDocument();
-    expect(screen.getByText("Sync: 4–22 minutes")).toBeInTheDocument();
+    // Each time under its own button, and read out with it.
+    expect(screen.getByRole("button", { name: "Preview changes" })).toHaveAccessibleDescription("about 4 minutes");
+    expect(screen.getByRole("button", { name: "Sync now" })).toHaveAccessibleDescription("4–22 minutes");
   });
 
   it("estimates a long book, but not a chapter or a short book", async () => {
@@ -134,7 +135,7 @@ describe("SyncCard before running", () => {
     await userEvent.selectOptions(screen.getByRole("combobox", { name: "Book" }), "PSA");
     // 300 reads at 100 ms; 900 remembered verses into the other version at 350 ms.
     expect(screen.getByText("Chapters: 300")).toBeInTheDocument();
-    expect(screen.getByText("Sync: 30 seconds to 6 minutes")).toBeInTheDocument();
+    expect(screen.getByText("30 seconds to 6 minutes")).toBeInTheDocument();
   });
 
   it("starts from the pace this browser measured last time", async () => {
@@ -142,7 +143,7 @@ describe("SyncCard before running", () => {
     renderCard(idle, false, vi.fn(), VERSIONS);
     await userEvent.click(screen.getByRole("radio", { name: "Book" }));
     // John at 400 ms a chapter: 17 seconds, rounded up to 20.
-    expect(screen.getByText("Preview: about 20 seconds")).toBeInTheDocument();
+    expect(screen.getByText("about 20 seconds")).toBeInTheDocument();
   });
 });
 

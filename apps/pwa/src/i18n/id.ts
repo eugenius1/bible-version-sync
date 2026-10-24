@@ -157,8 +157,6 @@ export const id: Dictionary = {
     chapterCount: ["{book} memiliki {n} pasal di {abbr}.", "{book} memiliki {n} pasal di {abbr}."],
     labelled: "{label}: {value}",
     chaptersLabel: "Pasal",
-    previewLabel: "Pratinjau",
-    syncLabel: "Sinkronisasi",
     about: "sekitar {time}",
     durationTo: "{from} hingga {to}",
     keepOpen: "Biarkan halaman ini tetap terbuka.",

@@ -154,8 +154,6 @@ export const es: Dictionary = {
     chapterCount: ["{book} tiene {n} capítulo en {abbr}.", "{book} tiene {n} capítulos en {abbr}."],
     labelled: "{label}: {value}",
     chaptersLabel: "Capítulos",
-    previewLabel: "Revisión",
-    syncLabel: "Sincronización",
     about: "aprox. {time}",
     durationTo: "de {from} a {to}",
     keepOpen: "Mantén esta página abierta.",

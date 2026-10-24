@@ -154,8 +154,6 @@ export const sw: Dictionary = {
     chapterCount: ["{book} kina sura {n} katika {abbr}.", "{book} kina sura {n} katika {abbr}."],
     labelled: "{label}: {value}",
     chaptersLabel: "Sura",
-    previewLabel: "Uhakiki",
-    syncLabel: "Usawazishaji",
     about: "takriban {time}",
     durationTo: "{from} hadi {to}",
     keepOpen: "Acha ukurasa huu wazi.",
