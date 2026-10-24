@@ -129,8 +129,8 @@ export function SyncCard({ versions, run, stopping, remembered, onRun, resumesAt
       {running ? (
         <ProgressView run={run} stopping={stopping} onCancel={onCancel} />
       ) : (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-          {/* Each button with its own time under it, which a screen reader reads with it. */}
+        <div className="grid gap-3 sm:grid-cols-2">
+          {/* Each button with its own time under it, which a screen reader reads with it; side by side, half each, on a wide screen. */}
           <div className="flex flex-col gap-1">
             <button
               className="btn-primary"
@@ -142,7 +142,7 @@ export function SyncCard({ versions, run, stopping, remembered, onRun, resumesAt
               {ts.preview}
             </button>
             {timed && (
-              <p id="preview-time" className="text-center text-xs text-stone-600 dark:text-stone-400">
+              <p id="preview-time" className="text-center text-sm text-stone-600 dark:text-stone-400">
                 {f(ts.about, { time: duration(timed.ms) })}
               </p>
             )}
@@ -161,7 +161,7 @@ export function SyncCard({ versions, run, stopping, remembered, onRun, resumesAt
               {ts.syncNow}
             </button>
             {timed && (
-              <p id="sync-time" className="text-center text-xs text-stone-600 dark:text-stone-400">
+              <p id="sync-time" className="text-center text-sm text-stone-600 dark:text-stone-400">
                 {durationRange(timed.ms, timed.maxMs)}
               </p>
             )}
