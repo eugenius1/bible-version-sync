@@ -8,8 +8,8 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "npm run dev -w @bvs/pwa",
-    "build": "npm run build -w @bvs/pwa",
+    "dev": "npm run dev -w @bvs/web",
+    "build": "npm run build -w @bvs/web",
     "test": "npm test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "check": "npm run gen -w @bvs/core && npm run typecheck && npm test && npm run build",

@@ -46,7 +46,7 @@ jobs:
 
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: apps/pwa/dist
+          path: apps/web/dist
 
   deploy:
     needs: build

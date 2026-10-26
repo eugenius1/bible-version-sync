@@ -38,7 +38,7 @@ export const en = {
     button: "Sign in with YouVersion",
     opening: "Opening YouVersion…",
     disclaimer: "Uses the YouVersion Platform API with your permission.",
-    missingKey: "Missing app key. Set VITE_YV_APP_KEY in apps/pwa/.env.local and restart.",
+    missingKey: "Missing app key. Set VITE_YV_APP_KEY in apps/web/.env.local and restart.",
   },
 
   callback: {
