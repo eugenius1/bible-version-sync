@@ -42,5 +42,5 @@ jobs:
         uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: packages/core/coverage/lcov.info,apps/pwa/coverage/lcov.info
+          files: packages/core/coverage/lcov.info,apps/web/coverage/lcov.info
           fail_ci_if_error: false

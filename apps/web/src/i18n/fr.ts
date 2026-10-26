@@ -38,7 +38,7 @@ export const fr: Dictionary = {
     button: "Se connecter avec YouVersion",
     opening: "Ouverture de YouVersion…",
     disclaimer: "Utilise l'API YouVersion Platform avec votre autorisation.",
-    missingKey: "Clé d'application manquante. Définissez VITE_YV_APP_KEY dans apps/pwa/.env.local puis redémarrez.",
+    missingKey: "Clé d'application manquante. Définissez VITE_YV_APP_KEY dans apps/web/.env.local puis redémarrez.",
   },
 
   callback: {

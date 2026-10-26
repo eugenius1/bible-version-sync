@@ -10,7 +10,7 @@ Needs Node and a YouVersion Platform app key.
 
 ```bash
 npm install
-cp apps/pwa/.env.example apps/pwa/.env.local   # put your app key in it
+cp apps/web/.env.example apps/web/.env.local   # put your app key in it
 npm run dev                                     # http://localhost:8001
 ```
 
@@ -26,7 +26,7 @@ If the install fails:
 
 `npm run dev` is for editing: instant reload, but no Content-Security-Policy
 and no service worker. `npm run preview` serves the production build from
-`apps/pwa/dist/` (run `npm run build` first) with both, so use it to check
+`apps/web/dist/` (run `npm run build` first) with both, so use it to check
 what users will get.
 
 `npm run coverage` runs the tests with coverage (lcov in each package's
@@ -36,7 +36,7 @@ what users will get.
 package, runs all tests and builds the app. Run it before every commit.
 
 **App key and callback.** Create an app at
-<https://platform.youversion.com>. The key goes in `apps/pwa/.env.local` as
+<https://platform.youversion.com>. The key goes in `apps/web/.env.local` as
 `VITE_YV_APP_KEY` (git ignores that file). The app's callback URL must be
 `<origin><base>callback`, where the base is `/` unless the app is served
 below a domain's root (`BASE_PATH`). The dev server is pinned to port 8001 so
@@ -55,10 +55,10 @@ and `https://eusebius.tech/bible-version-sync/callback` must be registered in
 the portal. Pages has no SPA fallback, so the build copies `index.html` to
 `callback.html`, which Pages serves at `/callback`.
 
-To host it elsewhere, `npm run build` writes a static site to `apps/pwa/dist/`.
+To host it elsewhere, `npm run build` writes a static site to `apps/web/dist/`.
 Set `BASE_PATH` and `VITE_YV_APP_KEY` at build time and register the
 callback as above. The production build carries a strict
-Content-Security-Policy (see `apps/pwa/vite.config.ts`).
+Content-Security-Policy (see `apps/web/vite.config.ts`).
 
 ## Conventions
 
@@ -79,7 +79,7 @@ Content-Security-Policy (see `apps/pwa/vite.config.ts`).
 |---|---|
 | `packages/core` | The sync engine: verse mapping, merge rules, API client, sign-in helpers, and the runner that ties them together. Framework-free TypeScript, so a future server can use it unchanged. |
 | `packages/core/data` | Verse-numbering data and correction tables, bundled into `src/data.generated.ts` by `npm run gen -w @bvs/core`. |
-| `apps/pwa` | The web app: Vite, React, Tailwind CSS v4, lucide icons, Dexie (IndexedDB), dnd-kit, vite-plugin-pwa. |
+| `apps/web` | The web app: Vite, React, Tailwind CSS v4, lucide icons, Dexie (IndexedDB), dnd-kit, vite-plugin-pwa. |
 | `tools/python-cli` | The original Python prototype, kept for reference. The TypeScript mapping was checked against it verse for verse. |
 | `tools/versification-survey` | The scanner and data behind the bundled verse counts, labels and names. The app never reads it; `import-survey` copies from it. |
 | `tools/youversion-skill.sh` | Refreshes the vendored YouVersion agent skill (see below). |
@@ -238,7 +238,7 @@ YouVersion has two abbreviations per version, and bible.com shows
 
 A version is named by its
 abbreviation, worked out from its id and never saved (`labelVersions` in
-`apps/pwa/src/lib/db.ts`); two in the list that share one get their
+`apps/web/src/lib/db.ts`); two in the list that share one get their
 language, or their number when that's shared too: NVI (es), ARC (212). The
 app shows the title beside it and falls back to "Version {id}" once the
 names are loaded and don't have it. Titles are in the version's own script,
@@ -278,7 +278,7 @@ the names chunk.
 ### The example list
 
 The example list shown before the person chooses (`defaultVersions` in
-`apps/pwa/src/lib/db.ts`) is the most used version of each of the browser's
+`apps/web/src/lib/db.ts`) is the most used version of each of the browser's
 first seven languages, padded to the two a sync needs with the next most used
 in the same language, and NIV and AMP when nothing else fits. Converting a
 snapshot saved by name still uses the old rule (first three languages, then
@@ -353,7 +353,7 @@ Safety rules, all tested:
   request cut off mid-flight may or may not have landed.
 - **A stopped run picks up where it stopped, a book at a time.** A whole-Bible
   preview or sync that stops (Stop, a rate limit, a closed page) is saved as
-  each book finishes (`Unfinished` in `apps/pwa/src/lib/db.ts`), and the next
+  each book finishes (`Unfinished` in `apps/web/src/lib/db.ts`), and the next
   one of the same kind, books, versions and colour order passes those results
   as `RunOptions.resume`. `runSync` keeps the books they finished
   (`finishedBooks`) and reads only the rest, so the report covers every
@@ -378,7 +378,7 @@ single-chapter requests". Writes and deletes take single verses.
 in every version — about 1,200 requests per version for a whole Bible.
 How long that takes is estimated in `packages/core/src/estimate.ts`: before a
 run, from the chapters it will read at the rate this browser measured last
-time (`apps/pwa/src/lib/pace.ts`, in localStorage), else an assumed 100 ms a
+time (`apps/web/src/lib/pace.ts`, in localStorage), else an assumed 100 ms a
 read; during it, by `RunClock`, which times reads and writes apart and eases
 the measured rate in from that prior. Writes in books not yet read can't be
 known, so a sync's time is a range (`WriteForecast`), before it starts as
@@ -419,7 +419,7 @@ during the lock-out seems to extend it, which is why the client stops
 instead of retrying. Outside a browser the 429 is visible: the client waits
 out a `Retry-After` of up to a minute itself, and hands a longer one back so
 the app can say how long to wait. The app phrases failures by status in
-`problemText` (`apps/pwa/src/lib/versions.ts`), never with the client's
+`problemText` (`apps/web/src/lib/versions.ts`), never with the client's
 detail, which is English and sometimes the browser's.
 
 **The refresh grant works** (`grant_type=refresh_token`), though the docs don't
@@ -495,19 +495,19 @@ them works from plain scripts; the survey uses that (see
 [its README](tools/versification-survey/README.md)).
 
 **The Content-Security-Policy forbids inline scripts.** That's why the theme's
-pre-paint script is `apps/pwa/public/theme-init.js`, a file, rather than inline
-like in most apps. It mirrors `resolveTheme()` in `apps/pwa/src/theme.ts`; keep
+pre-paint script is `apps/web/public/theme-init.js`, a file, rather than inline
+like in most apps. It mirrors `resolveTheme()` in `apps/web/src/theme.ts`; keep
 the two in step.
 
 **Tailwind v4 can't `@apply` a custom class from a plain layer.** Shared styles
 (`card`, `btn`, `input`, `picker`…) are declared with `@utility` in
-`apps/pwa/src/index.css` for that reason.
+`apps/web/src/index.css` for that reason.
 
 **Dark mode is a class, not a media query.** `@custom-variant dark` keys off
 `.dark` on `<html>`, so the theme icon in the header can override the system.
 
 **Reordering uses dnd-kit's pointer sensor, not HTML drag and drop**, which
-touch screens never fire (`apps/pwa/src/components/Sortable.tsx`). Only the
+touch screens never fire (`apps/web/src/components/Sortable.tsx`). Only the
 grip handle starts a drag, so the rest of the row still scrolls the page. The
 handles take the arrow keys themselves rather than dnd-kit's keyboard sensor,
 and dnd-kit's announcements are silenced, since they're English only. In
@@ -522,7 +522,7 @@ exercises the sign-in-expired path.
 
 ## Localisation
 
-`apps/pwa/src/i18n/en.ts` is the canonical shape; every other locale is typed
+`apps/web/src/i18n/en.ts` is the canonical shape; every other locale is typed
 against it, so a missing key is a build error. Strings are data: placeholders
 are `{name}`, filled by `f()`, and counts are `[singular, plural]` pairs picked
 by `Intl.PluralRules` (French and Brazilian Portuguese take the singular for
@@ -539,7 +539,7 @@ British English (`en-gb.ts`) isn't written out: it's `en.ts` respelled
 readers in the UK, Ireland and the Commonwealth countries that teach British
 spelling (`BRITISH_REGIONS` in `i18n/core.ts`); Canada stays American.
 
-Adding a language: a dictionary in `apps/pwa/src/i18n/`, its book names in
+Adding a language: a dictionary in `apps/web/src/i18n/`, its book names in
 `books.ts`, and the code in `Lang` there. The picker lists English first,
 then the reader's own languages, then the rest by their own names. Chinese and Korean are left out
 for now: their text doesn't break at spaces, and the layout hasn't been
@@ -552,7 +552,7 @@ switching language re-renders everything.
 ## Colour and contrast
 
 Colours come from Tailwind's default palette: stone for neutrals, amber for the
-accent. `apps/pwa/src/__tests__/contrast.test.ts` reads Tailwind's own values
+accent. `apps/web/src/__tests__/contrast.test.ts` reads Tailwind's own values
 and checks every text/background pairing the components use against WCAG AA,
 in both themes. It's why light mode uses amber-600 for focus rings and amber-700
 for the progress bar. Add a pairing there when you add a colour.

@@ -4,7 +4,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before changing code: conventions,
 architecture, and the traps that have cost real debugging time are all there.
 
 A browser-only PWA that syncs YouVersion highlights across Bible versions.
-npm workspaces: `packages/core` (engine), `apps/pwa` (Vite, React, Tailwind).
+npm workspaces: `packages/core` (engine), `apps/web` (Vite, React, Tailwind).
 No server.
 
 ## Before every commit
@@ -39,7 +39,7 @@ Highlights are a person's years of reading and can't be recovered once removed.
 
 ## Never commit credentials
 
-The app key (`apps/pwa/.env.local`, `tools/python-cli/config.json`) and sign-in
+The app key (`apps/web/.env.local`, `tools/python-cli/config.json`) and sign-in
 tokens (`tools/python-cli/.yvsync/`, IndexedDB) stay out of the repository.
 They're gitignored; check `git status` before committing anyway. The
 vendored `youversion-platform-api` skill says app keys can go in source code;

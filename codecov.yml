@@ -13,9 +13,9 @@ component_management:
     - component_id: core
       name: core (sync engine)
       paths: [packages/core/**]
-    - component_id: pwa
-      name: pwa (web app)
-      paths: [apps/pwa/**]
+    - component_id: web
+      name: web (web app)
+      paths: [apps/web/**]
 
 comment:
   layout: "condensed_header, components, condensed_files"
