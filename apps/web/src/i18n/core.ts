@@ -109,7 +109,7 @@ export interface I18n {
    * "3 minutes", "1.5 hours". Rounded, since it's always an estimate.
    */
   duration: (ms: number) => string;
-  /** A range of time, as rough as duration: "7–77 minutes", "50 minutes – 2 hours". */
+  /** A range of time, as rough as duration: "7–77 minutes", "50 minutes to 2 hours". */
   durationRange: (minMs: number, maxMs: number) => string;
   /** A fraction as a percentage with `digits` decimals: 0.123 -> "12.3%". */
   percent: (fraction: number, digits?: number) => string;
@@ -150,7 +150,7 @@ export function createI18n(lang: Lang, setLang: (lang: Lang) => void = () => {})
     },
     num: (v) => numberFormat.format(v),
     duration: (ms) => formatDuration(t.meta.localeTag, ms),
-    durationRange: (min, max) => formatDurationRange(t.meta.localeTag, min, max),
+    durationRange: (min, max) => formatDurationRange(t.meta.localeTag, min, max, t.sync.durationTo),
     percent: (v, digits = 0) => percentFormat(digits).format(v),
     book: (code) => bookName(code, books),
     ref: (r) => displayRef(r, books),
@@ -171,7 +171,7 @@ export function formatDuration(localeTag: string, ms: number): string {
  * Both ends rounded as formatDuration rounds them; one unit said once when
  * they share it, and a single time when they round the same.
  */
-export function formatDurationRange(localeTag: string, minMs: number, maxMs: number): string {
+export function formatDurationRange(localeTag: string, minMs: number, maxMs: number, across = "{from} – {to}"): string {
   const lo = durationParts(localeTag, minMs);
   const hi = durationParts(localeTag, maxMs);
   const a = lo.format.format(lo.value);
@@ -179,7 +179,7 @@ export function formatDurationRange(localeTag: string, minMs: number, maxMs: num
   if (a === b) return a;
   // formatRange is ES2023 (Chrome 106, Safari 15.4); older browsers get the long form.
   const range = (lo.format as { formatRange?: (x: number, y: number) => string }).formatRange;
-  return lo.unit === hi.unit && range ? range.call(lo.format, lo.value, hi.value) : `${a} – ${b}`;
+  return lo.unit === hi.unit && range ? range.call(lo.format, lo.value, hi.value) : interpolate(across, { from: a, to: b });
 }
 
 // The time left is formatted on every chapter read, so each formatter is made once.
