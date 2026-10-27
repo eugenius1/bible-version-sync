@@ -61,7 +61,8 @@ function useHash(): string {
   return hash;
 }
 
-const LICENCE_URL = "https://github.com/eugenius1/bible-version-sync/blob/main/LICENSE";
+const REPO_URL = "https://github.com/eugenius1/bible-version-sync";
+const FOOTER_LINK = "underline underline-offset-2 hover:text-stone-900 dark:hover:text-stone-100";
 export function App() {
   if (isCallback()) return <Callback />;
   return <Main />;
@@ -86,13 +87,17 @@ function Shell({ children, account }: { children: React.ReactNode; account?: Rea
         <footer className="mt-auto space-y-3 pt-6 text-xs text-stone-600 dark:text-stone-400">
           {account && <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">{account}</div>}
           <p className="text-center">
-            {f(t.app.copyright, { years: copyrightYears() })} ·{" "}
+            {f(t.app.copyright, { years: copyrightYears() })}{" "}
+            <a href="https://eusebius.tech/" target="_blank" rel="noreferrer" className={FOOTER_LINK}>
+              Eusebius Ngemera
+            </a>{" "}
+            ·{" "}
             <a
-              href={LICENCE_URL}
+              href={REPO_URL}
               target="_blank"
               rel="noreferrer"
               title={t.app.licenceTitle}
-              className="underline underline-offset-2 hover:text-stone-900 dark:hover:text-stone-100"
+              className={FOOTER_LINK}
             >
               {t.app.licence}
             </a>{" "}
