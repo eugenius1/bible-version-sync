@@ -20,7 +20,7 @@ import { LanguageSwitcher, ThemeSwitcher } from "./components/Pickers";
 import { Priority } from "./components/Priority";
 import { Results } from "./components/Results";
 import { StatsPage } from "./components/Stats";
-import { SyncCard } from "./components/SyncCard";
+import { DEFAULT_SELECTION, SyncCard } from "./components/SyncCard";
 import { VersionsCard } from "./components/VersionsCard";
 import { useI18n } from "./i18n";
 import { copyrightYears } from "./lib/copyright";
@@ -162,6 +162,7 @@ function Main() {
   const [customised, setCustomised] = useState(true);
   const abort = useRef<AbortController | null>(null);
   const [stopping, setStopping] = useState(false);
+  const [selection, setSelection] = useState(DEFAULT_SELECTION);
   const [unfinished, setUnfinished] = useState<Partial<Record<"preview" | "sync", Unfinished>>>({});
   const [page, query] = useHash().slice(1).split("?");
 
@@ -411,6 +412,8 @@ function Main() {
         versions={syncable}
         run={run}
         stopping={stopping}
+        selection={selection}
+        onSelect={setSelection}
         remembered={memory.byBook}
         onRun={startRun}
         resumesAt={(scope, apply) => {

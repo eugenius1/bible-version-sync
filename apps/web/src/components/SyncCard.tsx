@@ -10,6 +10,14 @@ import { Step } from "./Step";
 
 type Kind = "bible" | "book" | "chapter";
 
+/** What to sync, as picked in the card. */
+export interface Selection {
+  kind: Kind;
+  book: string;
+  chapter: number;
+}
+export const DEFAULT_SELECTION: Selection = { kind: "chapter", book: "JHN", chapter: 3 };
+
 interface Props {
   /** The versions that can be synced: those with unsupported numbering are left out. */
   versions: ResolvedVersion[] | null;
@@ -23,14 +31,17 @@ interface Props {
   resumesAt?: (scope: Scope, apply: boolean) => string | undefined;
   onStartOver?: () => void;
   onCancel: () => void;
+  /** Kept by the parent so the pick survives leaving the page (to the stats and back). */
+  selection?: Selection;
+  onSelect?: (selection: Selection) => void;
 }
 
-export function SyncCard({ versions, run, stopping, remembered, onRun, resumesAt, onStartOver, onCancel }: Props) {
+export function SyncCard({ versions, run, stopping, remembered, onRun, resumesAt, onStartOver, onCancel, selection, onSelect }: Props) {
   const { t, f, num, plural, duration, durationRange, book: bookName } = useI18n();
   const ts = t.sync;
-  const [kind, setKind] = useState<Kind>("chapter");
-  const [book, setBook] = useState("JHN");
-  const [chapter, setChapter] = useState(3);
+  const [own, setOwn] = useState(DEFAULT_SELECTION);
+  const { kind, book, chapter } = selection ?? own;
+  const select = (patch: Partial<Selection>) => (onSelect ?? setOwn)({ kind, book, chapter, ...patch });
 
   const chapters = versions?.[0]?.map.chapters(book) ?? [];
   const validChapter = chapters.includes(chapter);
@@ -76,7 +87,7 @@ export function SyncCard({ versions, run, stopping, remembered, onRun, resumesAt
                 kind === k ? "bg-white shadow-sm dark:bg-stone-950" : "text-stone-600 dark:text-stone-400"
               }`}
             >
-              <input type="radio" name="scope" value={k} className="sr-only" checked={kind === k} onChange={() => setKind(k)} />
+              <input type="radio" name="scope" value={k} className="sr-only" checked={kind === k} onChange={() => select({ kind: k })} />
               {ts[k]}
             </label>
           ))}
@@ -84,7 +95,7 @@ export function SyncCard({ versions, run, stopping, remembered, onRun, resumesAt
 
         {kind !== "bible" && (
           <div className="flex gap-2">
-            <Select className="flex-1" aria-label={ts.book} value={book} onChange={(e) => setBook(e.target.value)}>
+            <Select className="flex-1" aria-label={ts.book} value={book} onChange={(e) => select({ book: e.target.value })}>
               {BOOKS.map((b) => (
                 <option key={b} value={b}>{bookName(b)}</option>
               ))}
@@ -98,7 +109,7 @@ export function SyncCard({ versions, run, stopping, remembered, onRun, resumesAt
                 max={chapters.at(-1)}
                 aria-label={ts.chapter}
                 value={chapter}
-                onChange={(e) => setChapter(Number(e.target.value))}
+                onChange={(e) => select({ chapter: Number(e.target.value) })}
               />
             )}
           </div>
