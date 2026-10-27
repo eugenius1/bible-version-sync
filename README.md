@@ -4,12 +4,12 @@
 [![Deploy](https://github.com/eugenius1/bible-version-sync/actions/workflows/deploy.yml/badge.svg)](https://github.com/eugenius1/bible-version-sync/actions/workflows/deploy.yml)
 [![codecov](https://codecov.io/gh/eugenius1/bible-version-sync/graph/badge.svg)](https://codecov.io/gh/eugenius1/bible-version-sync)
 
-Sync your YouVersion highlights in across Bible versions. Highlight a verse
+Keep your YouVersion highlights in sync across Bible versions. Highlight a verse
 in one version and it shows up in the others you read, on the right verse even
 where versions number their verses differently.
 
-Everything runs on your browser. There is no server. your sign-in and your
-highlights go only between your device and YouVersion.
+Everything runs in your browser. There is no server: your sign-in and your
+highlights go only between your browser and YouVersion.
 
 Use it at <https://eusebius.tech/bible-version-sync/>. To run it yourself, see
 [CONTRIBUTING.md](CONTRIBUTING.md).
