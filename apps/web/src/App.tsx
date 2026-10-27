@@ -469,6 +469,13 @@ function SignIn() {
         </button>
       </div>
       <p className="px-1 text-xs text-stone-600 dark:text-stone-400">{t.signIn.disclaimer}</p>
+      <iframe
+        src="https://www.instagram.com/p/DfAsZNWtJrf/embed"
+        title={t.signIn.reelTitle}
+        loading="lazy"
+        allowFullScreen
+        className="mx-auto h-[36rem] w-full max-w-sm rounded-xl border-0 bg-white"
+      />
     </Shell>
   );
 }
