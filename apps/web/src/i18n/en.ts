@@ -158,7 +158,7 @@ export const en = {
     bible: "Whole Bible",
     chapterCount: ["{book} has {n} chapter in {abbr}.", "{book} has {n} chapters in {abbr}."],
     labelled: "{label}: {value}",
-    chaptersLabel: "Chapters",
+    chaptersLabel: "Chapters to read",
     about: "about {time}",
     durationTo: "{from} to {to}",
     keepOpen: "Keep this page open.",

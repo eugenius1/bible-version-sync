@@ -153,7 +153,7 @@ export const es: Dictionary = {
     bible: "Toda la Biblia",
     chapterCount: ["{book} tiene {n} capítulo en {abbr}.", "{book} tiene {n} capítulos en {abbr}."],
     labelled: "{label}: {value}",
-    chaptersLabel: "Capítulos",
+    chaptersLabel: "Capítulos por leer",
     about: "aprox. {time}",
     durationTo: "de {from} a {to}",
     keepOpen: "Mantén esta página abierta.",

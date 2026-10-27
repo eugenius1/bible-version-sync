@@ -153,7 +153,7 @@ export const sw: Dictionary = {
     bible: "Biblia nzima",
     chapterCount: ["{book} kina sura {n} katika {abbr}.", "{book} kina sura {n} katika {abbr}."],
     labelled: "{label}: {value}",
-    chaptersLabel: "Sura",
+    chaptersLabel: "Sura za kusoma",
     about: "takriban {time}",
     durationTo: "{from} hadi {to}",
     keepOpen: "Acha ukurasa huu wazi.",

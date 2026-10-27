@@ -156,7 +156,7 @@ export const id: Dictionary = {
     bible: "Seluruh Alkitab",
     chapterCount: ["{book} memiliki {n} pasal di {abbr}.", "{book} memiliki {n} pasal di {abbr}."],
     labelled: "{label}: {value}",
-    chaptersLabel: "Pasal",
+    chaptersLabel: "Pasal yang akan dibaca",
     about: "sekitar {time}",
     durationTo: "{from} hingga {to}",
     keepOpen: "Biarkan halaman ini tetap terbuka.",

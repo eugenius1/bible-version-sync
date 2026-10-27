@@ -116,7 +116,7 @@ describe("SyncCard before running", () => {
     await userEvent.click(screen.getByRole("radio", { name: "Whole Bible" }));
     // 2 × 1,189 chapters at the assumed 100 ms; a sync may also copy a
     // tenth of the Bible's verses into the other version, at 350 ms each.
-    expect(screen.getByText("Chapters: 2,378")).toBeInTheDocument();
+    expect(screen.getByText("Chapters to read: 2,378")).toBeInTheDocument();
     // Each time under its own button, and read out with it.
     expect(screen.getByRole("button", { name: "Preview changes" })).toHaveAccessibleDescription("about 4 minutes");
     expect(screen.getByRole("button", { name: "Sync now" })).toHaveAccessibleDescription("4–22 minutes");
@@ -128,13 +128,13 @@ describe("SyncCard before running", () => {
         <SyncCard versions={VERSIONS} run={idle} stopping={false} remembered={{ PSA: 900 }} onRun={vi.fn()} onCancel={vi.fn()} />
       </I18nProvider>,
     );
-    expect(screen.queryByText(/Chapters:/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Chapters to read:/)).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("radio", { name: "Book" }));
     // John: 42 reads, about 4 seconds, too quick to say however much a sync may write.
-    expect(screen.queryByText(/Chapters:/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Chapters to read:/)).not.toBeInTheDocument();
     await userEvent.selectOptions(screen.getByRole("combobox", { name: "Book" }), "PSA");
     // 300 reads at 100 ms; 900 remembered verses into the other version at 350 ms.
-    expect(screen.getByText("Chapters: 300")).toBeInTheDocument();
+    expect(screen.getByText("Chapters to read: 300")).toBeInTheDocument();
     expect(screen.getByText("30 seconds to 6 minutes")).toBeInTheDocument();
   });
 

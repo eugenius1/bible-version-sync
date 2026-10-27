@@ -169,7 +169,7 @@ export const ru: Dictionary = {
       "В {abbr} у книги «{book}» {n} глав.",
     ],
     labelled: "{label}: {value}",
-    chaptersLabel: "Главы",
+    chaptersLabel: "Глав к чтению",
     about: "примерно {time}",
     durationTo: "{from} – {to}",
     keepOpen: "Не закрывайте страницу.",
