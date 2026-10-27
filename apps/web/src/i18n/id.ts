@@ -37,7 +37,7 @@ export const id: Dictionary = {
     button: "Masuk dengan YouVersion",
     opening: "Membuka YouVersion…",
     disclaimer: "Menggunakan API YouVersion Platform dengan izin Anda.",
-    missingKey: "Kunci aplikasi tidak ada. Isi VITE_YV_APP_KEY di apps/pwa/.env.local lalu mulai ulang.",
+    missingKey: "Kunci aplikasi tidak ada. Isi VITE_YV_APP_KEY di apps/web/.env.local lalu mulai ulang.",
   },
 
   callback: {

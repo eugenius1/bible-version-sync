@@ -38,7 +38,7 @@ export const ru: Dictionary = {
     button: "Войти через YouVersion",
     opening: "Открываем YouVersion…",
     disclaimer: "Использует API YouVersion Platform с вашего разрешения.",
-    missingKey: "Нет ключа приложения. Укажите VITE_YV_APP_KEY в apps/pwa/.env.local и перезапустите.",
+    missingKey: "Нет ключа приложения. Укажите VITE_YV_APP_KEY в apps/web/.env.local и перезапустите.",
   },
 
   callback: {

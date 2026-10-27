@@ -2,16 +2,16 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "pwa-dev",
+      "name": "web-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "-w", "@bvs/pwa"],
+      "runtimeArgs": ["run", "dev", "-w", "@bvs/web"],
       "port": 8001,
       "autoPort": true
     },
     {
-      "name": "pwa-preview",
+      "name": "web-preview",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "preview", "-w", "@bvs/pwa"],
+      "runtimeArgs": ["run", "preview", "-w", "@bvs/web"],
       "port": 8001,
       "autoPort": true
     }

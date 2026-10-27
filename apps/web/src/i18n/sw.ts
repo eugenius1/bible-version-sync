@@ -34,7 +34,7 @@ export const sw: Dictionary = {
     button: "Ingia kwa YouVersion",
     opening: "Inafungua YouVersion…",
     disclaimer: "Inatumia API ya YouVersion Platform kwa ruhusa yako.",
-    missingKey: "Ufunguo wa programu haupo. Weka VITE_YV_APP_KEY katika apps/pwa/.env.local kisha uanzishe upya.",
+    missingKey: "Ufunguo wa programu haupo. Weka VITE_YV_APP_KEY katika apps/web/.env.local kisha uanzishe upya.",
   },
 
   callback: {

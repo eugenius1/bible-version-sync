@@ -1,5 +1,5 @@
 {
-  "name": "@bvs/pwa",
+  "name": "@bvs/web",
   "version": "0.1.0",
   "license": "GPL-3.0-or-later",
   "private": true,
@@ -36,7 +36,7 @@
     "@vitejs/plugin-react": "^5.0.0",
     "jsdom": "^27.0.1",
     "tailwindcss": "^4.0.0",
-    "vite": "^8.0.0",
+    "vite": "^8.3.4",
     "vite-plugin-pwa": "^1.0.0"
   }
 }
