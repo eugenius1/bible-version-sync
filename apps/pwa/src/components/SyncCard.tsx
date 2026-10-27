@@ -198,13 +198,16 @@ function ProgressView({ run, stopping, onCancel }: {
     : f(ts.remainingRange, { time: durationRange(r.minMs, r.maxMs) });
   const label = percent(done, 1);
   return (
-    <div className="space-y-2" role="status" aria-live="polite">
-      <p className="flex items-center gap-2 text-sm font-medium">
-        <RefreshCw size={14} className="shrink-0 animate-spin motion-reduce:animate-none" aria-hidden />
-        {left ? f(ts.labelled, { label: run.apply ? ts.syncing : ts.previewing, value: left }) : run.apply ? ts.syncing : ts.previewing}
-      </p>
-      <p className="text-sm text-stone-600 dark:text-stone-400">{now}</p>
-      <div className="relative h-6 overflow-hidden rounded-full bg-stone-200 text-xs font-semibold tabular-nums dark:bg-stone-800">
+    // A phone stacks it all, Stop last; a wide screen puts Stop beside the two status lines.
+    <div className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center" role="status" aria-live="polite">
+      <div className="space-y-2">
+        <p className="flex items-center gap-2 text-sm font-medium">
+          <RefreshCw size={14} className="shrink-0 animate-spin motion-reduce:animate-none" aria-hidden />
+          {left ? f(ts.labelled, { label: run.apply ? ts.syncing : ts.previewing, value: left }) : run.apply ? ts.syncing : ts.previewing}
+        </p>
+        <p className="text-sm text-stone-600 dark:text-stone-400">{now}</p>
+      </div>
+      <div className="relative h-6 sm:col-span-2 overflow-hidden rounded-full bg-stone-200 text-xs font-semibold tabular-nums dark:bg-stone-800">
         <progress className="sr-only" max={100} value={done * 100} />
         <div className="h-full rounded-full bg-amber-700 transition-[width] dark:bg-amber-500" style={{ width: `${done * 100}%` }} />
         {/* The label twice, each clipped to its side of the fill's edge, so it reads on both. */}
@@ -219,19 +222,19 @@ function ProgressView({ run, stopping, onCancel }: {
           {label}
         </span>
       </div>
-      <p className="flex items-center gap-2 rounded-xl bg-sky-50 p-3 text-sm text-sky-900 dark:bg-sky-950 dark:text-sky-100">
+      <p className="flex items-center gap-2 rounded-xl bg-sky-50 p-3 sm:col-span-2 text-sm text-sky-900 dark:bg-sky-950 dark:text-sky-100">
         <Info size={16} className="shrink-0" aria-hidden />
         {ts.keepOpen}
       </p>
       <button
-        className="btn w-full bg-red-700 text-white hover:bg-red-800 sm:w-auto"
+        className="btn w-full bg-red-700 text-white hover:bg-red-800 sm:col-start-2 sm:row-start-1 sm:w-auto"
         disabled={stopping}
         onClick={onCancel}
       >
         <Square size={14} aria-hidden />
         {stopping ? ts.stoppingButton : ts.stop}
       </button>
-      {run.apply && <p className="text-xs text-stone-600 dark:text-stone-400">{ts.stopNote}</p>}
+      {run.apply && <p className="text-xs text-stone-600 sm:col-span-2 dark:text-stone-400">{ts.stopNote}</p>}
     </div>
   );
 }
