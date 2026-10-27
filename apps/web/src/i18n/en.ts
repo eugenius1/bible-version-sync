@@ -186,6 +186,7 @@ export const en = {
   results: {
     previewTitle: "Preview",
     doneTitle: "Sync finished",
+    viewStats: "View stats",
     stopped: "(stopped)",
     inSyncDone: "Everything was already in sync.",
     inSyncPreview: "Nothing to change — everything is in sync.",

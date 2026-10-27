@@ -467,8 +467,8 @@ function SignIn() {
           <LogIn size={16} aria-hidden />
           {busy ? t.signIn.opening : t.signIn.button}
         </button>
+        <p className="text-xs text-stone-600 dark:text-stone-400">{t.signIn.disclaimer}</p>
       </div>
-      <p className="px-1 text-xs text-stone-600 dark:text-stone-400">{t.signIn.disclaimer}</p>
       <iframe
         src="https://www.instagram.com/p/DfAsZNWtJrf/embed"
         title={t.signIn.reelTitle}

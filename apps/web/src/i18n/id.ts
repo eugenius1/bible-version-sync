@@ -184,6 +184,7 @@ export const id: Dictionary = {
   results: {
     previewTitle: "Pratinjau",
     doneTitle: "Sinkronisasi selesai",
+    viewStats: "Lihat statistik",
     stopped: "(dihentikan)",
     inSyncDone: "Semuanya sudah sinkron.",
     inSyncPreview: "Tidak ada yang perlu diubah — semuanya sudah sinkron.",

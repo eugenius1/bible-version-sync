@@ -186,6 +186,7 @@ export const fr: Dictionary = {
   results: {
     previewTitle: "Aperçu",
     doneTitle: "Synchronisation terminée",
+    viewStats: "Voir les statistiques",
     stopped: "(arrêtée)",
     inSyncDone: "Tout était déjà synchronisé.",
     inSyncPreview: "Rien à modifier : tout est synchronisé.",

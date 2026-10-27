@@ -184,6 +184,7 @@ export const pt: Dictionary = {
   results: {
     previewTitle: "Prévia",
     doneTitle: "Sincronização concluída",
+    viewStats: "Ver estatísticas",
     stopped: "(interrompida)",
     inSyncDone: "Tudo já estava sincronizado.",
     inSyncPreview: "Nada a alterar: tudo está sincronizado.",

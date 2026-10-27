@@ -197,6 +197,7 @@ export const ru: Dictionary = {
   results: {
     previewTitle: "Предпросмотр",
     doneTitle: "Синхронизация завершена",
+    viewStats: "Посмотреть статистику",
     stopped: "(остановлена)",
     inSyncDone: "Всё уже было синхронизировано.",
     inSyncPreview: "Менять нечего — всё синхронизировано.",

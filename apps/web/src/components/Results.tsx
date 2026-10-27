@@ -1,5 +1,5 @@
 import type { Action, BookResult, Difference } from "@bvs/core";
-import { Check, ChevronRight, CircleAlert, CircleCheck, LogIn, TriangleAlert } from "lucide-react";
+import { ChartColumn, Check, ChevronRight, CircleAlert, CircleCheck, LogIn, TriangleAlert } from "lucide-react";
 import { createContext, useContext } from "react";
 import type { RunState } from "../App";
 import { useI18n } from "../i18n";
@@ -90,6 +90,12 @@ export function Results({ run, names, onApply, onApplyAllowingRemovals, onSignIn
               {s.differences > 0 && ` ${plural(tr.differences, s.differences)}`}
             </span>
           </p>
+          {run.apply && (
+            <a href="#stats" className="btn-ghost -ml-2 min-h-8">
+              <ChartColumn size={16} aria-hidden />
+              {tr.viewStats}
+            </a>
+          )}
         </div>
 
         {s.refused.length > 0 && <Notice tone="warn">{f(tr.refused, { names: s.refused.map((id) => nameOf(names, id)).join(", ") })}</Notice>}

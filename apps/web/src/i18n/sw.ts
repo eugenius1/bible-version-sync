@@ -181,6 +181,7 @@ export const sw: Dictionary = {
   results: {
     previewTitle: "Uhakiki",
     doneTitle: "Usawazishaji umekamilika",
+    viewStats: "Tazama takwimu",
     stopped: "(umesimamishwa)",
     inSyncDone: "Kila kitu kilikuwa tayari kimesawazishwa.",
     inSyncPreview: "Hakuna cha kubadilisha — kila kitu kimesawazishwa.",
