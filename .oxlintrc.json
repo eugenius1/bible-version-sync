@@ -1,0 +1,24 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "oxc"],
+  "ignorePatterns": ["**/dist/**", "**/dev-dist/**", "coverage/**", "packages/core/src/*.generated.ts"],
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/only-export-components": ["warn", { "allowConstantExport": true }]
+  },
+  "overrides": [
+    {
+      // French typography puts a no-break space before ":" and a narrow one
+      // before ";", "?" and "!" (see the comment at the top of fr.ts).
+      "files": ["apps/web/src/i18n/*.ts"],
+      "rules": { "no-irregular-whitespace": "off" }
+    },
+    {
+      // The provider and its hook belong together, and Sortable exports its
+      // pure `move` for its test. Both only cost a full reload instead of a
+      // hot one when the file is edited.
+      "files": ["apps/web/src/i18n/provider.tsx", "apps/web/src/components/Sortable.tsx"],
+      "rules": { "react/only-export-components": "off" }
+    }
+  ]
+}

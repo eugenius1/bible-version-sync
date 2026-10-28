@@ -1,6 +1,5 @@
 import {
   emptyState,
-  ESTIMATE_THRESHOLD_MS,
   estimateRun,
   forgetVersion,
   highlightedByBook,
@@ -20,7 +19,7 @@ import { LanguageSwitcher, ThemeSwitcher } from "./components/Pickers";
 import { Priority } from "./components/Priority";
 import { Results } from "./components/Results";
 import { StatsPage } from "./components/Stats";
-import { SyncCard } from "./components/SyncCard";
+import { DEFAULT_SELECTION, SyncCard } from "./components/SyncCard";
 import { VersionsCard } from "./components/VersionsCard";
 import { useI18n } from "./i18n";
 import { copyrightYears } from "./lib/copyright";
@@ -61,7 +60,8 @@ function useHash(): string {
   return hash;
 }
 
-const LICENCE_URL = "https://github.com/eugenius1/bible-version-sync/blob/main/LICENSE";
+const REPO_URL = "https://github.com/eugenius1/bible-version-sync";
+const FOOTER_LINK = "underline underline-offset-2 hover:text-stone-900 dark:hover:text-stone-100";
 export function App() {
   if (isCallback()) return <Callback />;
   return <Main />;
@@ -86,13 +86,17 @@ function Shell({ children, account }: { children: React.ReactNode; account?: Rea
         <footer className="mt-auto space-y-3 pt-6 text-xs text-stone-600 dark:text-stone-400">
           {account && <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">{account}</div>}
           <p className="text-center">
-            {f(t.app.copyright, { years: copyrightYears() })} ·{" "}
+            {f(t.app.copyright, { years: copyrightYears() })}{" "}
+            <a href="https://eusebius.tech/" target="_blank" rel="noreferrer" className={FOOTER_LINK}>
+              Eusebius Ngemera
+            </a>{" "}
+            ·{" "}
             <a
-              href={LICENCE_URL}
+              href={REPO_URL}
               target="_blank"
               rel="noreferrer"
               title={t.app.licenceTitle}
-              className="underline underline-offset-2 hover:text-stone-900 dark:hover:text-stone-100"
+              className={FOOTER_LINK}
             >
               {t.app.licence}
             </a>{" "}
@@ -157,6 +161,7 @@ function Main() {
   const [customised, setCustomised] = useState(true);
   const abort = useRef<AbortController | null>(null);
   const [stopping, setStopping] = useState(false);
+  const [selection, setSelection] = useState(DEFAULT_SELECTION);
   const [unfinished, setUnfinished] = useState<Partial<Record<"preview" | "sync", Unfinished>>>({});
   const [page, query] = useHash().slice(1).split("?");
 
@@ -179,6 +184,8 @@ function Main() {
   useEffect(() => {
     if (!chosen || auth !== "signed-in") return;
     let cancelled = false;
+    // Clear the last list so the cards wait for these versions, not show stale ones.
+    // oxlint-disable-next-line react/set-state-in-effect
     setVersions(null);
     resolveVersions(chosen)
       .then((v) => !cancelled && setVersions(v))
@@ -406,6 +413,8 @@ function Main() {
         versions={syncable}
         run={run}
         stopping={stopping}
+        selection={selection}
+        onSelect={setSelection}
         remembered={memory.byBook}
         onRun={startRun}
         resumesAt={(scope, apply) => {
@@ -462,8 +471,15 @@ function SignIn() {
           <LogIn size={16} aria-hidden />
           {busy ? t.signIn.opening : t.signIn.button}
         </button>
+        <p className="text-xs text-stone-600 dark:text-stone-400">{t.signIn.disclaimer}</p>
       </div>
-      <p className="px-1 text-xs text-stone-600 dark:text-stone-400">{t.signIn.disclaimer}</p>
+      <iframe
+        src="https://www.instagram.com/p/DfAsZNWtJrf/embed"
+        title={t.signIn.reelTitle}
+        loading="lazy"
+        allowFullScreen
+        className="mx-auto h-[36rem] w-full max-w-sm rounded-xl border-0 bg-white"
+      />
     </Shell>
   );
 }

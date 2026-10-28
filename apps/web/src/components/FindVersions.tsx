@@ -1,5 +1,5 @@
 import { byPopularity, discoverVersions, loadVersionNames, versionName, versionsInLanguages } from "@bvs/core";
-import { Check, Plus, Search, Square } from "lucide-react";
+import { Check, Plus, Search, Sparkles, Square } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useI18n } from "../i18n";
 import { client } from "../lib/auth";
@@ -94,7 +94,7 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
     } finally {
       abort.current = null;
     }
-  }, [settings, localeTag, i18n]);
+  }, [settings, localeTag]);
 
   // Look straight away on a first visit. Once only: settings change as soon
   // as a suggestion is taken, and that mustn't start another scan.
@@ -148,7 +148,7 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
       ) : (
         <div className="flex flex-wrap items-center gap-2">
           <button className="btn-secondary" disabled={disabled} onClick={() => void start()}>
-            <Search size={16} aria-hidden />
+            <Sparkles size={16} aria-hidden />
             {scan.status === "idle" ? tf.button : tf.again}
           </button>
           <span className="text-xs text-stone-600 dark:text-stone-400">{tf.help}</span>

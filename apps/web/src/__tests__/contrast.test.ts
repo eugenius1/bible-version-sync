@@ -147,6 +147,10 @@ const PAIRS: Array<[Pair, Pair]> = [
     { label: "progress percentage on the bar", fg: "stone-950", bg: "amber-500", need: 4.5 },
   ],
   [
+    { label: "keep-this-page-open notice", fg: "sky-900", bg: "sky-50", need: 4.5 },
+    { label: "keep-this-page-open notice", fg: "sky-100", bg: "sky-950", need: 4.5 },
+  ],
+  [
     { label: "Stop button", fg: "white", bg: "red-700", need: 4.5 },
     { label: "Stop button", fg: "white", bg: "red-700", need: 4.5 },
   ],

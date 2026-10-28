@@ -4,6 +4,7 @@ import { emptyState, type HighlightColorId, type SyncState } from "@bvs/core";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../../i18n";
+import { PACE_STORAGE_KEY } from "../../lib/pace";
 import { StatsPage } from "../Stats";
 
 let saved: SyncState;
@@ -63,5 +64,13 @@ describe("StatsPage", () => {
     renderStats(true);
     expect(await screen.findByText(/Made-up data/)).toBeInTheDocument();
     expect(await screen.findByText("Psalms")).toBeInTheDocument();
+  });
+
+  it("shows speed in seconds to three decimals", async () => {
+    saved = { ...emptyState(), verses: { "JHN.3.16": { 111: "fffe00" } } };
+    localStorage.setItem(PACE_STORAGE_KEY, JSON.stringify({ msPerRead: 1234, msPerWrite: 850.4 }));
+    renderStats();
+    expect(await screen.findByText("1.234 s to read a chapter's highlights in one version")).toBeInTheDocument();
+    expect(screen.getByText("0.850 s to write a highlight")).toBeInTheDocument();
   });
 });

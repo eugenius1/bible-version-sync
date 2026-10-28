@@ -29,11 +29,22 @@ and no service worker. `npm run preview` serves the production build from
 `apps/web/dist/` (run `npm run build` first) with both, so use it to check
 what users will get.
 
-`npm run coverage` runs the tests with coverage (lcov in each package's
-`coverage/`); CI uploads it to Codecov.
+`npm test` runs every workspace's tests in one vitest run, from the root
+[vitest.config.ts](vitest.config.ts); each workspace keeps its own environment
+and setup. `npm run coverage` adds coverage, one lcov report in the root
+`coverage/`, which CI uploads to Codecov; [codecov.yml](codecov.yml) splits it
+back into core and web by path.
 
-`npm run check` is the gate: it regenerates the bundled data, typechecks every
-package, runs all tests and builds the app. Run it before every commit.
+`npm run lint` runs oxlint ([.oxlintrc.json](.oxlintrc.json)); a rule that is
+only noise here is turned off there with a comment saying why.
+
+`npm run check` is the gate: it regenerates the bundled data, lints,
+typechecks every package, runs all tests and builds the app. Run it before
+every commit.
+
+The tooling every workspace uses (vitest, TypeScript, Vite, `@types/node`,
+oxlint) is a dev dependency of the root only, so there is one version of each.
+A workspace's own `package.json` still lists everything its code imports.
 
 **App key and callback.** Create an app at
 <https://platform.youversion.com>. The key goes in `apps/web/.env.local` as
@@ -486,6 +497,13 @@ and 3407. Key anything version-specific by bible id.
 
 **Nahum is `NAM`, not `NAH`.** Use the USFM book codes exactly as `BOOKS` in
 `versification.ts` lists them. A wrong code silently drops the book.
+
+**Node's types stop at the tests.** `packages/core` runs in the browser, so its
+`tsconfig.json` sets `"types": []`, and a stray `process` or `Buffer` fails
+the typecheck instead of the app. Its tests get Node from
+`tsconfig.test.json`; the web app does the same, and its Vite configs are
+typechecked by the root `tsconfig.node.json`. Each workspace's `typecheck`
+covers both its configs.
 
 **English Psalm titles are verse 0.** `eng.vrs` maps them (`PSA 51:0 = PSA
 51:1`), but a verse 0 can't be highlighted, so those mappings are ignored.

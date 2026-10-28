@@ -14,6 +14,8 @@ highlights go only between your browser and YouVersion.
 Use it at <https://eusebius.tech/bible-version-sync/>. To run it yourself, see
 [CONTRIBUTING.md](CONTRIBUTING.md).
 
+Watch it in action: [short demo reel on Instagram](https://www.instagram.com/p/DfAsZNWtJrf/).
+
 ## What it does
 
 If you read the Amplified Bible in the morning and the Louis Segond in the

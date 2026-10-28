@@ -67,6 +67,8 @@ function Body({ stats: s, versions, colorOrder }: { stats: Stats; versions: Vers
   const books = s.books.filter((b) => b.verses > 0);
   const most = Math.max(...books.map((b) => b.verses), 1);
   const pace = storedPace();
+  const seconds = new Intl.NumberFormat(t.meta.localeTag, { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+  const time = (ms: number) => f(t.stats.seconds, { n: seconds.format(ms / 1000) });
 
   return (
     <>
@@ -170,8 +172,8 @@ function Body({ stats: s, versions, colorOrder }: { stats: Stats; versions: Vers
       <Section title={t.stats.pace}>
         {pace.msPerRead || pace.msPerWrite ? (
           <ul className={`space-y-1 text-sm ${muted}`}>
-            {pace.msPerRead && <li>{f(t.stats.perRead, { ms: num(Math.round(pace.msPerRead)) })}</li>}
-            {pace.msPerWrite && <li>{f(t.stats.perWrite, { ms: num(Math.round(pace.msPerWrite)) })}</li>}
+            {pace.msPerRead && <li>{f(t.stats.perRead, { time: time(pace.msPerRead) })}</li>}
+            {pace.msPerWrite && <li>{f(t.stats.perWrite, { time: time(pace.msPerWrite) })}</li>}
           </ul>
         ) : (
           <p className={`text-sm ${muted}`}>{t.stats.noPace}</p>
