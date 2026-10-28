@@ -94,7 +94,7 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
     } finally {
       abort.current = null;
     }
-  }, [settings, localeTag, i18n]);
+  }, [settings, localeTag]);
 
   // Look straight away on a first visit. Once only: settings change as soon
   // as a suggestion is taken, and that mustn't start another scan.

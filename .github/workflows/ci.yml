@@ -6,10 +6,17 @@ on:
   # Every PR, including ones stacked on another PR's branch.
   pull_request:
 
+# A new push to the same ref supersedes the previous run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 # Checking out and testing needs nothing more; a compromised dependency or
 # action then gets a token that can't push or touch releases.
 permissions:
   contents: read
+  # Codecov authenticates the upload with a GitHub OIDC token, not a secret.
+  id-token: write
 
 jobs:
   check:
@@ -31,6 +38,8 @@ jobs:
           npm run gen -w @bvs/core
           git diff --exit-code packages/core/src/data.generated.ts
 
+      - run: npm run lint
+
       - run: npm run typecheck
 
       - name: Test with coverage
@@ -41,6 +50,7 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v7
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: packages/core/coverage/lcov.info,apps/web/coverage/lcov.info
+          use_oidc: true
+          # One report for both workspaces; codecov.yml splits it by path.
+          files: coverage/lcov.info
           fail_ci_if_error: false

@@ -1,4 +1,9 @@
 {
   "extends": "../../tsconfig.base.json",
-  "include": ["src", "test"]
+  "compilerOptions": {
+    // The engine runs in the browser; Node's globals would hide a stray
+    // `process` or `Buffer` until the app broke.
+    "types": []
+  },
+  "include": ["src"]
 }

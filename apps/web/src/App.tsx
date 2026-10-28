@@ -1,6 +1,5 @@
 import {
   emptyState,
-  ESTIMATE_THRESHOLD_MS,
   estimateRun,
   forgetVersion,
   highlightedByBook,
@@ -185,6 +184,8 @@ function Main() {
   useEffect(() => {
     if (!chosen || auth !== "signed-in") return;
     let cancelled = false;
+    // Clear the last list so the cards wait for these versions, not show stale ones.
+    // oxlint-disable-next-line react/set-state-in-effect
     setVersions(null);
     resolveVersions(chosen)
       .then((v) => !cancelled && setVersions(v))

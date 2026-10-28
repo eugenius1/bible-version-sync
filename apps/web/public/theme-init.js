@@ -10,6 +10,6 @@ try {
     document.documentElement.classList.add("dark");
     document.querySelector('meta[name="theme-color"]').setAttribute("content", "#0c0a09");
   }
-} catch (e) {
+} catch {
   /* blocked storage: fall through to the light default */
 }
