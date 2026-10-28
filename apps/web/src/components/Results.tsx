@@ -1,5 +1,5 @@
 import type { Action, BookResult, Difference } from "@bvs/core";
-import { Check, ChevronRight, CircleAlert, LogIn, TriangleAlert } from "lucide-react";
+import { ChartColumn, Check, ChevronRight, CircleAlert, CircleCheck, LogIn, TriangleAlert } from "lucide-react";
 import { createContext, useContext } from "react";
 import type { RunState } from "../App";
 import { useI18n } from "../i18n";
@@ -60,17 +60,23 @@ export function Results({ run, names, onApply, onApplyAllowingRemovals, onSignIn
   // A stopped run only speaks for the books it finished: "everything is in
   // sync" would be a claim about books it never read.
   const finished = s.books.length;
+  // Red for anything that failed, amber for a run cut short or held back, green otherwise.
+  const failed = s.failedBooks > 0 || s.writeErrors > 0 || (!!s.fatal && s.fatal.reason !== "rateLimited");
+  const TitleIcon = failed ? CircleAlert : s.aborted || s.refused.length > 0 || s.fatal || s.blockedBooks > 0 ? TriangleAlert : CircleCheck;
+  const titleTone = failed ? "text-red-700 dark:text-red-400" : TitleIcon === TriangleAlert ? "text-amber-700 dark:text-amber-400" : "text-emerald-700 dark:text-emerald-400";
 
   return (
     <NamesContext.Provider value={names}>
       <section className="card space-y-4" aria-labelledby="results-title">
         <div className="space-y-1">
-          <h2 id="results-title" className="font-semibold">
+          <h2 id="results-title" className="flex items-center gap-2 font-semibold">
+            <TitleIcon size={18} className={`shrink-0 ${titleTone}`} aria-hidden />
+            <span>
             {run.apply ? tr.doneTitle : tr.previewTitle}
             {s.aborted && ` ${tr.stopped}`}
+            </span>
           </h2>
           <p className="flex items-start gap-1.5 text-sm text-stone-600 dark:text-stone-400">
-            {inSync && !s.aborted && <Check size={16} className="mt-0.5 shrink-0 text-emerald-700 dark:text-emerald-400" aria-hidden />}
             <span>
               {s.aborted && !finished
                 ? tr.stoppedBeforeBook
@@ -84,6 +90,12 @@ export function Results({ run, names, onApply, onApplyAllowingRemovals, onSignIn
               {s.differences > 0 && ` ${plural(tr.differences, s.differences)}`}
             </span>
           </p>
+          {run.apply && (
+            <a href="#stats" className="btn-ghost -ml-2 min-h-8">
+              <ChartColumn size={16} aria-hidden />
+              {tr.viewStats}
+            </a>
+          )}
         </div>
 
         {s.refused.length > 0 && <Notice tone="warn">{f(tr.refused, { names: s.refused.map((id) => nameOf(names, id)).join(", ") })}</Notice>}

@@ -195,11 +195,6 @@ export function AddVersion({ added, disabled, onAdd }: Props) {
           <p className="text-sm text-stone-600 dark:text-stone-400">{f(tv.noResults, { query: query.trim() })}</p>
         )}
       </div>
-      {!open && (
-        <p className="text-xs text-stone-600 dark:text-stone-400">
-          {tv.addHelp} <span className="font-mono">bible.com/bible/<b>1</b>/JHN.3.<b>KJV</b></span>
-        </p>
-      )}
       {error && (
         <p role="alert" className="text-sm text-red-700 dark:text-red-300">
           {error}

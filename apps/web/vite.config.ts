@@ -15,6 +15,7 @@ const CSP = [
   "style-src 'self'",
   "img-src 'self' data:",
   "connect-src 'self' https://api.youversion.com",
+  "frame-src https://www.instagram.com", // the demo reel on the sign-in page
   "manifest-src 'self'",
   "worker-src 'self'",
   "base-uri 'self'",

@@ -3,12 +3,13 @@
 import { buildVersionMap } from "@bvs/core";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import type { RunState } from "../../App";
 import { I18nProvider } from "../../i18n";
 import { PACE_STORAGE_KEY } from "../../lib/pace";
 import type { ResolvedVersion } from "../../lib/versions";
-import { SyncCard } from "../SyncCard";
+import { DEFAULT_SELECTION, SyncCard } from "../SyncCard";
 
 const resolved = (abbr: string, id: number): ResolvedVersion => ({
   abbr,
@@ -169,5 +170,26 @@ describe("SyncCard after a run stopped", () => {
     expect(screen.queryByText(/next preview/)).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Start over" }));
     expect(onStartOver).toHaveBeenCalledOnce();
+  });
+});
+
+describe("SyncCard selection", () => {
+  it("keeps the pick in the parent, so it survives leaving the page", async () => {
+    function Page({ shown }: { shown: boolean }) {
+      const [selection, setSelection] = useState(DEFAULT_SELECTION);
+      return (
+        <I18nProvider>
+          {shown && <SyncCard versions={VERSIONS} run={{ status: "idle" }} stopping={false} selection={selection} onSelect={setSelection} onRun={vi.fn()} onCancel={vi.fn()} />}
+        </I18nProvider>
+      );
+    }
+    const { rerender } = render(<Page shown />);
+    await userEvent.click(screen.getByRole("radio", { name: "Book" }));
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Book" }), "PSA");
+    expect(screen.getByRole("combobox", { name: "Book" })).toHaveValue("PSA");
+    // Unmounting the card doesn't drop the pick when the parent holds it.
+    rerender(<Page shown={false} />);
+    rerender(<Page shown />);
+    expect(screen.getByRole("combobox", { name: "Book" })).toHaveValue("PSA");
   });
 });
