@@ -71,7 +71,11 @@ export default defineConfig({
     csp(),
     callbackPage(),
     VitePWA({
-      registerType: "autoUpdate",
+      // "prompt", not "autoUpdate": autoUpdate skips waiting and reloads every
+      // open page the moment a new worker takes over, which yanked the app out
+      // from under the reader a few seconds after launch (and would do the same
+      // mid-sync). Here the new version waits and takes over on the next launch.
+      registerType: "prompt",
       includeAssets: ["favicon.svg", "apple-touch-icon-180x180.png"],
       manifest: {
         name: "Bible Version Sync",
