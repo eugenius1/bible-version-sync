@@ -240,6 +240,16 @@ export const fr: Dictionary = {
     refused: "Exclues car leur numérotation n'est pas prise en charge : {names}. Rien n'y a été lu ni modifié.",
   },
 
+  install: {
+    title: "Gardez-la sur votre écran d’accueil",
+    body: "Installez l’application pour l’ouvrir directement depuis votre écran d’accueil la prochaine fois.",
+    button: "Installer",
+    iosBefore: "Pour l’installer, touchez",
+    share: "Partager",
+    iosAfter: "puis « Sur l’écran d’accueil ».",
+    dismiss: "Plus tard",
+  },
+
   problems: {
     signInExpired: "votre connexion YouVersion a expiré. Reconnectez-vous.",
     unreachable:

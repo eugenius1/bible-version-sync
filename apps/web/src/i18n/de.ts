@@ -232,6 +232,16 @@ export const de: Dictionary = {
     refused: "Ausgelassen, weil ihre Zählung nicht unterstützt wird: {names}. Darin wurde nichts gelesen oder geändert.",
   },
 
+  install: {
+    title: "Auf dem Startbildschirm behalten",
+    body: "Installiere die App, um sie beim nächsten Mal direkt vom Startbildschirm zu öffnen.",
+    button: "Installieren",
+    iosBefore: "Zum Installieren tippe auf",
+    share: "Teilen",
+    iosAfter: "und dann auf „Zum Home-Bildschirm“.",
+    dismiss: "Nicht jetzt",
+  },
+
   problems: {
     signInExpired: "deine YouVersion-Anmeldung ist abgelaufen. Melde dich erneut an.",
     unreachable:

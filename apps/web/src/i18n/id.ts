@@ -235,6 +235,16 @@ export const id: Dictionary = {
     refused: "Tidak diikutkan karena penomorannya tidak didukung: {names}. Tidak ada yang dibaca atau diubah di dalamnya.",
   },
 
+  install: {
+    title: "Simpan di layar utama",
+    body: "Pasang aplikasi ini agar lain kali bisa dibuka langsung dari layar utama.",
+    button: "Pasang",
+    iosBefore: "Untuk memasang, ketuk",
+    share: "Bagikan",
+    iosAfter: "lalu “Tambah ke Layar Utama”.",
+    dismiss: "Nanti saja",
+  },
+
   problems: {
     signInExpired: "sesi YouVersion Anda telah berakhir. Silakan masuk lagi.",
     unreachable:
