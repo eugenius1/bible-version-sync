@@ -94,10 +94,11 @@ describe("InstallBanner", () => {
     expect(banner()).not.toBeInTheDocument();
   });
 
-  it("isn't shown after a preview, or a sync that stopped or failed", async () => {
+  it("isn't shown after a preview, a sync with nothing to write, or one that stopped or failed", async () => {
     installable();
     for (const [apply, s] of [
       [false, summary()],
+      [true, summary({ sets: 0 })],
       [true, summary({ aborted: true })],
       [true, summary({ failedBooks: 1 })],
       [true, summary({ writeErrors: 2 })],

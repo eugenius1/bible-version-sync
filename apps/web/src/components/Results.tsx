@@ -64,8 +64,8 @@ export function Results({ run, names, onApply, onApplyAllowingRemovals, onSignIn
   // Red for anything that failed, amber for a run cut short or held back, green otherwise.
   const failed = s.failedBooks > 0 || s.writeErrors > 0 || (!!s.fatal && s.fatal.reason !== "rateLimited");
   const TitleIcon = failed ? CircleAlert : s.aborted || s.refused.length > 0 || s.fatal || s.blockedBooks > 0 ? TriangleAlert : CircleCheck;
-  // Only a sync that finished and failed nowhere has shown what the app is for.
-  const succeeded = run.apply && !failed && !s.aborted && !s.fatal && s.blockedBooks === 0 && s.refused.length === 0;
+  // Only a sync that wrote something, finished and failed nowhere has shown what the app is for.
+  const succeeded = run.apply && total > 0 && !failed && !s.aborted && !s.fatal && s.blockedBooks === 0 && s.refused.length === 0;
   const titleTone = failed ? "text-red-700 dark:text-red-400" : TitleIcon === TriangleAlert ? "text-amber-700 dark:text-amber-400" : "text-emerald-700 dark:text-emerald-400";
 
   return (
