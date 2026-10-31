@@ -242,7 +242,6 @@ export const fr: Dictionary = {
 
   install: {
     title: "Gardez-la sur votre écran d’accueil",
-    body: "Installez l’application pour l’ouvrir directement depuis votre écran d’accueil la prochaine fois.",
     button: "Installer",
     iosBefore: "Pour l’installer, touchez",
     share: "Partager",

@@ -234,7 +234,6 @@ export const sw: Dictionary = {
 
   install: {
     title: "Iweke kwenye skrini ya kwanza",
-    body: "Sakinisha programu ili wakati ujao uifungue moja kwa moja kutoka skrini ya kwanza.",
     button: "Sakinisha",
     iosBefore: "Ili kusakinisha, gusa",
     share: "Shiriki",

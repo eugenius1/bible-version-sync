@@ -239,7 +239,6 @@ export const en = {
 
   install: {
     title: "Keep it on your home screen",
-    body: "Install the app to open it straight from your home screen next time.",
     button: "Install",
     iosBefore: "To install, tap",
     share: "Share",

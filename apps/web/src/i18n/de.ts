@@ -234,7 +234,6 @@ export const de: Dictionary = {
 
   install: {
     title: "Auf dem Startbildschirm behalten",
-    body: "Installiere die App, um sie beim nächsten Mal direkt vom Startbildschirm zu öffnen.",
     button: "Installieren",
     iosBefore: "Zum Installieren tippe auf",
     share: "Teilen",

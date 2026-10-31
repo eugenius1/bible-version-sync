@@ -237,7 +237,6 @@ export const pt: Dictionary = {
 
   install: {
     title: "Deixe na tela de início",
-    body: "Instale o app para abri-lo direto da tela de início na próxima vez.",
     button: "Instalar",
     iosBefore: "Para instalar, toque em",
     share: "Compartilhar",

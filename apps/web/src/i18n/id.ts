@@ -237,7 +237,6 @@ export const id: Dictionary = {
 
   install: {
     title: "Simpan di layar utama",
-    body: "Pasang aplikasi ini agar lain kali bisa dibuka langsung dari layar utama.",
     button: "Pasang",
     iosBefore: "Untuk memasang, ketuk",
     share: "Bagikan",
