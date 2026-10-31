@@ -15,10 +15,11 @@ npm run check
 
 ## Before every push
 
-Strongly recommended: run `/simplify` (or an equivalent clean-up pass) over
-the branch's changes, using Claude Sonnet or a model of similar strength, then
-commit its fixes and re-run the pre-commit check above. It catches
-duplication, dead code and needless complexity that the checks don't.
+Unless the change is trivial, strongly recommended: run `/code-review --fix`
+(or an equivalent review-and-fix pass) over the branch's changes, using Claude
+Sonnet or a model of similar strength, then commit its fixes and re-run the
+pre-commit check above. It catches bugs, duplication, dead code and needless
+complexity that the checks don't.
 
 ## Attribution
 
