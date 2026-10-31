@@ -268,6 +268,13 @@ export const store = {
   setUnfinished: (apply: boolean, u: Unfinished | null) =>
     u ? put(`unfinished:${runKind(apply)}`, u) : db.kv.delete(`unfinished:${runKind(apply)}`),
 
+  /**
+   * Whether the offer to install the app has been seen, or the app installed:
+   * it's made once. Clearing the site's data makes it again, which is fine.
+   */
+  getInstallOffered: async () => (await get<boolean>("installOffered")) === true,
+  setInstallOffered: () => put("installOffered", true),
+
   clearAll: () => db.kv.clear(),
 };
 

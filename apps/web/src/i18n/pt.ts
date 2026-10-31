@@ -235,6 +235,15 @@ export const pt: Dictionary = {
     refused: "Ficaram de fora porque a numeração delas não é suportada: {names}. Nada foi lido nem alterado nelas.",
   },
 
+  install: {
+    title: "Deixe na tela de início",
+    button: "Instalar",
+    iosBefore: "Para instalar, toque em",
+    share: "Compartilhar",
+    iosAfter: "e depois em “Adicionar à Tela de Início”.",
+    dismiss: "Agora não",
+  },
+
   problems: {
     signInExpired: "o seu login na YouVersion expirou. Entre novamente.",
     unreachable:

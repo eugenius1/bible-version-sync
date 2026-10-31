@@ -232,6 +232,15 @@ export const es: Dictionary = {
     refused: "Quedan fuera porque su numeración no es compatible: {names}. No se leyó ni se cambió nada en ellas.",
   },
 
+  install: {
+    title: "Tenla en tu pantalla de inicio",
+    button: "Instalar",
+    iosBefore: "Para instalarla, toca",
+    share: "Compartir",
+    iosAfter: "y luego «Agregar a inicio».",
+    dismiss: "Ahora no",
+  },
+
   problems: {
     signInExpired: "tu sesión de YouVersion ha caducado. Vuelve a iniciar sesión.",
     unreachable:

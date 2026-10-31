@@ -258,6 +258,15 @@ export const ru: Dictionary = {
     refused: "Не участвуют, потому что их нумерация не поддерживается: {names}. В них ничего не прочитано и не изменено.",
   },
 
+  install: {
+    title: "Оставьте на экране «Домой»",
+    button: "Установить",
+    iosBefore: "Чтобы установить, нажмите",
+    share: "Поделиться",
+    iosAfter: "и затем «На экран „Домой“».",
+    dismiss: "Не сейчас",
+  },
+
   problems: {
     signInExpired: "ваш вход в YouVersion истёк. Войдите снова.",
     unreachable:

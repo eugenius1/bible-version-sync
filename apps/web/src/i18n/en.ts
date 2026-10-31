@@ -237,6 +237,15 @@ export const en = {
     refused: "Left out because their numbering isn't supported: {names}. Nothing was read or changed in them.",
   },
 
+  install: {
+    title: "Keep it on your home screen",
+    button: "Install",
+    iosBefore: "To install, tap",
+    share: "Share",
+    iosAfter: "then “Add to Home Screen”.",
+    dismiss: "Not now",
+  },
+
   problems: {
     signInExpired: "your YouVersion sign-in has expired. Sign in again.",
     unreachable:

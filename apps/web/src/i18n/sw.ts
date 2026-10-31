@@ -232,6 +232,15 @@ export const sw: Dictionary = {
     refused: "Yameachwa nje kwa sababu namba zake hazitumiki: {names}. Hakuna kilichosomwa wala kubadilishwa ndani yake.",
   },
 
+  install: {
+    title: "Iweke kwenye skrini ya kwanza",
+    button: "Sakinisha",
+    iosBefore: "Ili kusakinisha, gusa",
+    share: "Shiriki",
+    iosAfter: "kisha “Ongeza kwenye Skrini ya Kwanza”.",
+    dismiss: "Si sasa",
+  },
+
   problems: {
     signInExpired: "uingiaji wako wa YouVersion umeisha muda. Ingia tena.",
     unreachable:
