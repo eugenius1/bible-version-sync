@@ -203,7 +203,7 @@ describe("formatting", () => {
   const FR = createI18n("fr");
 
   it("uses the singular for zero in French but the plural in English", () => {
-    expect(FR.plural(FR.t.footer.memory, 0)).toBe("Mémoire de synchronisation : 0 verset");
+    expect(FR.plural(FR.t.footer.memory, 0)).toBe("Historique de synchronisation : 0 verset");
     expect(EN.plural(EN.t.footer.memory, 0)).toBe("Sync history: 0 verses");
   });
 
@@ -223,12 +223,12 @@ describe("formatting", () => {
   it("picks Russian's three forms by the last digits", () => {
     const RU = createI18n("ru");
     const memory = (n: number) => RU.plural(RU.t.footer.memory, n);
-    expect(memory(1)).toBe("Память синхронизации: 1 стих");
-    expect(memory(3)).toBe("Память синхронизации: 3 стиха");
-    expect(memory(5)).toBe("Память синхронизации: 5 стихов");
-    expect(memory(11)).toBe("Память синхронизации: 11 стихов");
-    expect(memory(21)).toBe("Память синхронизации: 21 стих");
-    expect(memory(22)).toBe("Память синхронизации: 22 стиха");
+    expect(memory(1)).toBe("История синхронизации: 1 стих");
+    expect(memory(3)).toBe("История синхронизации: 3 стиха");
+    expect(memory(5)).toBe("История синхронизации: 5 стихов");
+    expect(memory(11)).toBe("История синхронизации: 11 стихов");
+    expect(memory(21)).toBe("История синхронизации: 21 стих");
+    expect(memory(22)).toBe("История синхронизации: 22 стиха");
   });
 
   it("names books and verses in the active language", () => {
