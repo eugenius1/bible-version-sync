@@ -112,7 +112,7 @@ describe("problemText", () => {
 
   it("phrases the failures a person can act on in their language, never the client's English", () => {
     expect(problemText(new ApiError(401, "sign-in expired"), fr)).toBe("votre connexion YouVersion a expiré. Reconnectez-vous.");
-    expect(problemText(new ApiError(0, "Failed to fetch"), fr)).toMatch(/^YouVersion ne répond pas\./);
+    expect(problemText(new ApiError(0, "Failed to fetch"), fr)).toMatch(/^YouVersion est injoignable\./);
     expect(problemText(new ApiError(0, "Failed to fetch"), en)).not.toMatch(/Failed to fetch/);
   });
 
