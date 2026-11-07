@@ -232,9 +232,9 @@ export const en = {
   },
 
   problems: {
-    signInExpired: "Your YouVersion sign-in expired. Sign in again.",
+    signInExpired: "your YouVersion sign-in expired. Sign in again.",
     unreachable:
-      "Can't reach YouVersion. Check your connection. If you're online, the app may have made too many requests and YouVersion is making it wait a few minutes.",
+      "can't reach YouVersion. Check your connection. If you're online, the app may have made too many requests and YouVersion is making it wait a few minutes.",
     rateLimited: [
       "YouVersion is limiting requests from this app. Try again in {n} minute.",
       "YouVersion is limiting requests from this app. Try again in {n} minutes.",

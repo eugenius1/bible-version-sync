@@ -158,7 +158,7 @@ describe("VersionsCard", () => {
       const onChange = renderCard([{ abbr: "NIV", bibleId: 111 }]);
       const [kjv] = await search("KJV");
       await userEvent.click(kjv);
-      expect(await screen.findByRole("alert")).toHaveTextContent(/Couldn't check highlights for KJV: Can't reach YouVersion\./);
+      expect(await screen.findByRole("alert")).toHaveTextContent(/Couldn't check highlights for KJV: can't reach YouVersion\./);
       expect(screen.getByRole("alert")).not.toHaveTextContent(/Failed to fetch/);
       expect(onChange).not.toHaveBeenCalled();
     });
@@ -269,7 +269,7 @@ describe("VersionsCard", () => {
       getHighlights.mockRejectedValue(new ApiError(401, "sign-in expired"));
       renderCard([{ abbr: "KJV", bibleId: 1 }]);
       await userEvent.click(screen.getByRole("button", { name: "Find my versions" }));
-      expect(await screen.findByText("Couldn't finish searching: Your YouVersion sign-in expired. Sign in again.")).toBeInTheDocument();
+      expect(await screen.findByText("Couldn't finish searching: your YouVersion sign-in expired. Sign in again.")).toBeInTheDocument();
     });
 
     it("explains a request that never got an answer, in the reader's language", async () => {
@@ -277,7 +277,7 @@ describe("VersionsCard", () => {
       getHighlights.mockRejectedValue(new ApiError(0, "Failed to fetch"));
       renderCard([{ abbr: "KJV", bibleId: 1 }]);
       await userEvent.click(screen.getByRole("button", { name: "Find my versions" }));
-      expect(await screen.findByText(/^Couldn't finish searching: Can't reach YouVersion\./)).toBeInTheDocument();
+      expect(await screen.findByText(/^Couldn't finish searching: can't reach YouVersion\./)).toBeInTheDocument();
       expect(screen.queryByText(/Failed to fetch/)).not.toBeInTheDocument();
     });
 

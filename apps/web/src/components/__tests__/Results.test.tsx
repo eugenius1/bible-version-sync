@@ -168,7 +168,7 @@ describe("a run YouVersion stopped answering", () => {
         />
       </I18nProvider>,
     );
-    expect(screen.getByText(/Can't reach YouVersion\..*too many requests/)).toBeInTheDocument();
+    expect(screen.getByText(/can't reach YouVersion\..*too many requests/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Sign in again" })).not.toBeInTheDocument();
   });
 
