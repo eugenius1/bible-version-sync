@@ -28,7 +28,7 @@ export const sw: Dictionary = {
       "Wekea mstari alama katika toleo moja la Biblia, kisha uione katika matoleo mengine unayosoma. Mistari hulingana hata pale matoleo yanapoihesabu tofauti (vichwa vya Zaburi, Ayubu na mengineyo).",
     points: [
       "Usawazishaji wako wa kwanza haubadilishi rangi wala kuondoa alama zilizopo kamwe.",
-      "Unakagua kila badiliko kabla chochote hakijahifadhiwa.",
+      "Kagua mabadiliko kabla chochote hakijahifadhiwa.",
       "Uingiaji wako na data yako vinabaki katika kivinjari hiki na huenda kwa YouVersion pekee.",
     ],
     button: "Ingia kwa YouVersion",
@@ -54,7 +54,6 @@ export const sw: Dictionary = {
     byColor: "Kipaumbele cha rangi",
     helpByVersion: "Alama zilizopo zinabaki na rangi zake. Toleo lisilo na alama hupata rangi kutoka kwa toleo la kwanza katika orodha yako lenye alama.",
     helpByColor: "Alama zilizopo zinabaki na rangi zake. Toleo lisilo na alama hupata rangi iliyo juu zaidi katika orodha hii kati ya rangi za mstari huo.",
-    shadeNote: "Vivuli tofauti kidogo vya rangi moja vinahesabiwa kuwa rangi moja. Mpangilio wa matoleo huamua ni kivuli kipi kinanakiliwa.",
     note: "bible.com ina njano, kijani, bluu, pichi na waridi tu; nyingine zinatoka kwenye programu za simu.",
     drag: "Panga upya {color}: buruta, au tumia vitufe vya mshale juu na chini",
     names: {

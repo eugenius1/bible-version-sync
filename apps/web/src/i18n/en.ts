@@ -32,7 +32,7 @@ export const en = {
       "Highlight a verse in one Bible version and see it in the others you read. Verses line up even where versions number them differently (Psalm titles, Job and more).",
     points: [
       "Your first sync never recolors or removes existing highlights.",
-      "You preview every change before anything is saved.",
+      "Preview changes before anything is saved.",
       "Your sign-in and data stay in this browser and go only to YouVersion.",
     ],
     button: "Sign in with YouVersion",
@@ -58,7 +58,6 @@ export const en = {
     byColor: "Color priority",
     helpByVersion: "Existing highlights keep their color. A version without one gets the color from the first version in your list that has one.",
     helpByColor: "Existing highlights keep their color. A version without one gets whichever of the verse's colors is highest in this list.",
-    shadeNote: "Slightly different shades of one color count as the same color. The version order decides which shade is copied.",
     note: "bible.com offers only yellow, green, blue, peach and pink; the others come from the mobile apps.",
     drag: "Reorder {color}: drag, or use the up and down arrow keys",
     names: {

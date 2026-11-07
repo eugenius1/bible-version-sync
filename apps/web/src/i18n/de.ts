@@ -28,7 +28,7 @@ export const de: Dictionary = {
       "Markiere einen Vers in einer Bibelübersetzung und sieh ihn auch in den anderen, die du liest. Die Verse passen auch dort zusammen, wo Übersetzungen anders zählen (Psalmüberschriften, Hiob und mehr).",
     points: [
       "Deine erste Synchronisierung färbt vorhandene Markierungen nie um und entfernt keine.",
-      "Du siehst jede Änderung in der Vorschau, bevor etwas gespeichert wird.",
+      "Sieh dir Änderungen in der Vorschau an, bevor etwas gespeichert wird.",
       "Deine Anmeldung und deine Daten bleiben in diesem Browser und gehen nur an YouVersion.",
     ],
     button: "Mit YouVersion anmelden",
@@ -54,7 +54,6 @@ export const de: Dictionary = {
     byColor: "Farbpriorität",
     helpByVersion: "Vorhandene Markierungen behalten ihre Farbe. Eine Übersetzung ohne Markierung bekommt die Farbe der ersten Übersetzung in deiner Liste, die eine hat.",
     helpByColor: "Vorhandene Markierungen behalten ihre Farbe. Eine Übersetzung ohne Markierung bekommt von den Farben des Verses diejenige, die in dieser Liste am weitesten oben steht.",
-    shadeNote: "Leicht unterschiedliche Töne einer Farbe gelten als dieselbe Farbe. Die Reihenfolge der Übersetzungen entscheidet, welcher Ton übernommen wird.",
     note: "bible.com bietet nur Gelb, Grün, Blau, Pfirsich und Rosa; die anderen kommen aus den Mobil-Apps.",
     drag: "{color} verschieben: ziehen oder die Pfeiltasten nach oben und unten verwenden",
     names: {

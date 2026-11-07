@@ -69,7 +69,6 @@ export function Priority({ versions, byColor, colorOrder, disabled, onVersions, 
           </>
         )}
       </SortableList>
-      <p className="text-xs text-stone-600 dark:text-stone-400">{tp.shadeNote}</p>
       <p className="text-xs text-stone-600 dark:text-stone-400">{tp.note}</p>
     </>
   ) : (

@@ -28,7 +28,7 @@ export const es: Dictionary = {
       "Resalta un versículo en una versión de la Biblia y verás el resaltado en las demás que lees. Los versículos se alinean aunque las versiones los numeren distinto (títulos de los Salmos, Job y más).",
     points: [
       "Tu primera sincronización nunca cambia el color de los resaltados existentes ni los elimina.",
-      "Revisas cada cambio antes de que se guarde nada.",
+      "Revisa los cambios antes de que se guarde nada.",
       "Tu sesión y tus datos se quedan en este navegador y solo van a YouVersion.",
     ],
     button: "Iniciar sesión con YouVersion",
@@ -54,7 +54,6 @@ export const es: Dictionary = {
     byColor: "Prioridad de colores",
     helpByVersion: "Los resaltados existentes conservan su color. Una versión sin resaltado recibe el color de la primera versión de tu lista que tenga uno.",
     helpByColor: "Los resaltados existentes conservan su color. Una versión sin resaltado recibe el color del versículo que esté más arriba en esta lista.",
-    shadeNote: "Los tonos ligeramente distintos de un mismo color cuentan como el mismo color. El orden de las versiones decide qué tono se copia.",
     note: "bible.com solo ofrece amarillo, verde, azul, melocotón y rosa; los demás vienen de las apps para móvil.",
     drag: "Reordenar {color}: arrastra o usa las flechas arriba y abajo",
     names: {

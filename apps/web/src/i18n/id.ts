@@ -31,7 +31,7 @@ export const id: Dictionary = {
       "Tandai ayat di satu versi Alkitab dan lihat tanda itu di versi lain yang Anda baca. Ayat tetap sejajar meskipun penomoran tiap versi berbeda (judul Mazmur, Ayub, dan lainnya).",
     points: [
       "Sinkronisasi pertama tidak pernah mengganti warna atau menghapus tanda yang sudah ada.",
-      "Anda meninjau setiap perubahan sebelum apa pun disimpan.",
+      "Tinjau perubahan sebelum apa pun disimpan.",
       "Info masuk dan data Anda tetap di peramban ini dan hanya dikirim ke YouVersion.",
     ],
     button: "Masuk dengan YouVersion",
@@ -57,7 +57,6 @@ export const id: Dictionary = {
     byColor: "Prioritas warna",
     helpByVersion: "Tanda yang sudah ada mempertahankan warnanya. Versi tanpa tanda mendapat warna dari versi teratas di daftar Anda yang memilikinya.",
     helpByColor: "Tanda yang sudah ada mempertahankan warnanya. Versi tanpa tanda mendapat warna yang paling atas di daftar ini di antara warna pada ayat itu.",
-    shadeNote: "Corak yang sedikit berbeda dari satu warna dianggap warna yang sama. Urutan versi menentukan corak mana yang disalin.",
     note: "bible.com hanya menyediakan kuning, hijau, biru, persik, dan merah muda; warna lainnya dari aplikasi seluler.",
     drag: "Ubah urutan {color}: seret, atau gunakan tombol panah atas dan bawah",
     names: {

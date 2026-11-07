@@ -32,7 +32,7 @@ export const fr: Dictionary = {
       "Surlignez un verset dans une version de la Bible et retrouvez-le dans les autres versions que vous lisez. Les versets restent alignés même quand les versions les numérotent différemment (titres des Psaumes, Job, etc.).",
     points: [
       "Votre première synchronisation ne recolore ni ne supprime jamais les surlignages existants.",
-      "Vous voyez un aperçu de chaque modification avant que quoi que ce soit ne soit enregistré.",
+      "Affichez un aperçu des modifications avant que quoi que ce soit ne soit enregistré.",
       "Votre connexion et vos données restent dans ce navigateur et ne sont envoyées qu'à YouVersion.",
     ],
     button: "Se connecter avec YouVersion",
@@ -59,7 +59,6 @@ export const fr: Dictionary = {
     byColor: "Priorité des couleurs",
     helpByVersion: "Les surlignages existants gardent leur couleur. Une version sans surlignage reçoit la couleur de la première version de votre liste qui en a un.",
     helpByColor: "Les surlignages existants gardent leur couleur. Une version sans surlignage reçoit celle des couleurs du verset qui est la plus haute dans cette liste.",
-    shadeNote: "Des teintes légèrement différentes d'une même couleur comptent pour la même couleur. L'ordre des versions décide quelle teinte est copiée.",
     note: "bible.com ne propose que le jaune, le vert, le bleu, le pêche et le rose ; les autres viennent des applications mobiles.",
     drag: "Réordonner {color} : faites glisser, ou utilisez les flèches haut et bas",
     names: {
