@@ -95,7 +95,7 @@ describe("dictionaries", () => {
       }
     }
     expect(interpolate(en.versions.source.assumed.hint, { system: en.versions.systems.rso })).toContain(
-      "so Russian Synodal numbering is assumed",
+      "so we're assuming Russian Synodal numbering",
     );
   });
 
@@ -124,7 +124,7 @@ describe("dictionaries", () => {
     expect(gb.priority.title).toBe("When a verse's colours differ, which wins?");
     expect(gb.priority.names.grey).toBe("Grey");
     expect(gb.results.action.recolor).toBe("change colour");
-    expect(gb.signIn.points[0]).toContain("recoloured");
+    expect(gb.signIn.points[0]).toContain("recolours");
     expect(gb.priority.drag).toContain("{color}");
     const american = strings(gb).filter(([, value]) => /(?<!\{)\bcolor|\bgray\b/i.test(value));
     expect(american).toEqual([]);
@@ -204,7 +204,7 @@ describe("formatting", () => {
 
   it("uses the singular for zero in French but the plural in English", () => {
     expect(FR.plural(FR.t.footer.memory, 0)).toBe("Mémoire de synchronisation : 0 verset");
-    expect(EN.plural(EN.t.footer.memory, 0)).toBe("Sync memory: 0 verses");
+    expect(EN.plural(EN.t.footer.memory, 0)).toBe("Sync history: 0 verses");
   });
 
   it("agrees on one and many", () => {

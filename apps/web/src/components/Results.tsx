@@ -50,6 +50,7 @@ function Notice({ tone, children }: { tone: "warn" | "error"; children: React.Re
 export function Results({ run, names, onApply, onApplyAllowingRemovals, onSignInAgain }: Props) {
   const { t, f, plural } = useI18n();
   const tr = t.results;
+  const stoppedBecause = (problem: string) => f(tr.stoppedBecause, { problem });
   const s = run.summary;
   const changed = s.books.filter(
     (b) => b.readError || b.blocked || b.writeErrors.length || b.plan?.actions.length || b.plan?.differences.length,
@@ -104,16 +105,16 @@ export function Results({ run, names, onApply, onApplyAllowingRemovals, onSignIn
 
         {s.fatal?.reason === "rateLimited" && (
           <Notice tone="warn">
-            {s.fatal.retryAfter ? plural(tr.rateLimited, Math.ceil(s.fatal.retryAfter / 60)) : tr.rateLimitedSoon}
+            {stoppedBecause(s.fatal.retryAfter ? plural(t.problems.rateLimited, Math.ceil(s.fatal.retryAfter / 60)) : t.problems.rateLimitedSoon)}
           </Notice>
         )}
         {/* A run stops as "network" only once even the token refresh couldn't
             get through (YouVersion unreachable, or a 429 the browser hides),
             so signing in again, through YouVersion too, wouldn't help. */}
-        {s.fatal?.reason === "network" && !authExpired && <Notice tone="warn">{tr.network}</Notice>}
+        {s.fatal?.reason === "network" && !authExpired && <Notice tone="warn">{stoppedBecause(t.problems.unreachable)}</Notice>}
         {authExpired && (
           <Notice tone="warn">
-            <p>{tr.authExpired}</p>
+            <p>{stoppedBecause(t.problems.signInExpired)}</p>
             <button className="btn-secondary" onClick={onSignInAgain}>
               <LogIn size={16} aria-hidden />
               {tr.signInAgain}

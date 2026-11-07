@@ -148,7 +148,7 @@ describe("VersionsCard", () => {
       const [unknown] = await search("999998");
       expect(unknown).toHaveTextContent("Version 999998");
       await userEvent.click(unknown);
-      expect(await screen.findByRole("alert")).toHaveTextContent(/Version 999998 can't be synced: 153 of its chapters/);
+      expect(await screen.findByRole("alert")).toHaveTextContent(/999998 can't be synced: 153 of its chapters/);
       expect(onChange).not.toHaveBeenCalled();
     });
 
@@ -158,7 +158,7 @@ describe("VersionsCard", () => {
       const onChange = renderCard([{ abbr: "NIV", bibleId: 111 }]);
       const [kjv] = await search("KJV");
       await userEvent.click(kjv);
-      expect(await screen.findByRole("alert")).toHaveTextContent(/Couldn't read highlights for version 1: YouVersion isn't answering\./);
+      expect(await screen.findByRole("alert")).toHaveTextContent(/Couldn't check highlights for KJV: Can't reach YouVersion\./);
       expect(screen.getByRole("alert")).not.toHaveTextContent(/Failed to fetch/);
       expect(onChange).not.toHaveBeenCalled();
     });
@@ -172,8 +172,8 @@ describe("VersionsCard", () => {
     renderCard(settings, vi.fn(), [
       { ...settings[1], map: VersionMap.unsupported("RUS"), source: "unsupported", unfit: 153 },
     ]);
-    expect(screen.getByText("Numbering not supported")).toBeInTheDocument();
-    expect(screen.getByText(/^153 chapters of this version match neither/)).toBeInTheDocument();
+    expect(screen.getByText("Can't be synced")).toBeInTheDocument();
+    expect(screen.getByText(/^153 chapters of this version don't follow/)).toBeInTheDocument();
   });
 
   describe("finding the person's versions", () => {
@@ -191,12 +191,12 @@ describe("VersionsCard", () => {
 
     it("looks straight away on a first visit, and offers to replace the example versions", async () => {
       const onChange = renderCard([{ abbr: "LSG", bibleId: 93 }, { abbr: "S21", bibleId: 152 }], vi.fn(), null, true);
-      expect(screen.getByText(/These are example versions/)).toBeInTheDocument();
+      expect(screen.getByText(/These are examples/)).toBeInTheDocument();
       await userEvent.click(await screen.findByRole("button", { name: "Use these 2 versions instead" }));
       // Most used first (KJV is ranked, ASV isn't), named as bible.com names them.
       expect(onChange).toHaveBeenCalledWith([1, 12]);
       expect(screen.getByText("2 highlighted verses in the sample")).toBeInTheDocument();
-      expect(screen.getByText("No highlights found in LSG and S21 in the chapters sampled.")).toBeInTheDocument();
+      expect(screen.getByText("In your list, but no highlights found: LSG and S21.")).toBeInTheDocument();
       // Only reads: nothing but highlights and indexes is asked for.
       expect(getHighlights).toHaveBeenCalledWith(111, "JHN.3", expect.anything());
       expect(getHighlights).not.toHaveBeenCalledWith(1, "PHP.4"); // KJV already found
@@ -212,7 +212,7 @@ describe("VersionsCard", () => {
       expect(onChange).toHaveBeenCalledWith([1, 111, 12]);
       expect(screen.getByText("In your list")).toBeInTheDocument(); // KJV
       expect(screen.queryByRole("button", { name: /Use these/ })).not.toBeInTheDocument();
-      expect(screen.getByText("No highlights found in NIV in the chapters sampled.")).toBeInTheDocument();
+      expect(screen.getByText("In your list, but no highlights found: NIV.")).toBeInTheDocument();
     });
 
     it("lets a found version be added while the rest are still being looked for", async () => {
@@ -244,7 +244,7 @@ describe("VersionsCard", () => {
       expect(await screen.findByText(/^Stopped after checking \d+ of \d+\.$/)).toBeInTheDocument();
       expect(screen.queryByRole("button", { name: /Stop/ })).not.toBeInTheDocument();
       expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Look again" })).toBeEnabled();
+      expect(screen.getByRole("button", { name: "Search again" })).toBeEnabled();
       expect(screen.getByRole("button", { name: "Add KJV" })).toBeInTheDocument();
       // Nothing was asked for after the stop.
       const calls = getHighlights.mock.calls.length;
@@ -269,7 +269,7 @@ describe("VersionsCard", () => {
       getHighlights.mockRejectedValue(new ApiError(401, "sign-in expired"));
       renderCard([{ abbr: "KJV", bibleId: 1 }]);
       await userEvent.click(screen.getByRole("button", { name: "Find my versions" }));
-      expect(await screen.findByText("Couldn't finish looking: your YouVersion sign-in has expired. Sign in again.")).toBeInTheDocument();
+      expect(await screen.findByText("Couldn't finish searching: Your YouVersion sign-in expired. Sign in again.")).toBeInTheDocument();
     });
 
     it("explains a request that never got an answer, in the reader's language", async () => {
@@ -277,7 +277,7 @@ describe("VersionsCard", () => {
       getHighlights.mockRejectedValue(new ApiError(0, "Failed to fetch"));
       renderCard([{ abbr: "KJV", bibleId: 1 }]);
       await userEvent.click(screen.getByRole("button", { name: "Find my versions" }));
-      expect(await screen.findByText(/^Couldn't finish looking: YouVersion isn't answering\./)).toBeInTheDocument();
+      expect(await screen.findByText(/^Couldn't finish searching: Can't reach YouVersion\./)).toBeInTheDocument();
       expect(screen.queryByText(/Failed to fetch/)).not.toBeInTheDocument();
     });
 

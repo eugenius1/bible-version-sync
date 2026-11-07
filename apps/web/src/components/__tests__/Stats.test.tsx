@@ -48,7 +48,7 @@ describe("StatsPage", () => {
       added: { 1588: { "JHN.3.16": "fffe00", "JHN.3.17": "ff95ef" } },
     };
     renderStats();
-    expect(await screen.findByText("2 highlights · 2 added by the sync")).toBeInTheDocument();
+    expect(await screen.findByText("2 highlights · 2 added by syncing")).toBeInTheDocument();
     expect(screen.getByText("NIV")).toBeInTheDocument();
     const legend = screen.getAllByRole("listitem").map((li) => li.textContent).filter((t) => /^(Pink|Yellow)/.test(t ?? ""));
     expect(legend).toEqual(["Pink 1", "Yellow 1", "Pink 1", "Yellow 1"]);
@@ -70,7 +70,7 @@ describe("StatsPage", () => {
     saved = { ...emptyState(), verses: { "JHN.3.16": { 111: "fffe00" } } };
     localStorage.setItem(PACE_STORAGE_KEY, JSON.stringify({ msPerRead: 1234, msPerWrite: 850.4 }));
     renderStats();
-    expect(await screen.findByText("1.234 s to read a chapter's highlights in one version")).toBeInTheDocument();
-    expect(screen.getByText("0.850 s to write a highlight")).toBeInTheDocument();
+    expect(await screen.findByText("1.234 s to check one chapter in one version")).toBeInTheDocument();
+    expect(screen.getByText("0.850 s to highlight a verse")).toBeInTheDocument();
   });
 });
