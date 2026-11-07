@@ -57,7 +57,7 @@ export const en = {
     byVersion: "Version priority",
     byColor: "Color priority",
     helpByVersion: "Existing highlights keep their color. A version without one gets the color from the first version in your list that has one.",
-    helpByColor: "Existing highlights keep their color. A version without one gets whichever of the verse's colors is highest in this list.",
+    helpByColor: "Existing highlights keep their color. A version without one gets whichever of the verse's colors is highest in this list. For two shades of the same color, the version higher in your list wins.",
     note: "bible.com offers only yellow, green, blue, peach and pink; the others come from the mobile apps.",
     drag: "Reorder {color}: drag, or use the up and down arrow keys",
     names: {
