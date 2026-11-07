@@ -54,6 +54,14 @@ describe("Priority", () => {
     expect(screen.getByRole("switch")).toHaveAttribute("aria-checked", "true");
   });
 
+  it("explains shades only while colors decide", () => {
+    const { unmount } = renderPriority(false);
+    expect(screen.queryByText(/Slightly different shades/)).not.toBeInTheDocument();
+    unmount();
+    renderPriority(true);
+    expect(screen.getByText(/Slightly different shades of one color count as the same color/)).toBeInTheDocument();
+  });
+
   it("lists every color the mobile apps offer, and moves one up", async () => {
     const { onColors } = renderPriority(true);
     expect(screen.getAllByRole("listitem")).toHaveLength(10);
