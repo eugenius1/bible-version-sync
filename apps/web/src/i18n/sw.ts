@@ -258,6 +258,8 @@ export const sw: Dictionary = {
     perVersion: "Kwa toleo",
     highlights: ["Alama {n}", "Alama {n}"],
     added: ["{n} imeongezwa kwa kusawazisha", "{n} zimeongezwa kwa kusawazisha"],
+    ownHighlights: "Zako mwenyewe",
+    addedBySync: "Zilizoongezwa kwa kusawazisha",
     unwritable: [
       "Mstari {n} haukuweza kuwekewa alama",
       "Mistari {n} haikuweza kuwekewa alama",
@@ -276,6 +278,22 @@ export const sw: Dictionary = {
       "{book}: mstari {n} wenye alama, sura {synced} kati ya {chapters} zimesawazishwa",
       "{book}: mistari {n} yenye alama, sura {synced} kati ya {chapters} zimesawazishwa",
     ],
+    bookSkyline: "Kitabu kwa kitabu",
+    bookSkylineNote:
+      "Kila kitabu cha Biblia kama mnara: kadiri mistari yenye alama inavyokuwa mingi, ndivyo mnara unavyokuwa mrefu, kwa rangi zake. Sakafu nyeusi zaidi ni kitabu chenye sura iliyosawazishwa.",
+    skyline: "Sura kwa sura",
+    skylineNote:
+      "Kila sura ya Biblia kama mnara: kadiri mistari yenye alama inavyokuwa mingi, ndivyo mnara unavyokuwa mrefu, kwa rangi zake. Sakafu nyeusi zaidi ni sura iliyosawazishwa.",
+    turn: "Buruta ili kuuzungusha.",
+    chapterRow: [
+      "{chapter}: mstari {n} wenye alama",
+      "{chapter}: mistari {n} yenye alama",
+    ],
+    chapterNotSynced: "{chapter}: haijasawazishwa",
+    colorsByBook: "Rangi kwa kitabu",
+    colorsByBookNote: "Idadi ya mistari ya kila rangi katika kila kitabu.",
+    oldTestament: "Agano la Kale",
+    newTestament: "Agano Jipya",
     topChapters: "Sura zenye alama nyingi zaidi kwa idadi",
     topShare: "Sura zenye sehemu kubwa zaidi yenye alama",
     versesOf: "aya {n} kati ya {total}",

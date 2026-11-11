@@ -139,6 +139,18 @@ const PAIRS: Array<[Pair, Pair]> = [
     { label: "progress bar in its track", fg: "amber-500", bg: "stone-800", need: 3 },
   ],
   [
+    { label: "chapters-synced meter in its track", fg: "amber-700", bg: "stone-300", need: 3 },
+    { label: "chapters-synced meter in its track", fg: "amber-500", bg: "stone-700", need: 3 },
+  ],
+  [
+    { label: "a version's own highlights, as a bar on a card", fg: "stone-500", bg: "white", need: 3 },
+    { label: "a version's own highlights, as a bar on a card", fg: "stone-500", bg: "stone-900", need: 3 },
+  ],
+  [
+    { label: "highlights added by syncing, as a bar on a card", fg: "amber-600", bg: "white", need: 3 },
+    { label: "highlights added by syncing, as a bar on a card", fg: "amber-400", bg: "stone-900", need: 3 },
+  ],
+  [
     { label: "progress percentage on the track", fg: "stone-900", bg: "stone-200", need: 4.5 },
     { label: "progress percentage on the track", fg: "stone-100", bg: "stone-800", need: 4.5 },
   ],
