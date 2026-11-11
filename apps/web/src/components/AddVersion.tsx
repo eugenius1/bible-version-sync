@@ -70,9 +70,11 @@ export function AddVersion({ added, disabled, onAdd }: Props) {
       }
     }
     setAdding(null);
-    if (problem) return setError(f(tv.errors.cantRead, { id: bibleId, problem }));
+    // The number is what was typed or picked; the abbreviation is what the list shows.
+    const abbr = versionName(bibleId)?.abbr ?? String(bibleId);
+    if (problem) return setError(f(tv.errors.cantRead, { abbr, problem }));
     if (resolved?.source === "unsupported") {
-      return setError(f(tv.errors.unsupported, { id: bibleId, n: num(resolved.unfit ?? 0) }));
+      return setError(f(tv.errors.unsupported, { abbr, n: num(resolved.unfit ?? 0) }));
     }
     setQuery("");
     await onAdd(bibleId);

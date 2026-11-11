@@ -1,7 +1,8 @@
 import { byPopularity, discoverVersions, loadVersionNames, versionName, versionsInLanguages } from "@bvs/core";
-import { Check, Plus, Search, Sparkles, Square } from "lucide-react";
+import { Check, CircleHelp, Plus, Search, Sparkles, Square } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useI18n } from "../i18n";
+import { Hint } from "./Hint";
 import { client } from "../lib/auth";
 import type { VersionSetting } from "../lib/db";
 import { problemText, readerLanguages, resolveVersion } from "../lib/versions";
@@ -151,7 +152,13 @@ export function FindVersions({ settings, disabled, fresh, onChange }: Props) {
             <Sparkles size={16} aria-hidden />
             {scan.status === "idle" ? tf.button : tf.again}
           </button>
-          <span className="text-xs text-stone-600 dark:text-stone-400">{tf.help}</span>
+          <Hint
+            hint={tf.help}
+            className="inline-flex size-8 cursor-help items-center justify-center rounded-full text-stone-600 hover:text-stone-900 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-amber-600 dark:text-stone-400 dark:hover:text-stone-100 dark:focus-visible:outline-amber-500"
+          >
+            <CircleHelp size={16} aria-hidden />
+            <span className="sr-only">{tf.helpLabel}</span>
+          </Hint>
         </div>
       )}
 

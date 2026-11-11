@@ -94,13 +94,13 @@ describe("a stopped run", () => {
   it("doesn't claim everything is in sync when it finished no book", () => {
     stopped([]);
     expect(screen.getByRole("heading", { name: "Preview (stopped)" })).toBeInTheDocument();
-    expect(screen.getByText(/Stopped before a whole book was read/)).toBeInTheDocument();
+    expect(screen.getByText(/Stopped before a full book was checked/)).toBeInTheDocument();
     expect(screen.queryByText(/everything is in sync/)).not.toBeInTheDocument();
   });
 
   it("speaks only for the books it finished", () => {
     stopped([{ book: "PSA", plan: empty, writeErrors: [] }]);
-    expect(screen.getByText("Nothing to change in the book read before stopping.")).toBeInTheDocument();
+    expect(screen.getByText("Nothing to change in the book checked before stopping.")).toBeInTheDocument();
     cleanup();
     stopped([{ book: "PSA", plan: empty, writeErrors: [] }], true);
     expect(screen.getByText("Nothing needed changing in the book synced before stopping.")).toBeInTheDocument();
@@ -168,7 +168,7 @@ describe("a run YouVersion stopped answering", () => {
         />
       </I18nProvider>,
     );
-    expect(screen.getByText(/YouVersion isn't answering\..*asked too often/)).toBeInTheDocument();
+    expect(screen.getByText(/can't reach YouVersion\..*too many requests/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Sign in again" })).not.toBeInTheDocument();
   });
 

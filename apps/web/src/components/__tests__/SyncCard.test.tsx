@@ -39,21 +39,21 @@ function renderCard(run: RunState, stopping: boolean, onCancel = vi.fn(), versio
 describe("SyncCard while running", () => {
   it("offers Stop, and explains that a book being written finishes first", async () => {
     const onCancel = renderCard(reading(true), false);
-    expect(screen.getByText(/Stopping now leaves a book/)).toBeInTheDocument();
+    expect(screen.getByText(/A book that's being updated finishes first/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Stop" }));
     expect(onCancel).toHaveBeenCalledOnce();
   });
 
   it("has no such note for a preview, which writes nothing", () => {
     renderCard(reading(false), false);
-    expect(screen.queryByText(/Stopping now leaves a book/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/A book that's being updated finishes first/)).not.toBeInTheDocument();
   });
 
   it("shows that it's stopping, and can't be stopped twice", () => {
     renderCard(reading(false), true);
     expect(screen.getByRole("button", { name: "Stopping" })).toBeDisabled();
     expect(screen.getByText(/Stopping…/)).toBeInTheDocument();
-    expect(screen.queryByText(/Reading John/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Checking John/)).not.toBeInTheDocument();
   });
 
   it("names the book it's finishing when stopped while writing", () => {
@@ -65,7 +65,7 @@ describe("SyncCard while running", () => {
       remaining: { minMs: 4000, maxMs: 4000 },
     };
     renderCard(run, true);
-    expect(screen.getByText(/Stopping once Ruth is written…/)).toBeInTheDocument();
+    expect(screen.getByText(/Stopping once Ruth is finished…/)).toBeInTheDocument();
     // Stopping isn't governed by the estimate, so it isn't shown.
     expect(screen.queryByText(/about .* left/)).not.toBeInTheDocument();
   });
@@ -78,7 +78,7 @@ describe("SyncCard while running", () => {
   it("gives a sync's time left as a range, at least the reads and at most every write", () => {
     renderCard({ ...reading(true), remaining: { minMs: 7 * 60_000, maxMs: 77 * 60_000 } } as RunState, false);
     expect(screen.getByText("Syncing: 7–77 minutes left")).toBeInTheDocument();
-    expect(screen.getByText("Keep this page open.")).toBeInTheDocument();
+    expect(screen.getByText("Keep this page open until it finishes.")).toBeInTheDocument();
   });
 
   it("shows the whole run's progress in the bar, and the book's only over several books", () => {
@@ -88,7 +88,7 @@ describe("SyncCard while running", () => {
       progress: { phase: "reading", book: "JHN", done: 21, total: 84, readDone: 123, readTotal: 1000 },
     } as RunState;
     renderCard(run, false);
-    expect(screen.getByText("Reading John: 25%")).toBeInTheDocument();
+    expect(screen.getByText("Checking John: 25%")).toBeInTheDocument();
     expect(screen.getAllByText("12.3%")).toHaveLength(2); // one copy for each side of the fill
     expect(screen.getByRole("progressbar")).toHaveAttribute("value", "12.3");
   });
@@ -100,7 +100,7 @@ describe("SyncCard while running", () => {
 
   it("leaves the book's progress out when the run is one book", () => {
     renderCard(reading(false), false);
-    expect(screen.getByText("Reading John")).toBeInTheDocument();
+    expect(screen.getByText("Checking John")).toBeInTheDocument();
   });
 
   it("shows no time left on a quick one", () => {
@@ -117,7 +117,7 @@ describe("SyncCard before running", () => {
     await userEvent.click(screen.getByRole("radio", { name: "Whole Bible" }));
     // 2 × 1,189 chapters at the assumed 100 ms; a sync may also copy a
     // tenth of the Bible's verses into the other version, at 350 ms each.
-    expect(screen.getByText("Chapters to read: 2,378")).toBeInTheDocument();
+    expect(screen.getByText("Chapters × versions: 2,378")).toBeInTheDocument();
     // Each time under its own button, and read out with it.
     expect(screen.getByRole("button", { name: "Preview changes" })).toHaveAccessibleDescription("about 4 minutes");
     expect(screen.getByRole("button", { name: "Sync now" })).toHaveAccessibleDescription("4–22 minutes");
@@ -129,13 +129,13 @@ describe("SyncCard before running", () => {
         <SyncCard versions={VERSIONS} run={idle} stopping={false} remembered={{ PSA: 900 }} onRun={vi.fn()} onCancel={vi.fn()} />
       </I18nProvider>,
     );
-    expect(screen.queryByText(/Chapters to read:/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Chapters × versions:/)).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("radio", { name: "Book" }));
     // John: 42 reads, about 4 seconds, too quick to say however much a sync may write.
-    expect(screen.queryByText(/Chapters to read:/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Chapters × versions:/)).not.toBeInTheDocument();
     await userEvent.selectOptions(screen.getByRole("combobox", { name: "Book" }), "PSA");
     // 300 reads at 100 ms; 900 remembered verses into the other version at 350 ms.
-    expect(screen.getByText("Chapters to read: 300")).toBeInTheDocument();
+    expect(screen.getByText("Chapters × versions: 300")).toBeInTheDocument();
     expect(screen.getByText("30 seconds to 6 minutes")).toBeInTheDocument();
   });
 

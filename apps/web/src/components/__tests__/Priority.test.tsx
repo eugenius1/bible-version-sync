@@ -45,7 +45,7 @@ describe("Priority", () => {
 
   it("switches to color priority", async () => {
     const { onColors } = renderPriority(false);
-    await userEvent.click(screen.getByRole("switch", { name: "Use color priority instead of version priority" }));
+    await userEvent.click(screen.getByRole("switch", { name: "Prioritize by color instead of by version" }));
     expect(onColors).toHaveBeenCalledWith(true, ORDER);
   });
 
