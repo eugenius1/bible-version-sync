@@ -1,6 +1,6 @@
 import { HIGHLIGHT_HEX, type HighlightColorId, type SyncState } from "@bvs/core";
 import { ArrowLeft, CircleAlert } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { useI18n } from "../i18n";
 import { store, type VersionSetting } from "../lib/db";
 import { storedPace } from "../lib/pace";
@@ -61,7 +61,14 @@ export function StatsPage({ versions: chosen, colorOrder, demo }: Props) {
   );
 }
 
-function Body({ stats: s, versions, colorOrder }: { stats: Stats; versions: VersionSetting[]; colorOrder: readonly HighlightColorId[] }) {
+interface BodyProps {
+  stats: Stats;
+  versions: VersionSetting[];
+  colorOrder: readonly HighlightColorId[];
+}
+
+// Memoised because a render repaints three canvases, and the app re-renders for reasons the stats don't share.
+const Body = memo(function Body({ stats: s, versions, colorOrder }: BodyProps) {
   const { t, f, num, plural, book, ref } = useI18n();
   const percent = new Intl.NumberFormat(t.meta.localeTag, { style: "percent", maximumFractionDigits: 1 });
   const names = new Map(versions.map((v) => [v.bibleId, v.abbr]));
@@ -209,7 +216,7 @@ function Body({ stats: s, versions, colorOrder }: { stats: Stats; versions: Vers
       </Section>
     </>
   );
-}
+});
 
 /** The three ways a verse is spread over the versions, widest first, from the strongest tint to the faintest. */
 const OVERLAP = [
@@ -275,16 +282,16 @@ function AddedChart({ versions, names }: { versions: VersionStats[]; names: Map<
         <li className="inline-flex items-center gap-1.5"><span className={`${swatch} ${ADDED.own}`} />{t.stats.ownHighlights}</li>
         <li className="inline-flex items-center gap-1.5"><span className={`${swatch} ${ADDED.added}`} />{t.stats.addedBySync}</li>
       </ul>
-      <div className="grid grid-cols-[auto_1fr_auto] gap-x-3 gap-y-1.5 text-sm">
+      <div className="space-y-1.5 text-sm">
         {versions.map((v) => {
           const name = names.get(v.bibleId) ?? v.bibleId;
           return (
             <div
               key={v.bibleId}
               title={`${name}: ${plural(t.stats.highlights, v.highlights)} · ${plural(t.stats.added, v.added)}`}
-              className="col-span-3 grid grid-cols-subgrid items-center"
+              className="grid grid-cols-[4.5rem_1fr_3.5rem] items-center gap-3"
             >
-              <span className="max-w-24 truncate">{name}</span>
+              <span className="truncate">{name}</span>
               <span className="h-3">
                 <span className="flex h-full gap-0.5" style={{ width: `${Math.max((v.highlights / most) * 100, 2)}%` }}>
                   {v.highlights > v.added && <span className={`h-full rounded ${ADDED.own}`} style={{ flexGrow: v.highlights - v.added, flexBasis: 0, minWidth: 3 }} />}

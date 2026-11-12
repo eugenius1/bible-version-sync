@@ -47,7 +47,6 @@ const LABEL_GAP = 9;
  * point at a bar to read it. Decoration for screen readers, which get `label`.
  */
 export function Scene3D(props: Props) {
-  const box = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const tip = useRef<HTMLDivElement>(null);
   // The canvas is set up once and paints from the latest props, so a change of
@@ -62,13 +61,14 @@ export function Scene3D(props: Props) {
   useEffect(() => {
     const el = canvas.current;
     const ctx = el?.getContext("2d");
-    if (!el || !ctx || !box.current) return;
+    if (!el || !ctx) return;
     const still = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
     const animate = !still && typeof IntersectionObserver === "function";
     const home = latest.current.yaw ?? -0.5;
     const camera: Camera = { yaw: animate ? home - INTRO_SWING : home, pitch: START_PITCH, grow: animate ? 0 : 1 };
     let width = 0;
     let height = 0;
+    let density = 0;
     let painted: Face[] = [];
     let hover = -1;
     let frame = 0;
@@ -87,11 +87,11 @@ export function Scene3D(props: Props) {
       const grid = { cols: p.cols, rows: p.rows, rise: Math.max(p.cols, p.rows) * 0.26, inset: p.inset ?? 0.14 };
       const view = fit(grid, camera, width, height, pad);
       painted = faces(p.cells, view);
-      const dpr = window.devicePixelRatio || 1;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.setTransform(density, 0, 0, density, 0, 0);
       ctx.clearRect(0, 0, width, height);
       ctx.lineJoin = "round";
-      const group = hover >= 0 ? p.cells[hover].group : -1;
+      // The cell under the pointer may be gone, if the chart has since been given fewer.
+      const group = p.cells[hover]?.group ?? -1;
       for (const f of painted) {
         const cell = p.cells[f.cell];
         ctx.beginPath();
@@ -143,20 +143,22 @@ export function Scene3D(props: Props) {
     };
     repaint.current = schedule;
 
+    // The stylesheet sizes the canvas; this only matches its pixels to that size.
     const resize = () => {
-      const p = latest.current;
-      if (!box.current) return;
-      width = box.current.clientWidth;
-      height = Math.round(Math.max(width * p.aspect, 240));
       const dpr = window.devicePixelRatio || 1;
+      if (el.clientWidth === width && el.clientHeight === height && dpr === density) return;
+      width = el.clientWidth;
+      height = el.clientHeight;
+      density = dpr;
       el.width = Math.round(width * dpr);
       el.height = Math.round(height * dpr);
-      el.style.height = `${height}px`;
       paint();
     };
     const sized = typeof ResizeObserver === "function" ? new ResizeObserver(resize) : null;
-    sized?.observe(box.current);
+    sized?.observe(el);
     resize();
+    // Zooming the page changes how many pixels the canvas needs, not its size, so the observer stays silent.
+    window.addEventListener("resize", resize);
 
     // Dark mode is a class on <html>, which the canvas can't inherit.
     const themed = new MutationObserver(schedule);
@@ -247,8 +249,9 @@ export function Scene3D(props: Props) {
       // A tap is how a finger points.
       if (tapped && e.type === "pointerup") point(e);
     };
-    const leave = () => {
-      if (!drag) clear();
+    const leave = (e: PointerEvent) => {
+      // A finger leaves the moment it lifts, which mustn't take away what its tap just showed.
+      if (!drag && e.pointerType === "mouse") clear();
     };
     const key = (e: KeyboardEvent) => {
       const turn = TURNS[e.key];
@@ -271,6 +274,7 @@ export function Scene3D(props: Props) {
       cancelAnimationFrame(frame);
       cancelAnimationFrame(intro);
       sized?.disconnect();
+      window.removeEventListener("resize", resize);
       themed.disconnect();
       seen?.disconnect();
       el.removeEventListener("pointerdown", down);
@@ -283,13 +287,14 @@ export function Scene3D(props: Props) {
   }, []);
 
   return (
-    <div ref={box} className="relative">
+    <div className="relative">
       <canvas
         ref={canvas}
         role="img"
         aria-label={props.label}
         tabIndex={0}
-        className="block w-full cursor-grab touch-pan-y rounded-xl select-none active:cursor-grabbing
+        style={{ aspectRatio: `1 / ${props.aspect}`, minHeight: 240 }}
+        className="block w-full cursor-grab touch-pan-y touch-pinch-zoom rounded-xl select-none active:cursor-grabbing
           focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 dark:focus-visible:outline-amber-500"
       />
       <div

@@ -191,7 +191,12 @@ export function BookWheel({ stats, colors, label }: BooksProps) {
 
   return (
     <div className="relative mx-auto w-full max-w-80">
-      <svg viewBox="-164 -164 328 328" role="img" aria-label={t.stats.byBook} className="block w-full" onPointerLeave={() => setActive(null)}>
+      <svg viewBox="-164 -164 328 328" role="img" aria-label={t.stats.byBook} className="block w-full"
+        // A finger leaves the moment it lifts: the book it tapped stays named until another is.
+        onPointerLeave={(e) => {
+          if (e.pointerType === "mouse") setActive(null);
+        }}
+      >
         {names.map((n) => (
           <g key={n.id} aria-hidden>
             <path id={n.id} d={arc(n.from, n.to, NAMES)} fill="none" />
