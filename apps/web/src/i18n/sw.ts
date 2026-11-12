@@ -286,6 +286,9 @@ export const sw: Dictionary = {
       "Kila sura ya Biblia kama mnara: kadiri mistari yenye alama inavyokuwa mingi, ndivyo mnara unavyokuwa mrefu, kwa rangi zake. Sakafu nyeusi zaidi ni sura iliyosawazishwa.",
     turn: "Buruta ili kuuzungusha.",
     asList: "Onyesha kama orodha",
+    zoomIn: "Kuza",
+    zoomOut: "Punguza",
+    resetView: "Weka upya mwonekano",
     chapterRow: [
       "{chapter}: mstari {n} wenye alama",
       "{chapter}: mistari {n} yenye alama",

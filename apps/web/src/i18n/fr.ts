@@ -291,6 +291,9 @@ export const fr: Dictionary = {
       "Chaque chapitre de la Bible est une tour : plus il a de versets surlignés, plus elle est haute, dans leurs couleurs. Le sol plus foncé est un chapitre qui a été synchronisé.",
     turn: "Faites glisser pour le tourner.",
     asList: "Afficher sous forme de liste",
+    zoomIn: "Zoom avant",
+    zoomOut: "Zoom arrière",
+    resetView: "Réinitialiser la vue",
     chapterRow: [
       "{chapter} : {n} verset surligné",
       "{chapter} : {n} versets surlignés",
