@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 
 import { emptyState, type HighlightColorId, type SyncState } from "@bvs/core";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../../i18n";
@@ -112,6 +112,19 @@ describe("StatsPage", () => {
     expect(await screen.findByRole("img", { name: "Chapter by chapter" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Book by book" })).toBeInTheDocument();
     expect(screen.queryByRole("img", { name: "Colors by book" })).not.toBeInTheDocument();
+  });
+
+  it("gives a 3D chart's figures as a list, for whoever can't point at a bar", async () => {
+    saved = { ...emptyState(), members: { "JHN.3": [111] }, verses: { "JHN.3.16": { 111: "fffe00" }, "JHN.3.17": { 111: "ff95ef" } } };
+    renderStats();
+    await screen.findByText("John");
+    // Under the books and under the chapters; the colour chart is left out with one book.
+    const lists = screen.getAllByText("Show as a list");
+    expect(lists).toHaveLength(2);
+    expect(screen.queryByText("John 3: 2 verses highlighted")).not.toBeInTheDocument();
+    await userEvent.click(lists[1]);
+    expect(await screen.findByText("John 3: 2 verses highlighted")).toBeInTheDocument();
+    expect(within(lists[1].parentElement!).getAllByRole("listitem")).toHaveLength(1);
   });
 
   it("shows made-up data, and says so, in demo mode", async () => {

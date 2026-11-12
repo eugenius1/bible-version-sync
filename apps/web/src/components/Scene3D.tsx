@@ -1,13 +1,14 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useI18n } from "../i18n";
 import { cellAt, faces, fit, project, type Camera, type Cell, type Face } from "../lib/scene3d";
 
 interface Props {
   cols: number;
   rows: number;
   cells: readonly Cell[];
-  /** What the pointer says about a cell, by its index in `cells`. */
+  /** A cell's figures as a sentence, by its index in `cells`: what the pointer says, and its line in the list. */
   describe: (cell: number) => string;
-  /** The chart's name, for screen readers; the page gives the figures as text elsewhere. */
+  /** The chart's name, for screen readers. */
   label: string;
   /** Canvas height over its width. */
   aspect: number;
@@ -38,15 +39,20 @@ const INTRO_SWING = 0.5;
 const TURNS: Record<string, [number, number] | undefined> = {
   ArrowLeft: [-0.15, 0], ArrowRight: [0.15, 0], ArrowUp: [0, 0.08], ArrowDown: [0, -0.08],
 };
+const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 dark:focus-visible:outline-amber-500";
 const FONT = "11px ui-sans-serif, system-ui, sans-serif";
 /** Row names closer together than this are thinned out. */
 const LABEL_GAP = 9;
 
 /**
  * Bars on a grid, in 3D, on a canvas: drag (or the arrow keys) to turn it,
- * point at a bar to read it. Decoration for screen readers, which get `label`.
+ * point at a bar to read it. A canvas says nothing to a screen reader beyond
+ * `label` and has nothing for the keyboard to point with, so the same figures
+ * can be opened as a list under it.
  */
 export function Scene3D(props: Props) {
+  const { t } = useI18n();
+  const [listed, setListed] = useState(false);
   const canvas = useRef<HTMLCanvasElement>(null);
   const tip = useRef<HTMLDivElement>(null);
   // The canvas is set up once and paints from the latest props, so a change of
@@ -141,7 +147,6 @@ export function Scene3D(props: Props) {
     const schedule = () => {
       frame ||= requestAnimationFrame(paint);
     };
-    repaint.current = schedule;
 
     // The stylesheet sizes the canvas; this only matches its pixels to that size.
     const resize = () => {
@@ -219,6 +224,12 @@ export function Scene3D(props: Props) {
         schedule();
       }
     };
+    // New props change the picture, and what the bubble a tap left open should say.
+    repaint.current = () => {
+      if (hover >= latest.current.cells.length) clear();
+      else if (hover >= 0 && tip.current) tip.current.textContent = latest.current.describe(hover);
+      schedule();
+    };
     const down = (e: PointerEvent) => {
       if (e.button !== 0) return;
       settle();
@@ -294,8 +305,7 @@ export function Scene3D(props: Props) {
         aria-label={props.label}
         tabIndex={0}
         style={{ aspectRatio: `1 / ${props.aspect}`, minHeight: 240 }}
-        className="block w-full cursor-grab touch-pan-y touch-pinch-zoom rounded-xl select-none active:cursor-grabbing
-          focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 dark:focus-visible:outline-amber-500"
+        className={`block w-full cursor-grab touch-pan-y touch-pinch-zoom rounded-xl select-none active:cursor-grabbing ${FOCUS}`}
       />
       <div
         ref={tip}
@@ -303,6 +313,16 @@ export function Scene3D(props: Props) {
         className="pointer-events-none absolute z-10 w-max max-w-64 -translate-x-1/2 -translate-y-full rounded-lg bg-stone-900 px-2.5 py-1 text-center text-xs text-white shadow-md
           dark:bg-stone-100 dark:text-stone-900"
       />
+      <details className="mt-2 text-xs text-stone-600 dark:text-stone-400" onToggle={(e) => setListed(e.currentTarget.open)}>
+        <summary className={`w-fit cursor-pointer rounded ${FOCUS}`}>{t.stats.asList}</summary>
+        {/* Only once it's open: the chapters can make over a thousand lines. Bare ground has nothing to say.
+            The list takes focus so that the keyboard can scroll it. */}
+        {listed && (
+          <ul tabIndex={0} className={`mt-2 max-h-56 space-y-0.5 overflow-y-auto rounded ${FOCUS}`}>
+            {props.cells.map((c, i) => (c.parts.length > 0 || c.marked) && <li key={i}>{props.describe(i)}</li>)}
+          </ul>
+        )}
+      </details>
     </div>
   );
 }

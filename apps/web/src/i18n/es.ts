@@ -282,6 +282,7 @@ export const es: Dictionary = {
     skylineNote:
       "Cada capítulo de la Biblia como una torre: cuantos más versículos resaltados, más alta, con sus colores. El suelo más oscuro es un capítulo que se ha sincronizado.",
     turn: "Arrastra para girarlo.",
+    asList: "Ver como lista",
     chapterRow: [
       "{chapter}: {n} versículo resaltado",
       "{chapter}: {n} versículos resaltados",

@@ -282,6 +282,7 @@ export const de: Dictionary = {
     skylineNote:
       "Jedes Kapitel der Bibel als Turm: je mehr Verse markiert sind, desto höher, in ihren Farben. Dunklerer Boden ist ein Kapitel, das synchronisiert wurde.",
     turn: "Zum Drehen ziehen.",
+    asList: "Als Liste anzeigen",
     chapterRow: [
       "{chapter}: {n} Vers markiert",
       "{chapter}: {n} Verse markiert",

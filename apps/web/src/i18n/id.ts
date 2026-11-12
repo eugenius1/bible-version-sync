@@ -285,6 +285,7 @@ export const id: Dictionary = {
     skylineNote:
       "Setiap pasal Alkitab sebagai menara: makin banyak ayat ditandai, makin tinggi, dengan warnanya. Dasar yang lebih gelap adalah pasal yang sudah disinkronkan.",
     turn: "Seret untuk memutarnya.",
+    asList: "Tampilkan sebagai daftar",
     chapterRow: [
       "{chapter}: {n} ayat ditandai",
       "{chapter}: {n} ayat ditandai",

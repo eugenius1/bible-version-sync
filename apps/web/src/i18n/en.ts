@@ -284,6 +284,7 @@ export const en = {
     skylineNote:
       "Every chapter of the Bible as a tower: the more verses highlighted, the taller, in their colors. Darker ground is a chapter that has been synced.",
     turn: "Drag to turn it.",
+    asList: "Show as a list",
     chapterRow: [
       "{chapter}: {n} verse highlighted",
       "{chapter}: {n} verses highlighted",
