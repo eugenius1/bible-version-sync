@@ -24,8 +24,24 @@ export interface BookStats {
   book: string;
   /** Canonical verses with a highlight in at least one version. */
   verses: number;
+  /** Those verses by palette colour, counted as a chapter's are. */
+  colors: ColorCounts;
   chaptersSynced: number;
   chapters: number;
+}
+
+export type ColorCounts = Partial<Record<HighlightColorId, number>>;
+
+export interface ChapterStats {
+  /** The chapter's key: "PSA.23". */
+  chapter: string;
+  /** Canonical verses with a highlight in at least one version. */
+  verses: number;
+  /**
+   * Those verses by palette colour. A verse counts once, as the colour most
+   * of its versions have, the earliest in the person's list breaking a tie.
+   */
+  colors: ColorCounts;
 }
 
 export interface Stats {
@@ -43,6 +59,10 @@ export interface Stats {
   versions: VersionStats[];
   /** Bible order, every book. */
   books: BookStats[];
+  /** Every chapter with a highlighted verse, in Bible order. */
+  highlighted: ChapterStats[];
+  /** The chapters at least one version took part in. */
+  synced: ReadonlySet<string>;
   /** Most highlighted first, at most five. */
   topChapters: { chapter: string; verses: number }[];
   /** Highest share of the chapter's verses first, the most verses breaking ties; at most five. */
@@ -74,9 +94,14 @@ export function syncStats(state: SyncState, order: readonly number[] = []): Stat
   const std = Standard.load();
   const counts = std.counts.org;
   const books = new Map<string, BookStats>(
-    BOOKS.map((book) => [book, { book, verses: 0, chaptersSynced: 0, chapters: counts[book]?.length ?? 0 }]),
+    BOOKS.map((book) => [book, { book, verses: 0, colors: {}, chaptersSynced: 0, chapters: counts[book]?.length ?? 0 }]),
   );
-  const byChapter = new Map<string, number>();
+  const byChapter = new Map<string, ChapterStats>();
+  const synced = new Set<string>();
+  const rank = (id: number) => {
+    const i = order.indexOf(id);
+    return i === -1 ? order.length : i;
+  };
   const unwritable = new Map(Object.entries(state.unwritable).map(([id, refs]) => [Number(id), new Set(refs)]));
   // Only a few distinct colours are ever used, so each is matched once.
   const palette = new Map<string, HighlightColorId>();
@@ -87,34 +112,41 @@ export function syncStats(state: SyncState, order: readonly number[] = []): Stat
   };
   const stats: Stats = {
     verses: 0, everywhere: 0, some: 0, one: 0, differing: 0, chaptersSynced: 0, chapters: 0,
-    versions: [], books: [], topChapters: [], topShare: [],
+    versions: [], books: [], highlighted: [], synced, topChapters: [], topShare: [],
   };
 
   for (const [chapter, ids] of Object.entries(state.members)) {
     const b = books.get(chapter.split(".")[0]);
     if (!b || ids.length === 0) continue;
     b.chaptersSynced++;
+    synced.add(chapter);
     for (const id of ids) version(id);
   }
 
   for (const [canon, colors] of Object.entries(state.verses)) {
-    const ids = Object.keys(colors).map(Number);
+    const ids = Object.keys(colors).map(Number).sort((a, b) => rank(a) - rank(b) || a - b);
     if (ids.length === 0) continue;
     const [book] = parseRef(canon);
     const chapter = chapterKey(canon);
     stats.verses++;
     const b = books.get(book);
     if (b) b.verses++;
-    byChapter.set(chapter, (byChapter.get(chapter) ?? 0) + 1);
-    const used = new Set<HighlightColorId>();
+    let c = byChapter.get(chapter);
+    if (!c) byChapter.set(chapter, (c = { chapter, verses: 0, colors: {} }));
+    c.verses++;
+    // Insertion order is the person's version order, which breaks ties below.
+    const used = new Map<HighlightColorId, number>();
     for (const id of ids) {
       const v = version(id);
       const color = paletteColor(colors[id]);
       v.highlights++;
       v.colors[color]++;
-      used.add(color);
+      used.set(color, (used.get(color) ?? 0) + 1);
     }
     if (used.size > 1) stats.differing++;
+    const [main] = [...used].reduce((best, next) => (next[1] > best[1] ? next : best));
+    c.colors[main] = (c.colors[main] ?? 0) + 1;
+    if (b) b.colors[main] = (b.colors[main] ?? 0) + 1;
     // A version YouVersion won't take the verse in can't have it.
     const members = state.members[chapter]?.filter((id) => !unwritable.get(id)?.has(canon)).length || ids.length;
     if (members > 1 && ids.length === 1) stats.one++;
@@ -129,20 +161,17 @@ export function syncStats(state: SyncState, order: readonly number[] = []): Stat
     if (v) v.added = Object.keys(refs).length;
   }
 
-  const rank = (id: number) => {
-    const i = order.indexOf(id);
-    return i === -1 ? order.length : i;
-  };
   stats.versions = [...versions.values()].sort((a, b) => rank(a.bibleId) - rank(b.bibleId) || b.highlights - a.highlights);
   stats.books = [...books.values()];
   stats.chaptersSynced = stats.books.reduce((n, b) => n + b.chaptersSynced, 0);
   stats.chapters = stats.books.reduce((n, b) => n + b.chapters, 0);
-  stats.topChapters = [...byChapter]
-    .sort((a, b) => b[1] - a[1] || chapterOrder(a[0]) - chapterOrder(b[0]))
+  stats.highlighted = [...byChapter.values()].sort((a, b) => chapterOrder(a.chapter) - chapterOrder(b.chapter));
+  stats.topChapters = [...stats.highlighted]
+    .sort((a, b) => b.verses - a.verses)
     .slice(0, 5)
-    .map(([chapter, verses]) => ({ chapter, verses }));
-  stats.topShare = [...byChapter]
-    .map(([chapter, verses]) => {
+    .map(({ chapter, verses }) => ({ chapter, verses }));
+  stats.topShare = stats.highlighted
+    .map(({ chapter, verses }) => {
       const [book, ch] = chapter.split(".");
       return { chapter, verses, of: std.count("org", book, Number(ch)) };
     })

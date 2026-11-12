@@ -261,6 +261,8 @@ export const pt: Dictionary = {
     perVersion: "Por versão",
     highlights: ["{n} destaque", "{n} destaques"],
     added: ["{n} adicionado ao sincronizar", "{n} adicionados ao sincronizar"],
+    ownHighlights: "Seus",
+    addedBySync: "Adicionados ao sincronizar",
     unwritable: [
       "{n} versículo não pôde ser destacado",
       "{n} versículos não puderam ser destacados",
@@ -279,6 +281,23 @@ export const pt: Dictionary = {
       "{book}: {n} versículo destacado, {synced} de {chapters} capítulos sincronizados",
       "{book}: {n} versículos destacados, {synced} de {chapters} capítulos sincronizados",
     ],
+    bookSkyline: "Livro por livro",
+    bookSkylineNote:
+      "Cada livro da Bíblia como uma torre: quanto mais versículos destacados, mais alta, nas cores deles. O chão mais escuro é um livro com algum capítulo sincronizado.",
+    skyline: "Capítulo por capítulo",
+    skylineNote:
+      "Cada capítulo da Bíblia como uma torre: quanto mais versículos destacados, mais alta, nas cores deles. O chão mais escuro é um capítulo que já foi sincronizado.",
+    turn: "Arraste para girar.",
+    asList: "Ver como lista",
+    chapterRow: [
+      "{chapter}: {n} versículo destacado",
+      "{chapter}: {n} versículos destacados",
+    ],
+    chapterNotSynced: "{chapter}: não sincronizado",
+    colorsByBook: "Cores por livro",
+    colorsByBookNote: "Quantos versículos cada livro tem em cada cor.",
+    oldTestament: "Antigo Testamento",
+    newTestament: "Novo Testamento",
     topChapters: "Capítulos mais destacados em quantidade",
     topShare: "Capítulos mais destacados proporcionalmente",
     versesOf: "{n} de {total} versículos",

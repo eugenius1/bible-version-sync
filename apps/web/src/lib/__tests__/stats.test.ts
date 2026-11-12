@@ -29,7 +29,9 @@ describe("syncStats", () => {
     expect({ everywhere: s.everywhere, some: s.some, one: s.one, differing: s.differing }).toEqual({
       everywhere: 2, some: 0, one: 1, differing: 1,
     });
-    expect(s.books.find((b) => b.book === "JHN")).toEqual({ book: "JHN", verses: 2, chaptersSynced: 1, chapters: 21 });
+    expect(s.books.find((b) => b.book === "JHN")).toEqual({
+      book: "JHN", verses: 2, colors: { blue: 1, yellow: 1 }, chaptersSynced: 1, chapters: 21,
+    });
     expect(s.chaptersSynced).toBe(2);
     expect(s.chapters).toBe(1189);
     expect(s.topChapters).toEqual([{ chapter: "JHN.3", verses: 2 }, { chapter: "PSA.23", verses: 1 }]);
@@ -69,6 +71,28 @@ describe("syncStats", () => {
       { chapter: "PSA.23", verses: 3, of: 6 },
     ]);
     expect(s.topChapters[0].chapter).toBe("PSA.119");
+  });
+
+  it("lists the highlighted chapters in Bible order, each verse under the colour most of its versions have", () => {
+    const s = syncStats(
+      state({
+        members: { "PSA.23": [111, 1588, 59], "GEN.1": [111] },
+        verses: {
+          "PSA.23.1": { 111: "fffe00", 1588: "00d6ff", 59: "00d6ff" },
+          // A tie goes to the version listed first, here 1588.
+          "PSA.23.2": { 111: "fffe00", 1588: "ff95ef" },
+          "PSA.23.3": { 111: "fffe00" },
+          "GEN.1.1": { 111: "5eff79" },
+        },
+      }),
+      [1588, 111, 59],
+    );
+    expect(s.highlighted).toEqual([
+      { chapter: "GEN.1", verses: 1, colors: { green: 1 } },
+      { chapter: "PSA.23", verses: 3, colors: { blue: 1, pink: 1, yellow: 1 } },
+    ]);
+    expect([...s.synced].sort()).toEqual(["GEN.1", "PSA.23"]);
+    expect(s.books.find((b) => b.book === "PSA")?.colors).toEqual({ blue: 1, pink: 1, yellow: 1 });
   });
 
   it("matches a highlight to the nearest palette colour", () => {
