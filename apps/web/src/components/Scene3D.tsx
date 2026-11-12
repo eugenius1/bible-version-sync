@@ -43,6 +43,8 @@ const TURNS: Record<string, [number, number] | undefined> = {
 const ZOOM_STEP = 1.5;
 /** What a key multiplies the zoom by. */
 const ZOOMS: Record<string, number | undefined> = { "+": ZOOM_STEP, "=": ZOOM_STEP, "-": 1 / ZOOM_STEP };
+/** Zooming out, a zoom under this is as good as none. */
+const WHOLE = 1.1;
 /** How far, in pixels, an arrow key with Shift moves the picture. */
 const NUDGE = 40;
 const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 dark:focus-visible:outline-amber-500";
@@ -152,13 +154,14 @@ export function Scene3D(props: Props) {
       if (p.ends) {
         const half = [p.cols / 2, p.rows / 2];
         const ground = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([x, z]) => project(view, x * half[0], 0, z * half[1]));
-        [ground[0], ground[2]].forEach(([x], i) => {
-          // Not at the far corner, where the name would sit a whole ground away from it.
+        [ground[0], ground[2]].forEach(([x, y], i) => {
+          // Not at the far corner, where the name would sit a whole ground away from it;
+          // nor, zoomed in, for a corner that's off the canvas, where it would name whatever is at the edge.
           const side = i === 0 ? -1 : 1;
-          if (side * sin < 0 && side * cos < 0) return;
+          if ((side * sin < 0 && side * cos < 0) || x < 0 || x > width || y < 0 || y > height) return;
           const text = p.ends![i];
           const w = ctx.measureText(text).width;
-          const left = Math.min(Math.max(x - w / 2, 4), width - 4 - w);
+          const left = clamp(x - w / 2, 4, width - 4 - w);
           ctx.textAlign = "left";
           ctx.fillText(text, left, lowest(ground, left, left + w) + 11);
         });
@@ -229,7 +232,7 @@ export function Scene3D(props: Props) {
         bubble.hidden = next < 0;
         if (next >= 0) {
           bubble.textContent = latest.current.describe(next);
-          bubble.style.left = `${Math.min(Math.max(x, 72), Math.max(width - 72, 72))}px`;
+          bubble.style.left = `${clamp(x, 72, Math.max(width - 72, 72))}px`;
           bubble.style.top = `${Math.max(y - 14, 30)}px`;
         }
       }
@@ -263,7 +266,12 @@ export function Scene3D(props: Props) {
       el.style.touchAction = camera.zoom > 1 ? "none" : "";
       schedule();
     };
-    const zoomBy = (by: number, about?: number[]) => hold({ zoom: camera.zoom * by }, about);
+    const zoomBy = (by: number, about?: number[]) => {
+      const zoom = camera.zoom * by;
+      // A step out that would stop a hair short of the whole chart goes all the way:
+      // it would look whole, and still keep a finger's swipe from the page.
+      hold({ zoom: by < 1 && zoom < WHOLE ? 1 : zoom }, about);
+    };
     const pan = (dx: number, dy: number) => hold({}, [0, 0], [dx, dy]);
     const reset = () => hold({ yaw: home, pitch: START_PITCH, zoom: 1 });
     controls.current = { zoom: zoomBy, reset };
@@ -300,8 +308,8 @@ export function Scene3D(props: Props) {
       const dy = e.clientY - drag.y;
       if (!drag.moved && Math.abs(dx) + Math.abs(dy) < 4) return;
       drag = { x: e.clientX, y: e.clientY, moved: true };
-      // With Shift, the picture goes where the pointer does.
-      if (e.shiftKey) return pan(dx, dy);
+      // With Shift, the picture goes where the pointer does, once there's more of it than shows.
+      if (e.shiftKey && camera.zoom > 1) return pan(dx, dy);
       // Until it's zoomed in, a finger's vertical movement scrolls the page (touch-action), so only a mouse tilts.
       const tilts = e.pointerType !== "touch" || camera.zoom > 1;
       hold({ yaw: camera.yaw + dx * 0.01, pitch: tilts ? tilted(camera.pitch + dy * 0.006) : camera.pitch });
@@ -338,14 +346,16 @@ export function Scene3D(props: Props) {
       e.preventDefault();
       if (zoom) zoomBy(zoom);
       else if (!turn) reset();
-      // With Shift, the arrows move the picture: what's to the left comes into view.
-      else if (e.shiftKey) pan(-Math.sign(turn[0]) * NUDGE, Math.sign(turn[1]) * NUDGE);
+      // With Shift, the arrows move a zoomed-in picture: what's to the left comes into view.
+      else if (e.shiftKey && camera.zoom > 1) pan(-Math.sign(turn[0]) * NUDGE, Math.sign(turn[1]) * NUDGE);
       else hold({ yaw: camera.yaw + turn[0], pitch: tilted(camera.pitch + turn[1]) });
     };
     el.addEventListener("pointerdown", down);
     el.addEventListener("pointermove", move);
     el.addEventListener("pointerup", up);
     el.addEventListener("pointercancel", up);
+    // A pointer can go without either: a context menu takes the mouse's release with it.
+    el.addEventListener("lostpointercapture", up);
     el.addEventListener("pointerleave", leave);
     el.addEventListener("keydown", key);
     el.addEventListener("wheel", wheel, { passive: false });
@@ -363,6 +373,7 @@ export function Scene3D(props: Props) {
       el.removeEventListener("pointermove", move);
       el.removeEventListener("pointerup", up);
       el.removeEventListener("pointercancel", up);
+      el.removeEventListener("lostpointercapture", up);
       el.removeEventListener("pointerleave", leave);
       el.removeEventListener("keydown", key);
       el.removeEventListener("wheel", wheel);

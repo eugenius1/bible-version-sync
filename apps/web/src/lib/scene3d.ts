@@ -119,8 +119,8 @@ export function ground(v: View, px: number, py: number): [number, number] {
  * under the pixel `from` is under `to`: the picture stays with the pointer as
  * it zooms, and turns about whatever is there. `view` is `fit` for the canvas,
  * `width` by `height`. The zoom stays between 1 and `MAX_ZOOM`, and the pan
- * within what keeps the picture on the canvas, so zoomed back out it's where
- * it fits again.
+ * within what keeps the picture over the place it has when the whole of it
+ * shows, so zoomed back out it's where it fits again.
  */
 export function held(
   view: (camera: Camera) => View,
@@ -136,10 +136,19 @@ export function held(
   const [x, z] = ground(before, from[0], from[1]);
   const next = { ...camera, ...change, panX: 0, panY: 0 };
   next.zoom = clamp(next.zoom, 1, MAX_ZOOM);
-  const [px, py] = project(view(next), x, 0, z);
-  const reach = (next.zoom - 1) / 2;
-  next.panX = clamp((to[0] - px) / width, -reach, reach);
-  next.panY = clamp((to[1] - py) / height, -reach, reach);
+  const after = view(next);
+  const [px, py] = project(after, x, 0, z);
+  // The picture's own width and height, which `fit` keeps about the same middle at every zoom, and not the
+  // canvas's: a grid far narrower than its canvas would otherwise have room to be carried right off it.
+  const sin = Math.abs(Math.sin(after.yaw));
+  const cos = Math.abs(Math.cos(after.yaw));
+  const wide = (after.cols * cos + after.rows * sin) * after.scale;
+  const tall = ((after.cols * sin + after.rows * cos) * Math.sin(after.pitch) + after.rise * Math.cos(after.pitch)) * after.scale;
+  const spare = (1 - 1 / next.zoom) / 2;
+  const reachX = (wide * spare) / width;
+  const reachY = (tall * spare) / height;
+  next.panX = clamp((to[0] - px) / width, -reachX, reachX);
+  next.panY = clamp((to[1] - py) / height, -reachY, reachY);
   return next;
 }
 

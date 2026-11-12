@@ -128,6 +128,42 @@ describe("Scene3D", () => {
     expect(await top()).not.toBe(close);
   });
 
+  it("zooms with Ctrl and the wheel, and leaves a wheel on its own to the page", () => {
+    const canvas = chart();
+    // fireEvent says whether the event was left alone: false once the chart has taken it.
+    expect(fireEvent.wheel(canvas, { deltaY: -100 })).toBe(true);
+    expect(canvas.style.touchAction).toBeFalsy();
+    expect(fireEvent.wheel(canvas, { deltaY: -100, ctrlKey: true })).toBe(false);
+    expect(canvas.style.touchAction).toBe("none");
+  });
+
+  it("steps all the way out from a zoom that's a hair short of a whole number of steps", async () => {
+    const canvas = chart();
+    // Seven steps in stop at the limit, short of where seven steps out would start from.
+    for (let i = 0; i < 7; i++) fireEvent.keyDown(canvas, { key: "+" });
+    for (let i = 0; i < 5; i++) await userEvent.click(screen.getByRole("button", { name: "Zoom out" }));
+    expect(canvas.style.touchAction).toBeFalsy();
+  });
+
+  it("turns with Shift and a drag while the whole chart shows, when there's nowhere to move it to", async () => {
+    const canvas = chart();
+    await tap(canvas, 200, 150);
+    expect(screen.getByText("one verse")).toBeVisible();
+    // A quarter turn or so of the one bar, whose corner then covers a place its side didn't.
+    const edge = async () => {
+      for (let x = 200; x < 400; x += 4) {
+        await tap(canvas, x, 150);
+        if (screen.getByText("one verse").hidden) return x;
+      }
+      return 400;
+    };
+    const before = await edge();
+    fireEvent.pointerDown(canvas, { ...finger(1, 200, 150), pointerType: "mouse", shiftKey: true });
+    fireEvent.pointerMove(canvas, { ...finger(1, 260, 150), pointerType: "mouse", shiftKey: true });
+    fireEvent.pointerUp(canvas, { ...finger(1, 260, 150), pointerType: "mouse", shiftKey: true });
+    expect(await edge()).not.toBe(before);
+  });
+
   it("zooms with + and -, and leaves them to the browser with Ctrl", () => {
     const canvas = chart();
     fireEvent.keyDown(canvas, { key: "+", ctrlKey: true });

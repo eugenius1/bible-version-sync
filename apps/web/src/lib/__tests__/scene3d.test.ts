@@ -67,12 +67,13 @@ describe("held", () => {
 
   it("keeps what's under the pointer there as the chart zooms and turns", () => {
     const from = camera(0.4);
-    const [x, z] = ground(view(from), 170, 90);
-    const to = hold(from, { zoom: 3, yaw: 1.1, pitch: 0.9 }, [170, 90]);
+    // A pixel over the grid: from one beside it, the picture can only follow as far as its edge.
+    const [x, z] = ground(view(from), 160, 130);
+    const to = hold(from, { zoom: 3, yaw: 1.1, pitch: 0.9 }, [160, 130]);
     expect(to).toMatchObject({ zoom: 3, yaw: 1.1, pitch: 0.9 });
     const [px, py] = project(view(to), x, 0, z);
-    expect(px).toBeCloseTo(170);
-    expect(py).toBeCloseTo(90);
+    expect(px).toBeCloseTo(160);
+    expect(py).toBeCloseTo(130);
   });
 
   it("carries the picture from one place to another", () => {
@@ -90,10 +91,23 @@ describe("held", () => {
     expect(hold(close, { zoom: 99 }).zoom).toBe(MAX_ZOOM);
   });
 
-  it("moves the picture only as far as keeps it on the canvas", () => {
-    const far = hold(camera(0), { zoom: 2 }, [0, 0], [5000, -5000]);
-    expect(far.panX).toBe(0.5);
-    expect(far.panY).toBe(-0.5);
+  it("moves the picture only as far as keeps it over where it fits", () => {
+    // Carried right and up, its left and near edges stop where they are when the whole of it shows.
+    const far = view(hold(camera(0), { zoom: 2 }, [0, 0], [5000, -5000]));
+    const [left, near] = project(far, -1.5, 0, 1.5);
+    const [x, y] = project(view(camera(0)), -1.5, 0, 1.5);
+    expect(left).toBeCloseTo(x);
+    expect(near).toBeCloseTo(y);
+  });
+
+  it("keeps a grid far narrower than the canvas on it, zoomed from the empty side", () => {
+    // Seen end-on, a ribbon of 2 by 40 is a sliver down the middle of the canvas.
+    const ribbon = (c: Camera) => fit({ ...GRID, cols: 2, rows: 40 }, c, 300, 200, PAD);
+    const close = ribbon(held(ribbon, 300, 200, camera(0), { zoom: 4 }, [0, 100], [0, 100]));
+    const [left] = project(close, -1, 0, 0);
+    const [right] = project(close, 1, 0, 0);
+    expect(left).toBeLessThan(150);
+    expect(right).toBeGreaterThan(150);
   });
 
   it("turns about the middle of the grid while the whole of it shows", () => {
