@@ -103,6 +103,20 @@ describe("Scene3D", () => {
     expect(canvas.style.touchAction).toBeFalsy();
   });
 
+  it("measures a second pinch from where the finger left down by the first has since moved to", () => {
+    const canvas = chart();
+    fireEvent.pointerDown(canvas, finger(1, 190, 150));
+    fireEvent.pointerDown(canvas, finger(2, 210, 150));
+    fireEvent.pointerMove(canvas, finger(2, 230, 150));
+    fireEvent.pointerUp(canvas, finger(2, 230, 150));
+    // The first finger goes across the chart, and another lands right beside it.
+    fireEvent.pointerMove(canvas, finger(1, 380, 150));
+    fireEvent.pointerDown(canvas, finger(3, 390, 150));
+    // A nudge closer is a nudge out: from where the first finger was, it would be all the way out.
+    fireEvent.pointerMove(canvas, finger(1, 381, 150));
+    expect(canvas.style.touchAction).toBe("none");
+  });
+
   it("lets a finger's swipe up and down tilt it once zoomed in, which until then scrolls the page", async () => {
     const canvas = chart();
     /** How far down the middle of the canvas the picture starts. */

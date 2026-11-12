@@ -296,13 +296,15 @@ export function Scene3D(props: Props) {
         if (!fingers.size && e.pointerType === "mouse") point(e);
         return;
       }
-      if (fingers.size > 1) {
-        const from = span();
-        fingers.set(e.pointerId, at(e));
+      const pinch = fingers.size > 1;
+      const from = pinch ? span() : null;
+      // Kept up even for the finger left down after a pinch, which does nothing more until it lifts:
+      // a second finger joining it has to measure from where it now is.
+      fingers.set(e.pointerId, at(e));
+      if (from) {
         const to = span();
         return hold({ zoom: (camera.zoom * to.spread) / from.spread }, [from.x, from.y], [to.x, to.y]);
       }
-      // The finger still down after a pinch does nothing more until it lifts.
       if (!drag) return;
       const dx = e.clientX - drag.x;
       const dy = e.clientY - drag.y;
