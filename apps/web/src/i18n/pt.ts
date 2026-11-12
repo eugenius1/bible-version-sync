@@ -289,6 +289,9 @@ export const pt: Dictionary = {
       "Cada capítulo da Bíblia como uma torre: quanto mais versículos destacados, mais alta, nas cores deles. O chão mais escuro é um capítulo que já foi sincronizado.",
     turn: "Arraste para girar.",
     asList: "Ver como lista",
+    zoomIn: "Aproximar",
+    zoomOut: "Afastar",
+    resetView: "Redefinir a visualização",
     chapterRow: [
       "{chapter}: {n} versículo destacado",
       "{chapter}: {n} versículos destacados",

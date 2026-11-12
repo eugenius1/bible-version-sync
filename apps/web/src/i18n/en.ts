@@ -285,6 +285,9 @@ export const en = {
       "Every chapter of the Bible as a tower: the more verses highlighted, the taller, in their colors. Darker ground is a chapter that has been synced.",
     turn: "Drag to turn it.",
     asList: "Show as a list",
+    zoomIn: "Zoom in",
+    zoomOut: "Zoom out",
+    resetView: "Reset the view",
     chapterRow: [
       "{chapter}: {n} verse highlighted",
       "{chapter}: {n} verses highlighted",

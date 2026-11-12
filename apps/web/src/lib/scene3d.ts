@@ -1,6 +1,6 @@
 /**
  * The geometry of the stats page's 3D charts: bars standing on a grid of
- * cells, seen from above at an angle and turned by hand.
+ * cells, seen from above at an angle, and turned and zoomed by hand.
  *
  * It's a few dozen lines of projection onto a 2D canvas rather than a 3D
  * library because one (three.js, tree-shaken) would make the app's JavaScript
@@ -42,6 +42,11 @@ export interface Camera {
   yaw: number;
   /** How far above the horizon the camera is, in radians: π/2 looks straight down. */
   pitch: number;
+  /** How many times bigger than what fits the canvas: 1 shows the whole grid. */
+  zoom: number;
+  /** How far the picture has been moved from where it fits, as a share of the canvas's width and height. */
+  panX: number;
+  panY: number;
   /** 0 to 1: how far the bars have grown, for the opening animation. */
   grow: number;
 }
@@ -68,6 +73,10 @@ const MIN_HEIGHT = 0.3;
 const GROUND_INSET = 0.04;
 /** Where the light comes from, across the screen and towards the viewer. */
 const LIGHT = [-0.5, 0.866];
+/** Enough to read one chapter among 1,189 on a phone. */
+export const MAX_ZOOM = 8;
+
+export const clamp = (value: number, low: number, high: number) => Math.min(Math.max(value, low), high);
 
 /** Pixels kept clear round the grid: `y` above and below it. */
 export interface Padding {
@@ -79,14 +88,68 @@ export interface Padding {
 /**
  * The scale and centre that keep the grid inside `width` × `height`, less the
  * padding, however it's turned: the ground's diagonal is what a turn sweeps out.
+ * The camera's zoom then enlarges that about the middle, and its pan moves it.
  */
 export function fit(grid: Grid, camera: Camera, width: number, height: number, pad: Padding): View {
   const radius = Math.hypot(grid.cols, grid.rows) / 2;
   const below = radius * Math.sin(camera.pitch);
   const above = below + grid.rise * Math.cos(camera.pitch);
   const room = width - pad.left - pad.right;
-  const scale = Math.max(0, Math.min(room / (2 * radius), (height - 2 * pad.y) / (above + below)));
-  return { ...grid, ...camera, scale, cx: pad.left + room / 2, cy: (height + (above - below) * scale) / 2 };
+  const scale = Math.max(0, Math.min(room / (2 * radius), (height - 2 * pad.y) / (above + below))) * camera.zoom;
+  return {
+    ...grid,
+    ...camera,
+    scale,
+    cx: pad.left + room / 2 + camera.panX * width,
+    cy: (height + (above - below) * scale) / 2 + camera.panY * height,
+  };
+}
+
+/** The place on the ground under a pixel, as the x and z that `project` takes. */
+export function ground(v: View, px: number, py: number): [number, number] {
+  const sin = Math.sin(v.yaw);
+  const cos = Math.cos(v.yaw);
+  const across = (px - v.cx) / v.scale;
+  const away = (py - v.cy) / (v.scale * Math.sin(v.pitch));
+  return [across * cos + away * sin, away * cos - across * sin];
+}
+
+/**
+ * The camera with `change` made to it, moved so that what was on the ground
+ * under the pixel `from` is under `to`: the picture stays with the pointer as
+ * it zooms, and turns about whatever is there. `view` is `fit` for the canvas,
+ * `width` by `height`. The zoom stays between 1 and `MAX_ZOOM`, and the pan
+ * within what keeps the picture over the place it has when the whole of it
+ * shows, so zoomed back out it's where it fits again.
+ */
+export function held(
+  view: (camera: Camera) => View,
+  width: number,
+  height: number,
+  camera: Camera,
+  change: Partial<Camera>,
+  from: readonly number[],
+  to: readonly number[],
+): Camera {
+  const before = view(camera);
+  if (!before.scale) return camera;
+  const [x, z] = ground(before, from[0], from[1]);
+  const next = { ...camera, ...change, panX: 0, panY: 0 };
+  next.zoom = clamp(next.zoom, 1, MAX_ZOOM);
+  const after = view(next);
+  const [px, py] = project(after, x, 0, z);
+  // The picture's own width and height, which `fit` keeps about the same middle at every zoom, and not the
+  // canvas's: a grid far narrower than its canvas would otherwise have room to be carried right off it.
+  const sin = Math.abs(Math.sin(after.yaw));
+  const cos = Math.abs(Math.cos(after.yaw));
+  const wide = (after.cols * cos + after.rows * sin) * after.scale;
+  const tall = ((after.cols * sin + after.rows * cos) * Math.sin(after.pitch) + after.rise * Math.cos(after.pitch)) * after.scale;
+  const spare = (1 - 1 / next.zoom) / 2;
+  const reachX = (wide * spare) / width;
+  const reachY = (tall * spare) / height;
+  next.panX = clamp((to[0] - px) / width, -reachX, reachX);
+  next.panY = clamp((to[1] - py) / height, -reachY, reachY);
+  return next;
 }
 
 /** A point on the grid (x across, y up, z towards the front row; in cells from the middle) to pixels. */
