@@ -599,8 +599,8 @@ too.
 
 ## Claude review on PRs
 
-`.github/workflows/claude-review.yml` runs Claude's `/code-review` and
-`/security-review`, from the shared actions in
+`.github/workflows/claude-review.yml` runs Claude's `/security-review`, from
+the shared action in
 [eugenius1/actions](https://github.com/eugenius1/actions), on every non-draft
 PR from this repo and posts findings as
 inline comments, using the owner's Claude plan through the
