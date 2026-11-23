@@ -6,17 +6,3 @@ reviews:
     enabled: true
     base_branches:
       - ".*"
-
-# The code rules in .agents/rules, which Claude Code reads through the
-# .claude/rules symlink. CodeRabbit would otherwise scope each file to its own
-# folder, so each gets the globs its `paths:` frontmatter gives Claude; keep
-# the two in step.
-knowledge_base:
-  code_guidelines:
-    filePatterns:
-      - files: ".agents/rules/code.md"
-        applyTo: "**/*.{ts,tsx,mjs}"
-      - files: ".agents/rules/web.md"
-        applyTo: "apps/web/src/**/*.{ts,tsx}"
-      - files: ".agents/rules/core.md"
-        applyTo: "packages/core/src/**/*.ts"

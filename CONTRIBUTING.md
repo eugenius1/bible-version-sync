@@ -79,13 +79,13 @@ Content-Security-Policy (see `apps/web/vite.config.ts`).
 
 ## Conventions
 
-The rules for code are in [.agents/rules/](.agents/rules): one file for all
-code, one for the web app, one for the engine, each scoped to its files.
-Claude Code reads them through the `.claude/rules` symlink, loading each when
-it touches a matching file, and CodeRabbit reviews against them
-([.coderabbit.yaml](.coderabbit.yaml) maps each file to the same globs as its
-`paths:` frontmatter; keep the two in step). Add a rule there rather than
-here, and make a rule a check instead when a lint or test can catch it.
+The rules for code are in [.claude/rules/](.claude/rules): one file for all
+code, one for the web app, one for the engine, each scoped to its files by
+its `paths:` frontmatter. Claude Code loads a rule when it touches a matching
+file, and CodeRabbit reviews matching files against it; both read that folder
+and that frontmatter natively, so nothing else needs configuring. Add a rule
+there rather than here, and make a rule a check instead when a lint or test
+can catch it.
 
 - **Never commit an app key, tokens or someone's highlights.** `.env.local`,
   `tools/python-cli/config.json` and `.yvsync/` are gitignored for this.

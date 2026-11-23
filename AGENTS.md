@@ -4,7 +4,9 @@ Before changing code, read [CONTRIBUTING.md](CONTRIBUTING.md): running the
 app, its conventions (commit messages, credentials), and which doc in `docs/`
 explains the part you're changing: the sync rules, the YouVersion API, verse
 matching, or localisation. Read that doc too. The rules for code itself are in
-`.agents/rules/`, loaded through `.claude/rules` as you touch matching files.
+`.claude/rules/`, each scoped by its `paths:` to the files it covers: Claude
+Code loads them as you touch those files; any other agent reads the matching
+ones before editing.
 
 A browser-only PWA that syncs YouVersion highlights across Bible versions.
 npm workspaces: `packages/core` (engine), `apps/web` (Vite, React, Tailwind).
