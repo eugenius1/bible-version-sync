@@ -1,10 +1,10 @@
 # Notes for coding agents
 
 Before changing code, read [CONTRIBUTING.md](CONTRIBUTING.md): running the
-app, the conventions every change follows (comments, strings, commit messages,
-licence headers), and which doc in `docs/` explains the part you're changing:
-the sync rules, the YouVersion API, verse matching, or localisation. Read that
-doc too.
+app, its conventions (commit messages, credentials), and which doc in `docs/`
+explains the part you're changing: the sync rules, the YouVersion API, verse
+matching, or localisation. Read that doc too. The rules for code itself are in
+`.agents/rules/`, loaded through `.claude/rules` as you touch matching files.
 
 A browser-only PWA that syncs YouVersion highlights across Bible versions.
 npm workspaces: `packages/core` (engine), `apps/web` (Vite, React, Tailwind).
