@@ -94,7 +94,7 @@ both halves.
 
 What's since been learnt about it (the refresh grant works, the rate limit
 is small, licensed versions still read and write highlights) is in
-[CONTRIBUTING.md](../../CONTRIBUTING.md#the-youversion-api-things-that-will-bite-you).
+[docs/youversion-api.md](../../docs/youversion-api.md).
 
 ## Tests
 

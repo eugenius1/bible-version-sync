@@ -10,6 +10,9 @@ import {
   countsFromIndex,
   hasKnownCounts,
   isVerifiedVersion,
+  chapterKey,
+  chapterRef,
+  parseChapter,
   parseRef,
   versificationLabel,
   loadVersionNames,
@@ -24,6 +27,21 @@ import {
   suffixedFromIndex,
 } from "../src";
 import { KNOWN_COUNTS, OVERRIDES, VERIFIED_VERSIONS } from "../src/data.generated";
+
+describe("verse and chapter references", () => {
+  it("tell a chapter from a verse", () => {
+    const chapter = chapterKey("PSA.51.3");
+    expect(chapter).toBe("PSA.51");
+    expect(chapterRef("PSA", 51)).toBe(chapter);
+    expect(parseChapter(chapter)).toEqual(["PSA", 51]);
+    // The type is the guardrail: parseRef throws on a chapter, so passing one doesn't compile.
+    // @ts-expect-error a chapter isn't a verse
+    expect(() => parseRef(chapter)).toThrow();
+    const byChapter = new Map([[chapter, 1]]);
+    // @ts-expect-error nor is one that went through a collection
+    expect(() => parseRef([...byChapter.keys()][0])).toThrow();
+  });
+});
 
 const MAPS: Record<string, VersionMap> = {
   NIV: buildVersionMap("NIV", 111).map,

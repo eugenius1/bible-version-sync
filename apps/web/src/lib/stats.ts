@@ -3,8 +3,10 @@ import {
   chapterKey,
   HIGHLIGHT_COLORS,
   nearestColor,
+  parseChapter,
   parseRef,
   Standard,
+  type ChapterKey,
   type HighlightColorId,
   type SyncState,
 } from "@bvs/core";
@@ -34,7 +36,7 @@ export type ColorCounts = Partial<Record<HighlightColorId, number>>;
 
 export interface ChapterStats {
   /** The chapter's key: "PSA.23". */
-  chapter: string;
+  chapter: ChapterKey;
   /** Canonical verses with a highlight in at least one version. */
   verses: number;
   /**
@@ -64,17 +66,17 @@ export interface Stats {
   /** The chapters at least one version took part in. */
   synced: ReadonlySet<string>;
   /** Most highlighted first, at most five. */
-  topChapters: { chapter: string; verses: number }[];
+  topChapters: { chapter: ChapterKey; verses: number }[];
   /** Highest share of the chapter's verses first, the most verses breaking ties; at most five. */
-  topShare: { chapter: string; verses: number; of: number }[];
+  topShare: { chapter: ChapterKey; verses: number; of: number }[];
 }
 
 const BOOK_INDEX = new Map(BOOKS.map((b, i) => [b, i]));
 
 /** Bible order for a chapter key ("PSA.23"); a book outside BOOKS goes last. */
 const chapterOrder = (key: string) => {
-  const [book, ch] = key.split(".");
-  return (BOOK_INDEX.get(book) ?? BOOKS.length) * 1000 + Number(ch);
+  const [book, ch] = parseChapter(key);
+  return (BOOK_INDEX.get(book) ?? BOOKS.length) * 1000 + ch;
 };
 
 const noColors = () => Object.fromEntries(HIGHLIGHT_COLORS.map((c) => [c.id, 0])) as Record<HighlightColorId, number>;
@@ -96,7 +98,7 @@ export function syncStats(state: SyncState, order: readonly number[] = []): Stat
   const books = new Map<string, BookStats>(
     BOOKS.map((book) => [book, { book, verses: 0, colors: {}, chaptersSynced: 0, chapters: counts[book]?.length ?? 0 }]),
   );
-  const byChapter = new Map<string, ChapterStats>();
+  const byChapter = new Map<ChapterKey, ChapterStats>();
   const synced = new Set<string>();
   const rank = (id: number) => {
     const i = order.indexOf(id);
@@ -116,7 +118,7 @@ export function syncStats(state: SyncState, order: readonly number[] = []): Stat
   };
 
   for (const [chapter, ids] of Object.entries(state.members)) {
-    const b = books.get(chapter.split(".")[0]);
+    const b = books.get(parseChapter(chapter)[0]);
     if (!b || ids.length === 0) continue;
     b.chaptersSynced++;
     synced.add(chapter);
@@ -172,8 +174,8 @@ export function syncStats(state: SyncState, order: readonly number[] = []): Stat
     .map(({ chapter, verses }) => ({ chapter, verses }));
   stats.topShare = stats.highlighted
     .map(({ chapter, verses }) => {
-      const [book, ch] = chapter.split(".");
-      return { chapter, verses, of: std.count("org", book, Number(ch)) };
+      const [book, ch] = parseChapter(chapter);
+      return { chapter, verses, of: std.count("org", book, ch) };
     })
     .filter((c) => c.of > 0)
     .sort((a, b) => b.verses / b.of - a.verses / a.of || b.verses - a.verses || chapterOrder(a.chapter) - chapterOrder(b.chapter))

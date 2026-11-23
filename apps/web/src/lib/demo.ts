@@ -1,4 +1,4 @@
-import { emptyState, HIGHLIGHT_HEX, loadVersionNames, ref, Standard, type SyncState } from "@bvs/core";
+import { chapterRef, emptyState, HIGHLIGHT_HEX, loadVersionNames, ref, Standard, type SyncState } from "@bvs/core";
 import { labelVersions, type VersionSetting } from "./db";
 
 /** NIV, AMP and ESV. */
@@ -38,7 +38,7 @@ export function demoState(): SyncState {
       const ch = 1 + Math.floor(random() * total);
       // ESV joined later, so it hasn't taken part everywhere.
       const members = random() < 0.75 ? DEMO_VERSIONS : DEMO_VERSIONS.slice(0, 2);
-      state.members[`${book}.${ch}`] = members;
+      state.members[chapterRef(book, ch)] = members;
       const verses = counts[book][ch - 1];
       const highlighted = 1 + Math.floor(random() * Math.min(verses, 8));
       for (let k = 0; k < highlighted; k++) {

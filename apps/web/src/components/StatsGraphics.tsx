@@ -1,4 +1,4 @@
-import { HIGHLIGHT_HEX, type HighlightColorId } from "@bvs/core";
+import { chapterRef, HIGHLIGHT_HEX, type HighlightColorId } from "@bvs/core";
 import { useMemo, useState } from "react";
 import { useI18n } from "../i18n";
 import type { Cell } from "../lib/scene3d";
@@ -78,7 +78,7 @@ export function Skyline({ stats, colors }: SkylineProps) {
     const chapters: { key: string; verses: number; synced: boolean }[] = [];
     stats.books.forEach((b, group) => {
       for (let ch = 1; ch <= b.chapters; ch++) {
-        const key = `${b.book}.${ch}`;
+        const key = chapterRef(b.book, ch);
         const c = highlighted.get(key);
         const synced = stats.synced.has(key);
         const i = cells.length;

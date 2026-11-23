@@ -42,13 +42,27 @@ export const BOOKS = (
   "JAS 1PE 2PE 1JN 2JN 3JN JUD REV"
 ).split(" ");
 
-/** "JHN.3.16" */
-export type Ref = string;
+/**
+ * A verse, "JHN.3.16". Any string will do except a ChapterKey, so handing a
+ * chapter to parseRef, which throws on one, fails to compile instead.
+ */
+export type Ref = string & { readonly chapterKey?: never };
+/** A chapter, "JHN.3", as SyncState.members keys it. Made by chapterKey or chapterRef. */
+export type ChapterKey = string & { readonly chapterKey: true };
 export type Scheme = StdScheme | "custom";
 /** book -> chapter -> verse count */
 export type ChapterCounts = Record<string, Record<number, number>>;
 
 export const ref = (book: string, ch: number, v: number): Ref => `${book}.${ch}.${v}`;
+export const chapterRef = (book: string, ch: number) => `${book}.${ch}` as ChapterKey;
+/** The chapter a verse is in: "PSA.51.3" -> "PSA.51". */
+export const chapterKey = (r: Ref) => r.slice(0, r.lastIndexOf(".")) as ChapterKey;
+
+/** "PSA.51" -> ["PSA", 51]. */
+export function parseChapter(key: string): [string, number] {
+  const [book, ch] = key.split(".");
+  return [book, Number(ch)];
+}
 
 export function parseRef(r: Ref): [string, number, number] {
   const [book, ch, v] = r.split(".");
@@ -426,7 +440,7 @@ export class VersionMap {
         }
         return set;
       };
-      const bad = new Set<string>();
+      const bad = new Set<ChapterKey>();
       for (const locals of fromCanon.values()) {
         const kinds = new Set(locals.map((l) => {
           const [b, c] = parseRef(l);
@@ -435,7 +449,7 @@ export class VersionMap {
         if (kinds.size > 1 && ![...schemesOf(locals[0])].some((s) => locals.every((l) => schemesOf(l).has(s)))) {
           for (const l of locals) {
             const [b, c] = parseRef(l);
-            bad.add(`${b}.${c}`);
+            bad.add(chapterRef(b, c));
           }
         }
       }
@@ -445,8 +459,8 @@ export class VersionMap {
         return;
       }
       for (const bc of bad) {
-        const [b, c] = bc.split(".");
-        this.schemes[b][Number(c)] = null;
+        const [b, c] = parseChapter(bc);
+        this.schemes[b][c] = null;
       }
     }
   }
@@ -781,12 +795,12 @@ export const MAX_UNFIT_CHAPTERS = 80;
  */
 export function unfitChapters(known: ChapterCounts, overrides: Map<Ref, Ref> = new Map()): number {
   const std = Standard.load();
-  const described = new Set([...overrides.keys()].map((r) => r.slice(0, r.lastIndexOf("."))));
+  const described = new Set([...overrides.keys()].map(chapterKey));
   let n = 0;
   for (const book of BOOKS) {
     for (const [cs, count] of Object.entries(known[book] ?? {})) {
       const c = Number(cs);
-      if (count === 0 || described.has(`${book}.${c}`)) continue;
+      if (count === 0 || described.has(chapterRef(book, c))) continue;
       if (count !== std.count("eng", book, c) && count !== std.count("org", book, c)) n++;
     }
   }

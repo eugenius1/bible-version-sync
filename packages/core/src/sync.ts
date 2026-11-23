@@ -45,7 +45,7 @@
 
 import { ApiError, type HighlightsApi } from "./api";
 import { colorRanker, type HighlightColorId } from "./colors";
-import { parseRef, ref, type Ref, type VersionMap } from "./versification";
+import { chapterKey, chapterRef, parseRef, ref, type Ref, type VersionMap } from "./versification";
 
 export interface SyncVersion {
   /** Only for display and messages; the sync goes by bibleId. */
@@ -127,9 +127,6 @@ export function migrateState(saved: Partial<SyncState> | undefined, ids: Readonl
   else delete state.maps;
   return state;
 }
-
-/** The canonical chapter a canonical verse is in, as `members` keys it: "PSA.51.3" -> "PSA.51". */
-export const chapterKey = (canon: Ref) => canon.slice(0, canon.lastIndexOf("."));
 
 /**
  * Forget a version everywhere in the snapshot (call when it's removed from
@@ -348,7 +345,7 @@ export async function readBook(
   const out: BookHighlights = Object.fromEntries(versions.map((v) => [v.bibleId, new Map()]));
   const { signal } = opts;
   const results = await pool(jobs, opts.concurrency ?? 4, async (job) => {
-    const items = await api.getHighlights(job.version.bibleId, `${book}.${job.chapter}`, { signal });
+    const items = await api.getHighlights(job.version.bibleId, chapterRef(book, job.chapter), { signal });
     signal?.throwIfAborted();
     opts.onChapter?.();
     return { id: job.version.bibleId, items };
@@ -604,7 +601,7 @@ export async function applyPlan(
   // that joined it in this plan (just added, or remapped) would otherwise be
   // a member next time, and a fill that failed would look settled: no
   // snapshot, no colour, no change. As a newcomer again it can only be filled.
-  const retryChapters = new Set([...retry].map(chapterKey));
+  const retryChapters = new Set<string>([...retry].map(chapterKey));
   for (const [key, list] of Object.entries(plan.members)) if (!retryChapters.has(key)) state.members[key] = list;
   for (const [canon, colors] of Object.entries(plan.newState)) {
     if (retry.has(canon)) continue; // keep the old snapshot so the next run tries again

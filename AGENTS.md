@@ -1,7 +1,12 @@
 # Notes for coding agents
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) before changing code: conventions,
-architecture, and the traps that have cost real debugging time are all there.
+Before changing code, read [CONTRIBUTING.md](CONTRIBUTING.md): running the
+app, its conventions (commit messages, credentials), and which doc in `docs/`
+explains the part you're changing: the sync rules, the YouVersion API, verse
+matching, or localisation. Read that doc too. The rules for code itself are in
+`.claude/rules/`, each scoped by its `paths:` to the files it covers: Claude
+Code loads them as you touch those files; any other agent reads the matching
+ones before editing.
 
 A browser-only PWA that syncs YouVersion highlights across Bible versions.
 npm workspaces: `packages/core` (engine), `apps/web` (Vite, React, Tailwind).
@@ -29,8 +34,7 @@ End every commit message with:
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
-Use the model that actually did the work. Commit messages themselves are prose
-explaining the reasoning and what went wrong — not a changelog line.
+Use the model that actually did the work.
 
 ## Never touch someone's highlights without being asked
 
@@ -51,10 +55,6 @@ The app key (`apps/web/.env.local`, `tools/python-cli/config.json`) and sign-in
 tokens (`tools/python-cli/.yvsync/`, IndexedDB) stay out of the repository.
 They're gitignored; check `git status` before committing anyway. The
 vendored `youversion-platform-api` skill says app keys can go in source code;
-here they don't, and where that skill and CONTRIBUTING.md disagree about the
-API, CONTRIBUTING.md wins.
-
-## No licence headers
-
-Source files carry no SPDX or copyright header. Don't add them, and don't emit
-them from generators.
+here they don't, and where that skill and
+[docs/youversion-api.md](docs/youversion-api.md) disagree about the API, the
+doc wins.
