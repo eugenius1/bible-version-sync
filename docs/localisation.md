@@ -20,7 +20,10 @@ readers in the UK, Ireland and the Commonwealth countries that teach British
 spelling (`BRITISH_REGIONS` in `i18n/core.ts`); Canada stays American.
 
 Adding a language: a dictionary in `apps/web/src/i18n/`, its book names in
-`books.ts`, and the code in `Lang` there. The picker lists English first,
+`books.ts`, the code in `Lang` there, and the dictionary imported and added
+to `DICTIONARIES` in `apps/web/src/i18n/core.ts`, which the picker and the
+language detection read (the `Lang` change fails to typecheck until it's
+there). The picker lists English first,
 then the reader's own languages, then the rest by their own names. Chinese and Korean are left out
 for now: their text doesn't break at spaces, and the layout hasn't been
 checked for it.
