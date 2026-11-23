@@ -91,7 +91,7 @@ all 1,189 chapters.
 One of `eng`, `org`, `rso`, `rsc`, `lxx`, `vul`, or `null`, per version. It's a
 good prior but not the truth (LSG is labelled `org` yet doesn't follow it
 throughout), so the engine still decides chapter by chapter; see
-[How verses are matched](../../CONTRIBUTING.md#how-verses-are-matched).
+[How verses are matched](../../docs/versions.md#how-verses-are-matched).
 
 ## `.vrs` files
 
