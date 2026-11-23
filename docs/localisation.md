@@ -23,7 +23,8 @@ Adding a language: a dictionary in `apps/web/src/i18n/`, its book names in
 `books.ts`, the code in `Lang` there, and the dictionary imported and added
 to `DICTIONARIES` in `apps/web/src/i18n/core.ts`, which the picker and the
 language detection read (the `Lang` change fails to typecheck until it's
-there). The picker lists English first,
+there). `i18n.test.ts` pins the picker's order exactly, so add the new
+language to its expected `menuOrder` too. The picker lists English first,
 then the reader's own languages, then the rest by their own names. Chinese and Korean are left out
 for now: their text doesn't break at spaces, and the layout hasn't been
 checked for it.
