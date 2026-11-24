@@ -15,7 +15,10 @@ async function analytics() {
 }
 
 beforeEach(() => Object.values(posthog).forEach((f) => f.mockReset()));
-afterEach(() => vi.unstubAllEnvs());
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
+});
 
 describe("with a PostHog key", () => {
   it("starts PostHog cookieless, in the EU, with only the events the app names", async () => {
@@ -54,27 +57,53 @@ describe("with a PostHog key", () => {
     expect(posthog.capture.mock.calls.map(([e]) => e)).toEqual(["signed_in"]);
   });
 
-  it("sends nothing but feedback once usage data is off", async () => {
+  it("sends nothing once usage data is off, but still lets feedback through", async () => {
+    const fetch = vi.fn().mockResolvedValue(new Response("{}"));
+    vi.stubGlobal("fetch", fetch);
     const { setUsageAllowed, startAnalytics, track, trackError, trackBeforeLeaving, sendFeedback } = await analytics();
     setUsageAllowed(false);
     startAnalytics();
     await track("app_installed");
     await trackError(new Error("x"));
     await trackBeforeLeaving("signed_in");
-    expect(posthog.capture).not.toHaveBeenCalled();
-    expect(posthog.captureException).not.toHaveBeenCalled();
+    expect(posthog.init).not.toHaveBeenCalled();
     await expect(sendFeedback("Hi", "")).resolves.toBe(true);
-    expect(posthog.capture).toHaveBeenCalledWith("survey sent", expect.anything());
+    expect(fetch).toHaveBeenCalledOnce();
   });
 
-  it("sends feedback as a response to the Feedback survey, with the email only when given", async () => {
-    const { sendFeedback, FEEDBACK_SURVEY: s } = await analytics();
+  it("sends feedback to the Feedback survey, with the email only when given, and nothing stored", async () => {
+    const fetch = vi.fn().mockResolvedValue(new Response("{}"));
+    vi.stubGlobal("fetch", fetch);
+    history.replaceState(null, "", "/callback?code=secret#feedback");
+    const { sendFeedback, FEEDBACK_SURVEY: s, APP } = await analytics();
     await sendFeedback("Love it", "");
     await sendFeedback("Broken", "me@example.test");
-    const [[, first], [, second]] = posthog.capture.mock.calls;
-    expect(first).toMatchObject({ $survey_id: s.id, [`$survey_response_${s.message.id}`]: "Love it", $survey_completed: true });
-    expect(first).not.toHaveProperty(`$survey_response_${s.email.id}`);
-    expect(second).toMatchObject({ [`$survey_response_${s.email.id}`]: "me@example.test" });
+    const [[url, init], [, init2]] = fetch.mock.calls as [string, RequestInit][];
+    expect(url).toBe("https://eu.i.posthog.com/i/v0/e/");
+    const first = JSON.parse(init.body as string);
+    const second = JSON.parse(init2.body as string);
+    expect(first).toMatchObject({ api_key: "phc_test", event: "survey sent" });
+    expect(first.distinct_id).not.toBe(second.distinct_id);
+    expect(first.properties).toMatchObject({
+      app: APP,
+      $current_url: "http://localhost:3000/callback#feedback",
+      $process_person_profile: false,
+      $survey_id: s.id,
+      [`$survey_response_${s.message.id}`]: "Love it",
+      $survey_completed: true,
+    });
+    expect(first.properties).not.toHaveProperty(`$survey_response_${s.email.id}`);
+    expect(second.properties).toMatchObject({ [`$survey_response_${s.email.id}`]: "me@example.test" });
+    expect(posthog.init).not.toHaveBeenCalled();
+    expect(Object.keys(localStorage)).toEqual([]);
+  });
+
+  it("says feedback wasn't sent when PostHog refuses it or the request is blocked", async () => {
+    const { sendFeedback } = await analytics();
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("", { status: 400 })));
+    await expect(sendFeedback("Hi", "")).resolves.toBe(false);
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Failed to fetch")));
+    await expect(sendFeedback("Hi", "")).resolves.toBe(false);
   });
 
   it("reports caught errors, and sends sign-in straight away before leaving the page", async () => {

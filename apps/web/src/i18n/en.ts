@@ -329,7 +329,7 @@ export const en = {
     send: "Send",
     sending: "Sending…",
     sent: "Thank you! Your feedback was sent.",
-    failed: "It couldn't be sent. Check your connection and try again.",
+    failed: "It couldn't be sent. Check your connection, or pause any ad or tracker blocker for this site, and try again.",
     privacy: "Sent anonymously unless you add your email.",
     github: "Or open an issue on GitHub.",
   },

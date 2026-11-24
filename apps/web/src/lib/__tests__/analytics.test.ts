@@ -47,18 +47,10 @@ describe("scrub", () => {
     expect(scrub(event("$set", {}))).toBeNull();
   });
 
-  it("leaves nothing in storage or on a person when feedback is sent", () => {
-    localStorage.setItem("seenSurvey_abc", "true");
-    const e = scrub({ ...event("survey sent", { $survey_id: "abc" }), $set: { "$survey_responded/abc": true } });
-    expect(e?.$set).toBeUndefined();
-    expect(localStorage.getItem("seenSurvey_abc")).toBeNull();
-  });
-
-  it("drops everything but feedback once usage data is turned off", () => {
+  it("drops everything once usage data is turned off", () => {
     setUsageAllowed(false);
     expect(scrub(event("$exception", {}))).toBeNull();
     expect(scrub(event("sync_applied", {}))).toBeNull();
-    expect(scrub(event("survey sent", {}))).not.toBeNull();
   });
 });
 

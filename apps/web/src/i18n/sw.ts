@@ -330,7 +330,7 @@ export const sw: Dictionary = {
     send: "Tuma",
     sending: "Inatuma…",
     sent: "Asante! Maoni yako yametumwa.",
-    failed: "Imeshindikana kutuma. Angalia muunganisho wako ujaribu tena.",
+    failed: "Imeshindikana kutuma. Angalia muunganisho wako, au simamisha kizuia matangazo au ufuatiliaji kwa tovuti hii, kisha ujaribu tena.",
     privacy: "Hutumwa bila jina, isipokuwa ukiongeza barua pepe yako.",
     github: "Au fungua issue kwenye GitHub.",
   },

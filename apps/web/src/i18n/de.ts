@@ -327,7 +327,7 @@ export const de: Dictionary = {
     send: "Senden",
     sending: "Wird gesendet…",
     sent: "Danke! Dein Feedback wurde gesendet.",
-    failed: "Es konnte nicht gesendet werden. Prüfe deine Verbindung und versuche es erneut.",
+    failed: "Es konnte nicht gesendet werden. Prüfe deine Verbindung oder pausiere Werbe- und Tracking-Blocker für diese Seite und versuche es erneut.",
     privacy: "Anonym gesendet, außer du gibst deine E-Mail-Adresse an.",
     github: "Oder eröffne ein Issue auf GitHub.",
   },

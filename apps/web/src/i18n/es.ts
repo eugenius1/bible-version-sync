@@ -327,7 +327,7 @@ export const es: Dictionary = {
     send: "Enviar",
     sending: "Enviando…",
     sent: "¡Gracias! Tus comentarios se enviaron.",
-    failed: "No se pudo enviar. Revisa tu conexión e inténtalo de nuevo.",
+    failed: "No se pudo enviar. Revisa tu conexión o pausa cualquier bloqueador de anuncios o rastreadores en este sitio e inténtalo de nuevo.",
     privacy: "Se envía de forma anónima, salvo que añadas tu correo.",
     github: "O abre un issue en GitHub.",
   },

@@ -330,7 +330,7 @@ export const id: Dictionary = {
     send: "Kirim",
     sending: "Mengirim…",
     sent: "Terima kasih! Masukan Anda sudah terkirim.",
-    failed: "Tidak bisa dikirim. Periksa koneksi Anda lalu coba lagi.",
+    failed: "Tidak bisa dikirim. Periksa koneksi Anda, atau jeda pemblokir iklan atau pelacak untuk situs ini, lalu coba lagi.",
     privacy: "Dikirim secara anonim, kecuali Anda menambahkan email.",
     github: "Atau buka issue di GitHub.",
   },

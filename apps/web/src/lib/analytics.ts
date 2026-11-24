@@ -10,6 +10,7 @@ import { useSyncExternalStore } from "react";
 import type { CaptureResult, PostHog } from "posthog-js/dist/module.no-external";
 
 const KEY: string = import.meta.env.VITE_POSTHOG_KEY ?? "";
+const API_HOST = "https://eu.i.posthog.com";
 /** Every event says which app sent it: the PostHog project is shared with the author's other sites. */
 export const APP = "bible-version-sync";
 const CHOICE_KEY = "bvs-usage-data";
@@ -110,15 +111,13 @@ function scrubUrls(props: Record<string, unknown> | undefined): void {
 }
 
 /**
- * PostHog's `before_send`: drops everything but feedback when the person has
- * turned usage data off, and strips queries and API paths from what's left.
- * Also drops the `$set` PostHog sends on every load: there are no person
- * profiles to set, and it would double the event count.
+ * PostHog's `before_send`: drops everything once the person has turned usage
+ * data off, and strips queries and API paths from what's left. Also drops the
+ * `$set` PostHog sends on every load: there are no person profiles to set,
+ * and it would double the event count.
  */
 export function scrub(event: CaptureResult | null): CaptureResult | null {
-  if (!event || event.event === "$set") return null;
-  if (event.event === "survey sent") forgetSurveySeen(event);
-  else if (!usageAllowed()) return null;
+  if (!event || event.event === "$set" || !usageAllowed()) return null;
   scrubUrls(event.properties);
   scrubUrls(event.$set);
   scrubUrls(event.$set_once);
@@ -128,20 +127,6 @@ export function scrub(event: CaptureResult | null): CaptureResult | null {
     event.properties.$exception_message = withoutPaths(event.properties.$exception_message);
   }
   return event;
-}
-
-/**
- * While building a survey response, PostHog marks the survey seen in
- * localStorage and on the person, though it never shows surveys here. The app
- * stores nothing for analytics but the person's choice, and keeps no profiles.
- */
-function forgetSurveySeen(event: CaptureResult): void {
-  delete event.$set;
-  try {
-    localStorage.removeItem(`seenSurvey_${String(event.properties.$survey_id)}`);
-  } catch {
-    // No storage, nothing to remove.
-  }
 }
 
 // ── PostHog ─────────────────────────────────────────────────────────────────
@@ -158,7 +143,7 @@ function load(): Promise<PostHog | null> {
   client ??= Promise.all([import("posthog-js/dist/module.no-external"), import("posthog-js/dist/exception-autocapture")])
     .then(([{ default: posthog }]) => {
       posthog.init(KEY, {
-        api_host: "https://eu.i.posthog.com",
+        api_host: API_HOST,
         ui_host: "https://eu.posthog.com",
         defaults: "2026-08-30",
         cookieless_mode: "always",
@@ -235,20 +220,43 @@ export async function trackError(error: unknown): Promise<void> {
   (await load())?.captureException(error);
 }
 
-/** Sends feedback as a response to the Feedback survey. False when it couldn't be sent. */
-export async function sendFeedback(message: string, email: string): Promise<boolean> {
-  const ph = await load();
-  if (!ph) return false;
+/**
+ * Sends feedback as a response to the Feedback survey, and resolves true only
+ * once PostHog has accepted it. Its own request rather than the SDK's queue,
+ * which reports nothing back: a blocked request (an ad blocker, a dropped
+ * connection) must not look sent. It goes whatever the usage-data switch says,
+ * since the person sends it on purpose, and the SDK never loads for it.
+ */
+export async function sendFeedback(message: string, email: string, timeoutMs = 15_000): Promise<boolean> {
+  if (!KEY) return false;
   const { id, message: m, email: e } = FEEDBACK_SURVEY;
-  ph.capture("survey sent", {
-    $survey_id: id,
-    $survey_questions: [
-      { id: m.id, question: m.question },
-      { id: e.id, question: e.question },
-    ],
-    [`$survey_response_${m.id}`]: message,
-    ...(email && { [`$survey_response_${e.id}`]: email }),
-    $survey_completed: true,
-  });
-  return true;
+  try {
+    const res = await fetch(`${API_HOST}/i/v0/e/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: AbortSignal.timeout(timeoutMs),
+      body: JSON.stringify({
+        api_key: KEY,
+        event: "survey sent",
+        // A one-off id, never stored: feedback isn't tied to anyone.
+        distinct_id: crypto.randomUUID(),
+        properties: {
+          app: APP,
+          $current_url: withoutQuery(location.href),
+          $process_person_profile: false,
+          $survey_id: id,
+          $survey_questions: [
+            { id: m.id, question: m.question },
+            { id: e.id, question: e.question },
+          ],
+          [`$survey_response_${m.id}`]: message,
+          ...(email && { [`$survey_response_${e.id}`]: email }),
+          $survey_completed: true,
+        },
+      }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
 }

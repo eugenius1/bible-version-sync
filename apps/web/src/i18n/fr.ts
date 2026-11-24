@@ -335,7 +335,7 @@ export const fr: Dictionary = {
     send: "Envoyer",
     sending: "Envoi…",
     sent: "Merci ! Votre avis a été envoyé.",
-    failed: "L'envoi a échoué. Vérifiez votre connexion et réessayez.",
+    failed: "L'envoi a échoué. Vérifiez votre connexion, ou mettez en pause tout bloqueur de publicités ou de traqueurs pour ce site, puis réessayez.",
     privacy: "Envoyé anonymement, sauf si vous ajoutez votre e-mail.",
     github: "Ou ouvrez une issue sur GitHub.",
   },

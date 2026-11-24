@@ -43,7 +43,7 @@ Defined in `Events` in `apps/web/src/lib/analytics.ts`, which types every
 | `sync_failed` | `reason` (`auth`, `network`, `rateLimited`, `unexpected`) | A preview or sync stops on an error |
 | `app_installed` | — | The PWA is installed |
 | `$exception` | PostHog's | An uncaught error, or one the app caught and showed (`trackError`) |
-| `survey sent` | the Feedback survey's | Feedback is sent (`sendFeedback`) |
+| `survey sent` | the Feedback survey's | Feedback is sent (`sendFeedback`, not through the SDK) |
 
 Every event also carries `app: "bible-version-sync"`.
 
@@ -52,9 +52,9 @@ Every event also carries `app: "bible-version-sync"`.
 The switch on the Privacy page (`#privacy`) is kept in `localStorage`
 (`bvs-usage-data`), the only thing stored for analytics. It starts on, or off
 when the browser sends Do Not Track or Global Privacy Control. Turned off,
-`before_send` drops every event except feedback, which the person sends on
-purpose. PostHog's own opt-out does nothing in cookieless `always` mode, which
-is why the check is ours.
+`before_send` drops every event. Feedback doesn't go through the SDK, so it
+still goes: the person sends it on purpose. PostHog's own opt-out does nothing
+in cookieless `always` mode, which is why the check is ours.
 
 ## Feedback
 
@@ -62,6 +62,13 @@ The Feedback page (`#feedback`) is the app's own form, translated like the
 rest. It sends a `survey sent` event to the "Feedback" API survey, whose ids
 are in `FEEDBACK_SURVEY`; answers show in PostHog under Surveys, filtered by
 `app`. A changed question in PostHog keeps its id, so the code doesn't change.
+
+`sendFeedback` posts the event itself (`/i/v0/e/`) rather than through the
+SDK, whose queue reports nothing back, and the page says "sent" only once
+PostHog answers OK. Otherwise, as when an ad blocker stops the request, it
+says it couldn't be sent and keeps what was typed. Each response has a
+random one-off `distinct_id` and no person profile, so it isn't tied to the
+visitor's events, and nothing is stored.
 
 ## The PostHog project
 
@@ -92,6 +99,8 @@ what a real build sends:
    - Console: no Content-Security-Policy errors.
    - Application: no PostHog cookie, and nothing in `localStorage` but
      `bvs-usage-data` (and `ph_debug`), even after sending feedback.
+   - Feedback with a blocker on (or `eu.i.posthog.com` blocked in DevTools'
+     Network request blocking) says it couldn't be sent.
 5. To test error capture, dispatch an error in the console, since one thrown
    from DevTools isn't attributed to the page:
    `dispatchEvent(new ErrorEvent("error", { error: new Error("Test: HTTP 404 on /v1/bibles/1/passages/JHN.3") }))`.
