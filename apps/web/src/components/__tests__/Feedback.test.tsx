@@ -17,7 +17,9 @@ const fill = (message: string, email = "") => {
 };
 
 describe("FeedbackPage", () => {
-  beforeEach(() => send.mockReset());
+  beforeEach(() => {
+    send.mockReset();
+  });
 
   it("sends the feedback and email, trimmed, and thanks the person", async () => {
     send.mockResolvedValue(true);
@@ -31,6 +33,14 @@ describe("FeedbackPage", () => {
     fill("Broken");
     expect(await screen.findByRole("alert")).toHaveTextContent("couldn't be sent");
     expect(screen.getByLabelText("Your feedback")).toHaveValue("Broken");
+  });
+
+  it("shows it's sending, and can't be sent twice, while it waits", async () => {
+    send.mockReturnValue(new Promise(() => {}));
+    fill("Hello");
+    const button = await screen.findByRole("button", { name: "Sending…" });
+    expect(button).toBeDisabled();
+    expect(button.querySelector("svg")).toHaveClass("animate-take-off");
   });
 
   it("can't be sent empty", () => {

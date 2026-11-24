@@ -68,7 +68,14 @@ export function FeedbackPage() {
           <p role="alert" className="text-sm text-red-700 dark:text-red-300">{tf.failed}</p>
         )}
         <button type="submit" className="btn-primary" disabled={status === "sending" || !message.trim()}>
-          <Send size={16} aria-hidden />
+          {/* Clipped, so the plane vanishes at the icon's edge rather than over the label. */}
+          <span className="-m-0.5 inline-flex overflow-hidden p-0.5">
+            <Send
+              size={16}
+              className={status === "sending" ? "animate-take-off motion-reduce:animate-none" : undefined}
+              aria-hidden
+            />
+          </span>
           {status === "sending" ? tf.sending : tf.send}
         </button>
       </form>
