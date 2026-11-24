@@ -305,6 +305,33 @@ export const es: Dictionary = {
     noPace: "Aún no se ha medido. Los tiempos se registran durante una vista previa o una sincronización.",
   },
 
+  privacy: {
+    link: "Privacidad",
+    title: "Privacidad",
+    stays: "Tu inicio de sesión, tus subrayados y tu historial de sincronización se quedan en este navegador y solo van a YouVersion.",
+    usageTitle: "Datos de uso anónimos",
+    usage: "Para ver cómo se usa la app y arreglar lo que falla, envía datos de uso anónimos a PostHog, en la UE: qué páginas se abren, cifras como cuántos versículos cambió una sincronización, y errores.",
+    never: "Nunca envía versículos, subrayados, tus versiones de la Biblia ni nada que te identifique, y no guarda nada en tu navegador para reconocerte.",
+    toggle: "Enviar datos de uso anónimos",
+    signal: "Tu navegador pide a los sitios que no te rastreen, así que esto empieza desactivado.",
+    feedbackTitle: "Comentarios",
+    feedback: "Los comentarios que envíes también van a PostHog, con tu correo si lo das, para que el desarrollador pueda responder.",
+  },
+
+  feedback: {
+    link: "Comentarios",
+    title: "Enviar comentarios",
+    intro: "¿Encontraste un problema o tienes una idea?",
+    message: "Tus comentarios",
+    email: "Correo (opcional, para responderte)",
+    send: "Enviar",
+    sending: "Enviando…",
+    sent: "¡Gracias! Tus comentarios se enviaron.",
+    failed: "No se pudo enviar. Revisa tu conexión e inténtalo de nuevo.",
+    privacy: "Se envía de forma anónima, salvo que añadas tu correo.",
+    github: "O abre un issue en GitHub.",
+  },
+
   footer: {
     memory: ["Historial de sincronización: {n} versículo", "Historial de sincronización: {n} versículos"],
     stats: "Estadísticas",

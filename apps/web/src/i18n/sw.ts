@@ -308,6 +308,33 @@ export const sw: Dictionary = {
     noPace: "Bado haijapimwa. Muda hurekodiwa wakati wa uhakiki au usawazishaji.",
   },
 
+  privacy: {
+    link: "Faragha",
+    title: "Faragha",
+    stays: "Kuingia kwako, alama zako na historia ya kusawazisha hubaki kwenye kivinjari hiki na huenda kwa YouVersion pekee.",
+    usageTitle: "Data ya matumizi isiyo na jina",
+    usage: "Ili kuona jinsi programu inavyotumika na kurekebisha kinachoharibika, hutuma data ya matumizi isiyo na jina kwa PostHog, katika EU: kurasa zipi zinafunguliwa, idadi kama mistari mingapi usawazishaji ulibadilisha, na hitilafu.",
+    never: "Haitumi kamwe mistari, alama, matoleo yako ya Biblia au chochote kinachokutambulisha, na haihifadhi chochote kwenye kivinjari chako ili kukutambua.",
+    toggle: "Tuma data ya matumizi isiyo na jina",
+    signal: "Kivinjari chako kinaomba tovuti zisikufuatilie, kwa hiyo hiki kinaanza kikiwa kimezimwa.",
+    feedbackTitle: "Maoni",
+    feedback: "Maoni unayotuma pia huenda kwa PostHog, pamoja na barua pepe yako ukiitoa, ili msanidi aweze kujibu.",
+  },
+
+  feedback: {
+    link: "Maoni",
+    title: "Tuma maoni",
+    intro: "Umepata tatizo, au una wazo?",
+    message: "Maoni yako",
+    email: "Barua pepe (si lazima, kwa jibu)",
+    send: "Tuma",
+    sending: "Inatuma…",
+    sent: "Asante! Maoni yako yametumwa.",
+    failed: "Imeshindikana kutuma. Angalia muunganisho wako ujaribu tena.",
+    privacy: "Hutumwa bila jina, isipokuwa ukiongeza barua pepe yako.",
+    github: "Au fungua issue kwenye GitHub.",
+  },
+
   footer: {
     memory: ["Historia ya usawazishaji: mstari {n}", "Historia ya usawazishaji: mistari {n}"],
     stats: "Takwimu",

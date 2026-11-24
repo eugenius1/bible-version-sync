@@ -105,7 +105,7 @@ describe("dictionaries", () => {
     const shared = ["app.copyright", "app.licence", "stats.colorCount", "stats.seconds", "sync.labelled"];
     const allowed: Partial<Record<Lang, string[]>> = {
       fr: ["results.more", "priority.names.orange", "stats.versions[0]", "stats.versions[1]"],
-      de: ["themes.system", "priority.names.orange"],
+      de: ["themes.system", "priority.names.orange", "privacy.feedbackTitle", "feedback.link"],
       id: ["versions.number"],
     };
     const english = new Map(strings(en));

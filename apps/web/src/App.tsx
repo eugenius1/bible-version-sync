@@ -18,10 +18,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LanguageSwitcher, ThemeSwitcher } from "./components/Pickers";
 import { Priority } from "./components/Priority";
 import { Results } from "./components/Results";
+import { FeedbackPage } from "./components/Feedback";
+import { PrivacyPage } from "./components/Privacy";
 import { StatsPage } from "./components/Stats";
 import { DEFAULT_SELECTION, SyncCard } from "./components/SyncCard";
 import { VersionsCard } from "./components/VersionsCard";
 import { useI18n } from "./i18n";
+import { track, trackBeforeLeaving, trackError } from "./lib/analytics";
 import { copyrightYears } from "./lib/copyright";
 import { APP_KEY, client, completeSignIn, isCallback, SignInError, signOut, startSignIn } from "./lib/auth";
 import { labelVersions, runKey, runKind, store, tokenStore, type Settings, type Unfinished } from "./lib/db";
@@ -67,7 +70,7 @@ export function App() {
   return <Main />;
 }
 
-function Shell({ children, account }: { children: React.ReactNode; account?: React.ReactNode }) {
+function Shell({ children, account, busy = false }: { children: React.ReactNode; account?: React.ReactNode; busy?: boolean }) {
   const { t, f } = useI18n();
   return (
     <div className="flex min-h-dvh flex-col">
@@ -102,6 +105,16 @@ function Shell({ children, account }: { children: React.ReactNode; account?: Rea
             </a>{" "}
             · {t.app.notAffiliated}
           </p>
+          {/* Not mid-run, like Stats: the page would replace the sync card, Stop button and all. */}
+          <p className="text-center">
+            <a href={busy ? undefined : "#privacy"} aria-disabled={busy || undefined} className={`${FOOTER_LINK} aria-disabled:opacity-50`}>
+              {t.privacy.link}
+            </a>{" "}
+            ·{" "}
+            <a href={busy ? undefined : "#feedback"} aria-disabled={busy || undefined} className={`${FOOTER_LINK} aria-disabled:opacity-50`}>
+              {t.feedback.link}
+            </a>
+          </p>
         </footer>
       </div>
     </div>
@@ -116,8 +129,10 @@ function Callback() {
     if (started.current) return; // StrictMode runs effects twice in dev
     started.current = true;
     completeSignIn()
-      .then((r) => {
-        if (r === "done") location.replace(import.meta.env.BASE_URL);
+      .then(async (r) => {
+        if (r !== "done") return;
+        await trackBeforeLeaving("signed_in");
+        location.replace(import.meta.env.BASE_URL);
       })
       .catch(setError);
   }, []);
@@ -215,6 +230,7 @@ function Main() {
         // Its snapshot is gone, so what a stopped run planned with it no longer holds.
         await forgetUnfinished();
       }
+      if (next.length > settings!.versions.length) void track("version_added", { versions: next.length });
       const s = { ...settings!, versions: labelVersions(next) };
       await store.setSettings(s);
       setSettings(s);
@@ -308,8 +324,17 @@ function Main() {
         });
         await saveProgress(summary.aborted || summary.fatal ? summary.books : []);
         setRun({ status: "done", apply, scope, summary });
+        const counts = { versions: versions.length, books: summary.books.length, failedBooks: summary.failedBooks, stopped: summary.aborted };
+        if (apply) {
+          void track("sync_applied", { ...counts, highlighted: summary.sets, removed: summary.removals, writeErrors: summary.writeErrors });
+        } else {
+          void track("preview_run", { ...counts, differences: summary.differences });
+        }
+        if (summary.fatal) void track("sync_failed", { reason: summary.fatal.reason });
       } catch (e) {
         setRun({ status: "error", message: e instanceof Error ? e.message : String(e) });
+        void track("sync_failed", { reason: "unexpected" });
+        void trackError(e);
       } finally {
         if (clock) {
           persistPace({
@@ -347,6 +372,9 @@ function Main() {
       </Shell>
     );
   }
+  // Also open to anyone signed out.
+  if (page === "privacy") return <Shell><PrivacyPage /></Shell>;
+  if (page === "feedback") return <Shell><FeedbackPage /></Shell>;
   if (auth === "signed-out") return <SignIn />;
 
   const running = run.status === "running";
@@ -393,7 +421,7 @@ function Main() {
   );
 
   return (
-    <Shell account={account}>
+    <Shell account={account} busy={running}>
       <VersionsCard
         settings={settings.versions}
         resolved={versions}

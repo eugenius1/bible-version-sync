@@ -37,12 +37,14 @@ jobs:
       # The user site's custom domain (eusebius.tech) serves this project
       # repository under /bible-version-sync/, hence BASE_PATH. The app key is
       # an OAuth client id baked into the JavaScript, so a repository variable
-      # is enough.
+      # is enough. So is PostHog's project token, also public; without it
+      # the app sends no usage data, errors or feedback.
       - name: Build
         run: npm run build
         env:
           BASE_PATH: /bible-version-sync/
           VITE_YV_APP_KEY: ${{ vars.VITE_YV_APP_KEY }}
+          VITE_POSTHOG_KEY: ${{ vars.VITE_POSTHOG_KEY }}
 
       - uses: actions/upload-pages-artifact@v5
         with:
