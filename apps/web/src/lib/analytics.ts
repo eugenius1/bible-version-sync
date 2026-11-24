@@ -57,9 +57,12 @@ function storedChoice(): boolean | null {
   }
 }
 
+/** The choice made on this page when it couldn't be stored, which outranks an older stored one. */
+let unsaved: boolean | null = null;
+
 /** Whether usage data and errors may be sent: the person's choice, else on unless the browser asks not to. */
 export function usageAllowed(): boolean {
-  return storedChoice() ?? !privacySignal();
+  return unsaved ?? storedChoice() ?? !privacySignal();
 }
 
 const listeners = new Set<() => void>();
@@ -67,8 +70,10 @@ const listeners = new Set<() => void>();
 export function setUsageAllowed(on: boolean): void {
   try {
     localStorage.setItem(CHOICE_KEY, on ? "on" : "off");
+    unsaved = null;
   } catch {
-    // Private mode without storage: the choice lasts until the page closes.
+    // No storage (some private modes): the choice lasts until the page closes.
+    unsaved = on;
   }
   listeners.forEach((l) => l());
   if (on) startAnalytics();
@@ -152,6 +157,9 @@ function load(): Promise<PostHog | null> {
         capture_pageview: false, // sent here, on hash changes too
         disable_capture_url_hashes: false, // the hash is the page ("#stats"); scrub() drops its query
         capture_pageleave: false,
+        // Click ids (gclid, fbclid…) and utm_* would be copied from the landing
+        // address into events, out of reach of scrub()'s query stripping.
+        save_campaign_params: false,
         capture_dead_clicks: false,
         capture_heatmaps: false,
         capture_performance: false,

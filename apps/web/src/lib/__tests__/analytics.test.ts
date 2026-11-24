@@ -65,6 +65,18 @@ describe("the person's choice", () => {
     expect(usageAllowed()).toBe(false);
   });
 
+  it("holds for the page when it can't be stored, even over an older stored choice", () => {
+    localStorage.setItem("bvs-usage-data", "on");
+    const setItem = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new DOMException("No storage", "SecurityError");
+    });
+    setUsageAllowed(false);
+    expect(usageAllowed()).toBe(false);
+    setItem.mockRestore();
+    setUsageAllowed(true); // stored again, so the page's own choice is let go
+    expect(usageAllowed()).toBe(true);
+  });
+
   it("wins over the browser's signal once made", () => {
     vi.stubGlobal("navigator", { ...navigator, doNotTrack: "1" });
     setUsageAllowed(true);

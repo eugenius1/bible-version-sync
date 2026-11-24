@@ -355,6 +355,10 @@ function Main() {
     [versions, settings, earlierRun, saveUnfinished],
   );
 
+  // First: they need no sign-in, settings or app key, so they open even if
+  // reading those fails, and the usage choice can always be changed.
+  if (page === "privacy") return <Shell><PrivacyPage /></Shell>;
+  if (page === "feedback") return <Shell><FeedbackPage /></Shell>;
   if (!APP_KEY) {
     return (
       <Shell>
@@ -372,9 +376,6 @@ function Main() {
       </Shell>
     );
   }
-  // Also open to anyone signed out.
-  if (page === "privacy") return <Shell><PrivacyPage /></Shell>;
-  if (page === "feedback") return <Shell><FeedbackPage /></Shell>;
   if (auth === "signed-out") return <SignIn />;
 
   const running = run.status === "running";

@@ -36,6 +36,8 @@ describe("with a PostHog key", () => {
       disable_surveys: true,
       disable_external_dependency_loading: true,
       capture_exceptions: true,
+      // No click ids (?gclid=…) or utm_* copied from the landing address.
+      save_campaign_params: false,
     });
     expect(posthog.register).toHaveBeenCalledWith({ app: APP });
     expect(posthog.capture).toHaveBeenCalledWith("signed_in", undefined);
@@ -117,11 +119,17 @@ describe("with a PostHog key", () => {
 
   it("doesn't hold up leaving the page when PostHog is slow to load", async () => {
     vi.useFakeTimers();
+    // PostHog's chunk never finishes loading.
+    vi.doMock("posthog-js/dist/module.no-external", () => new Promise(() => {}));
     const { trackBeforeLeaving } = await analytics();
-    posthog.init.mockImplementation(() => new Promise(() => {}));
-    const done = trackBeforeLeaving("signed_in", 1000);
-    await vi.advanceTimersByTimeAsync(1000);
-    await expect(done).resolves.toBeUndefined();
+    let finished = false;
+    void trackBeforeLeaving("signed_in", 1000).then(() => (finished = true));
+    await vi.advanceTimersByTimeAsync(999);
+    expect(finished).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(finished).toBe(true);
+    expect(posthog.capture).not.toHaveBeenCalled();
+    vi.doMock("posthog-js/dist/module.no-external", () => ({ default: posthog }));
     vi.useRealTimers();
   });
 });

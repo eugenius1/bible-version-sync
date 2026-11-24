@@ -49,6 +49,8 @@ export function FeedbackPage() {
             className="input min-h-32 py-2"
             required
             maxLength={5000}
+            // Not mid-send: a success replaces the form, which would lose later edits.
+            disabled={status === "sending"}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
           />
@@ -60,6 +62,7 @@ export function FeedbackPage() {
             className="input"
             type="email"
             autoComplete="email"
+            disabled={status === "sending"}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />

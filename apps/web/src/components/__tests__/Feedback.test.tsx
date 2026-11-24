@@ -41,6 +41,9 @@ describe("FeedbackPage", () => {
     const button = await screen.findByRole("button", { name: "Sending…" });
     expect(button).toBeDisabled();
     expect(button.querySelector("svg")).toHaveClass("animate-take-off");
+    // What's being sent can't change under it.
+    expect(screen.getByLabelText("Your feedback")).toBeDisabled();
+    expect(screen.getByLabelText("Email (optional, for a reply)")).toBeDisabled();
   });
 
   it("can't be sent empty", () => {
