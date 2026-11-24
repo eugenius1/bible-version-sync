@@ -308,6 +308,33 @@ export const id: Dictionary = {
     noPace: "Belum diukur. Waktu dicatat saat pratinjau atau sinkronisasi.",
   },
 
+  privacy: {
+    link: "Privasi",
+    title: "Privasi",
+    stays: "Info masuk, stabilo, dan riwayat sinkronisasi Anda tetap di browser ini dan hanya dikirim ke YouVersion.",
+    usageTitle: "Data penggunaan anonim",
+    usage: "Untuk melihat cara aplikasi digunakan dan memperbaiki yang rusak, aplikasi mengirim data penggunaan anonim ke PostHog, di UE: halaman mana yang dibuka, angka seperti berapa ayat yang diubah oleh sinkronisasi, dan galat.",
+    never: "Aplikasi tidak pernah mengirim ayat, stabilo, versi Alkitab Anda, atau apa pun yang mengenali Anda, dan tidak menyimpan apa pun di browser untuk mengenali Anda.",
+    toggle: "Kirim data penggunaan anonim",
+    signal: "Browser Anda meminta situs untuk tidak melacak Anda, jadi ini awalnya mati.",
+    feedbackTitle: "Masukan",
+    feedback: "Masukan yang Anda kirim juga masuk ke PostHog, beserta email Anda jika Anda mengisinya, agar pengembang bisa membalas.",
+  },
+
+  feedback: {
+    link: "Masukan",
+    title: "Kirim masukan",
+    intro: "Menemukan masalah, atau punya ide?",
+    message: "Masukan Anda",
+    email: "Email (opsional, untuk balasan)",
+    send: "Kirim",
+    sending: "Mengirim…",
+    sent: "Terima kasih! Masukan Anda sudah terkirim.",
+    failed: "Tidak bisa dikirim. Periksa koneksi Anda, atau jeda pemblokir iklan atau pelacak untuk situs ini, lalu coba lagi.",
+    privacy: "Dikirim secara anonim, kecuali Anda menambahkan email.",
+    github: "Atau buka issue di GitHub.",
+  },
+
   footer: {
     memory: ["Riwayat sinkronisasi: {n} ayat", "Riwayat sinkronisasi: {n} ayat"],
     stats: "Statistik",

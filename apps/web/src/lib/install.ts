@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { track } from "./analytics";
 import { store } from "./db";
 
 /** Chromium's install event; not in TypeScript's DOM types. */
@@ -30,6 +31,7 @@ export function listenForInstall(target: Window = window): void {
   target.addEventListener("appinstalled", () => {
     deferred = null;
     void store.setInstallOffered();
+    void track("app_installed");
     notify();
   });
 }

@@ -307,6 +307,33 @@ export const en = {
     noPace: "Not measured yet. Timings are recorded during a preview or sync.",
   },
 
+  privacy: {
+    link: "Privacy",
+    title: "Privacy",
+    stays: "Your sign-in, highlights and sync history stay in this browser and go only to YouVersion.",
+    usageTitle: "Anonymous usage data",
+    usage: "To see how the app is used and fix what breaks, it sends anonymous usage data to PostHog, in the EU: which pages open, counts such as how many verses a sync changed, and errors.",
+    never: "It never sends verses, highlights, your Bible versions or anything that identifies you, and it stores nothing in your browser to recognize you.",
+    toggle: "Send anonymous usage data",
+    signal: "Your browser asks sites not to track you, so this starts off.",
+    feedbackTitle: "Feedback",
+    feedback: "Feedback you send goes to PostHog too, with your email if you give one, so the developer can reply.",
+  },
+
+  feedback: {
+    link: "Feedback",
+    title: "Send feedback",
+    intro: "Found a problem, or have an idea?",
+    message: "Your feedback",
+    email: "Email (optional, for a reply)",
+    send: "Send",
+    sending: "Sending…",
+    sent: "Thank you! Your feedback was sent.",
+    failed: "It couldn't be sent. Check your connection, or pause any ad or tracker blocker for this site, and try again.",
+    privacy: "Sent anonymously unless you add your email.",
+    github: "Or open an issue on GitHub.",
+  },
+
   footer: {
     memory: ["Sync history: {n} verse", "Sync history: {n} verses"],
     stats: "Stats",

@@ -14,7 +14,8 @@ const CSP = [
   "script-src 'self'",
   "style-src 'self'",
   "img-src 'self' data:",
-  "connect-src 'self' https://api.youversion.com",
+  // PostHog's EU ingest host: usage data, errors and feedback (docs/analytics.md).
+  "connect-src 'self' https://api.youversion.com https://eu.i.posthog.com",
   "frame-src https://www.instagram.com", // the demo reel on the sign-in page
   "manifest-src 'self'",
   "worker-src 'self'",
@@ -64,6 +65,8 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.test.{ts,tsx}"],
     setupFiles: ["src/__tests__/setup.ts"],
+    // Tests never send to PostHog, whatever a developer's .env.local holds.
+    env: { VITE_POSTHOG_KEY: "" },
   },
   plugins: [
     react(),

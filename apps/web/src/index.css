@@ -6,6 +6,15 @@
 
 @theme {
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* The Send button's paper plane while feedback sends: it flies off up and
+     to the right, then glides back in from the lower left. */
+  --animate-take-off: take-off 1.4s ease-in-out infinite;
+  @keyframes take-off {
+    0%, 15%, 85%, 100% { transform: translate(0, 0); opacity: 1; }
+    50% { transform: translate(14px, -14px); opacity: 0; }
+    51% { transform: translate(-14px, 14px); opacity: 0; }
+  }
 }
 
 @layer base {

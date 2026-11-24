@@ -9,7 +9,9 @@ in one version and it shows up in the others you read, on the right verse even
 where versions number their verses differently.
 
 Everything runs in your browser. There is no server: your sign-in and your
-highlights go only between your browser and YouVersion.
+highlights go only between your browser and YouVersion. The app also sends
+anonymous usage counts and errors to PostHog, never verses or highlights, and
+you can turn that off on its Privacy page.
 
 Use it at <https://eusebius.tech/bible-version-sync/>. To run it yourself, see
 [CONTRIBUTING.md](CONTRIBUTING.md).

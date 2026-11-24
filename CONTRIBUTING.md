@@ -118,6 +118,11 @@ Read the one your change touches:
   `versification.ts`, `discover.ts` and `packages/core/data`.
 - [docs/localisation.md](docs/localisation.md): strings, plurals and adding a
   language. For `apps/web/src/i18n` and `books.ts`.
+- [docs/analytics.md](docs/analytics.md): what goes to PostHog and the
+  rules for adding an event. For `apps/web/src/lib/analytics.ts` and any
+  code that sends an event.
+- [docs/adr/](docs/adr/): decisions that would be costly to reverse, and
+  why they were made.
 
 ## Things that will bite you elsewhere
 

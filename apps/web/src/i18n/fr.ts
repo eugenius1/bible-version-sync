@@ -313,6 +313,33 @@ export const fr: Dictionary = {
     noPace: "Aucune mesure pour l'instant. Les durées sont enregistrées pendant un aperçu ou une synchronisation.",
   },
 
+  privacy: {
+    link: "Confidentialité",
+    title: "Confidentialité",
+    stays: "Votre connexion, vos surlignages et votre historique de synchronisation restent dans ce navigateur et ne vont qu'à YouVersion.",
+    usageTitle: "Données d'utilisation anonymes",
+    usage: "Pour voir comment l'application est utilisée et corriger ce qui ne marche pas, elle envoie des données d'utilisation anonymes à PostHog, dans l'UE : les pages ouvertes, des chiffres comme le nombre de versets modifiés par une synchronisation, et les erreurs.",
+    never: "Elle n'envoie jamais de versets, de surlignages, vos versions de la Bible ni rien qui vous identifie, et ne stocke rien dans votre navigateur pour vous reconnaître.",
+    toggle: "Envoyer des données d'utilisation anonymes",
+    signal: "Votre navigateur demande aux sites de ne pas vous suivre, donc ceci est désactivé au départ.",
+    feedbackTitle: "Avis",
+    feedback: "Les avis que vous envoyez vont aussi à PostHog, avec votre e-mail si vous en donnez un, pour que le développeur puisse répondre.",
+  },
+
+  feedback: {
+    link: "Donner un avis",
+    title: "Donner un avis",
+    intro: "Un problème, ou une idée ?",
+    message: "Votre avis",
+    email: "E-mail (facultatif, pour une réponse)",
+    send: "Envoyer",
+    sending: "Envoi…",
+    sent: "Merci ! Votre avis a été envoyé.",
+    failed: "L'envoi a échoué. Vérifiez votre connexion, ou mettez en pause tout bloqueur de publicités ou de traqueurs pour ce site, puis réessayez.",
+    privacy: "Envoyé anonymement, sauf si vous ajoutez votre e-mail.",
+    github: "Ou ouvrez une issue sur GitHub.",
+  },
+
   footer: {
     memory: ["Historique de synchronisation : {n} verset", "Historique de synchronisation : {n} versets"],
     stats: "Statistiques",

@@ -305,6 +305,33 @@ export const de: Dictionary = {
     noPace: "Noch nicht gemessen. Die Zeiten werden bei einer Vorschau oder Synchronisierung erfasst.",
   },
 
+  privacy: {
+    link: "Datenschutz",
+    title: "Datenschutz",
+    stays: "Deine Anmeldung, Markierungen und Synchronisierungsverlauf bleiben in diesem Browser und gehen nur an YouVersion.",
+    usageTitle: "Anonyme Nutzungsdaten",
+    usage: "Um zu sehen, wie die App genutzt wird, und Fehler zu beheben, sendet sie anonyme Nutzungsdaten an PostHog in der EU: welche Seiten geöffnet werden, Zahlen wie die Anzahl der durch eine Synchronisierung geänderten Verse, und Fehler.",
+    never: "Sie sendet nie Verse, Markierungen, deine Bibelübersetzungen oder etwas, das dich identifiziert, und speichert nichts in deinem Browser, um dich wiederzuerkennen.",
+    toggle: "Anonyme Nutzungsdaten senden",
+    signal: "Dein Browser bittet Websites, dich nicht zu verfolgen, daher ist dies zunächst aus.",
+    feedbackTitle: "Feedback",
+    feedback: "Feedback, das du sendest, geht ebenfalls an PostHog, mit deiner E-Mail-Adresse, falls du eine angibst, damit der Entwickler antworten kann.",
+  },
+
+  feedback: {
+    link: "Feedback",
+    title: "Feedback senden",
+    intro: "Ein Problem gefunden oder eine Idee?",
+    message: "Dein Feedback",
+    email: "E-Mail (optional, für eine Antwort)",
+    send: "Senden",
+    sending: "Wird gesendet…",
+    sent: "Danke! Dein Feedback wurde gesendet.",
+    failed: "Es konnte nicht gesendet werden. Prüfe deine Verbindung oder pausiere Werbe- und Tracking-Blocker für diese Seite und versuche es erneut.",
+    privacy: "Anonym gesendet, außer du gibst deine E-Mail-Adresse an.",
+    github: "Oder eröffne ein Issue auf GitHub.",
+  },
+
   footer: {
     memory: ["Synchronisierungsverlauf: {n} Vers", "Synchronisierungsverlauf: {n} Verse"],
     stats: "Statistik",

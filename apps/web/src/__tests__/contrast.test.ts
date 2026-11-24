@@ -135,6 +135,14 @@ const PAIRS: Array<[Pair, Pair]> = [
     { label: "which-wins switch knob on its track", fg: "stone-950", bg: "amber-500", need: 3 },
   ],
   [
+    { label: "usage-data switch track, off, on a card", fg: "stone-500", bg: "white", need: 3 },
+    { label: "usage-data switch track, off, on a card", fg: "stone-500", bg: "stone-900", need: 3 },
+  ],
+  [
+    { label: "usage-data switch knob on its track, off", fg: "white", bg: "stone-500", need: 3 },
+    { label: "usage-data switch knob on its track, off", fg: "stone-950", bg: "stone-500", need: 3 },
+  ],
+  [
     { label: "progress bar in its track", fg: "amber-700", bg: "stone-200", need: 3 },
     { label: "progress bar in its track", fg: "amber-500", bg: "stone-800", need: 3 },
   ],
